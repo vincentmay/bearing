@@ -2,16 +2,21 @@ import {
   type LpGame,
   type LpPlayer,
   championKeys,
+  type LpPlace,
   findGames,
   gamesUrl,
+  placePage,
+  placesOfUrl,
+  placesUrl,
   playersUrl,
   readGame,
+  readPlaces,
   rowsOf,
 } from "@bearing/domain/leaguepedia";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { internalAction, internalMutation, internalQuery } from "./_generated/server";
-import { game } from "./validators";
+import { game, tournament } from "./validators";
 
 /**
  * The draft and every player's line of a League of Legends game, added to matches the store
@@ -290,6 +295,114 @@ export const enrich = internalAction({
         before: reached === undefined ? to : reached - 1,
         stumbles,
       });
+    return null;
+  },
+});
+
+/**
+ * Who finished where, and what each place paid, for League events that are over: from the
+ * wiki's table of final places. An event is asked about once, a day or more after it ended.
+ */
+export const unplaced = internalQuery({
+  args: { now: v.number() },
+  returns: v.array(
+    v.object({
+      key: v.string(),
+      end: v.string(),
+      currency: v.optional(v.string()),
+      winner: v.optional(v.string()),
+      teams: v.array(v.object({ id: v.string(), name: v.string(), short: v.string() })),
+    }),
+  ),
+  handler: async (ctx, { now }) => {
+    const asked = await ctx.db
+      .query("digests")
+      .withIndex("by_key", (q) => q.gte("key", "placed:").lt("key", "placed:\uffff"))
+      .take(1000);
+    const done = new Set(asked.map((row) => row.key.slice("placed:".length)));
+    const today = new Date(now - DAY).toISOString().slice(0, 10);
+    const events = (await ctx.db.query("tournaments").take(1000)).filter(
+      (row) => row.doc.discipline === "lol" && row.doc.end < today && !done.has(row.key),
+    );
+    const out = [];
+    for (const row of events.slice(0, 6)) {
+      const teams = [];
+      for (const id of row.doc.participantIds.slice(0, 64)) {
+        const team = await ctx.db
+          .query("competitors")
+          .withIndex("by_key", (q) => q.eq("key", id))
+          .first();
+        if (team?.doc.kind === "team")
+          teams.push({ id, name: team.doc.name, short: team.doc.short });
+      }
+      out.push({
+        key: row.key,
+        end: row.doc.end,
+        currency: row.doc.prize?.currency,
+        winner: row.doc.placements?.find((p) => p.rank === 1)?.competitorIds[0],
+        teams,
+      });
+    }
+    return out;
+  },
+});
+
+export const setPlaces = internalMutation({
+  args: {
+    key: v.string(),
+    placements: v.optional(tournament.fields.placements),
+    prize: tournament.fields.prize,
+  },
+  returns: v.null(),
+  handler: async (ctx, { key, placements, prize }) => {
+    await ctx.db.insert("digests", { key: `placed:${key}`, hash: placements ? "found" : "none" });
+    const row = await ctx.db
+      .query("tournaments")
+      .withIndex("by_key", (q) => q.eq("key", key))
+      .first();
+    if (row && placements)
+      await ctx.db.patch("tournaments", row._id, {
+        doc: { ...row.doc, placements, prize: row.doc.prize ?? prize },
+      });
+    return null;
+  },
+});
+
+export const places = internalAction({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    if (!(await ctx.runQuery(internal.ingest.enabled, {}))) return null;
+    const events: {
+      key: string;
+      end: string;
+      currency?: string;
+      winner?: string;
+      teams: { id: string; name: string; short: string }[];
+    }[] = await ctx.runQuery(internal.leaguepedia.unplaced, { now: Date.now() });
+    for (const event of events) {
+      await pause(BREATH);
+      const end = Date.parse(`${event.end}T12:00:00Z`);
+      // First which of the wiki's pages is this event, from the places decided on its last
+      // days; then every place on that page, since a team that went out early has an early date.
+      const last = await ask<LpPlace>(placesUrl(end - 3 * DAY, end + 3 * DAY));
+      // The wiki did not answer: leave the rest for another day.
+      if (!last) return null;
+      const page = placePage(last, event.teams, event.winner);
+      let rows: LpPlace[] = [];
+      if (page) {
+        await pause(BREATH);
+        const all = await ask<LpPlace>(placesOfUrl(page));
+        if (!all) return null;
+        rows = all;
+      }
+      const read = readPlaces(rows, event.teams, event.currency, event.winner);
+      await ctx.runMutation(internal.leaguepedia.setPlaces, {
+        key: event.key,
+        placements: read?.placements,
+        prize: read?.total,
+      });
+    }
     return null;
   },
 });

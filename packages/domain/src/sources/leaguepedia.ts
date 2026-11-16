@@ -1,4 +1,4 @@
-import type { Champion, GameResult, PlayerLine } from "../model.ts";
+import type { Champion, GameResult, Placement, PlayerLine } from "../model.ts";
 import { sameTeam } from "./lolesports.ts";
 
 /**
@@ -289,4 +289,122 @@ export function readGame(
     objectives: towers && dragons && barons && gold ? { towers, dragons, barons, gold } : undefined,
     clock: minutes ? Math.round(minutes * 60) : undefined,
   };
+}
+
+/** One row of the table of final places, with the names asked for in `placesUrl`. */
+export interface LpPlace {
+  page: string;
+  place: string;
+  rank: string;
+  team: string;
+  prize: string;
+  usd: string;
+  unit: string;
+}
+
+const PLACE_FIELDS: Record<keyof LpPlace, string> = {
+  page: "OverviewPage",
+  place: "Place",
+  rank: "Place_Number",
+  team: "Team",
+  prize: "Prize",
+  usd: "Prize_USD",
+  unit: "PrizeUnit",
+};
+
+/** `2026-11-14`, the way the table writes a day. */
+const dayStamp = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+
+/** Every final place decided between two moments, whatever the event. */
+export function placesUrl(from: number, to: number): string {
+  return url(
+    "TournamentResults",
+    PLACE_FIELDS,
+    `Date >= ${quoted(dayStamp(from))} AND Date <= ${quoted(dayStamp(to))}`,
+    "OverviewPage,Place_Number",
+  );
+}
+
+/** Every final place of one event, by the wiki's page for it. */
+export function placesOfUrl(page: string): string {
+  return url("TournamentResults", PLACE_FIELDS, `OverviewPage = ${quoted(page)}`, "Place_Number");
+}
+
+/**
+ * The wiki's page for one of Bearing's events, picked from the final places decided around the
+ * event's last day: the page that names most of the event's own teams, at least two of them,
+ * and whose winner is the winner Bearing knows.
+ */
+export function placePage(
+  rows: LpPlace[],
+  teams: { id: string; name: string; short: string }[],
+  winnerId?: string,
+): string | null {
+  const idOf = (name: string) => teams.find((t) => isTeam(name, t))?.id;
+  const pages = new Map<string, LpPlace[]>();
+  for (const row of rows) pages.set(row.page, [...(pages.get(row.page) ?? []), row]);
+  let best: string | null = null;
+  let known = 1;
+  for (const [page, list] of pages) {
+    const hits = list.filter((row) => idOf(row.team)).length;
+    const first = list.find((row) => row.rank === "1");
+    if (winnerId && first && idOf(first.team) !== winnerId) continue;
+    if (hits > known) [best, known] = [page, hits];
+  }
+  return best;
+}
+
+const ORDINAL = ["th", "st", "nd", "rd"];
+const ordinal = (n: number) => `${n}${ORDINAL[n % 100 > 10 && n % 100 < 14 ? 0 : n % 10] ?? "th"}`;
+
+/** "3-4" is "3rd–4th". */
+function placeName(place: string): string {
+  const [from, to] = place.split("-").map((part) => Number(part.trim()));
+  if (!from) return place;
+  return to && to !== from ? `${ordinal(from)}–${ordinal(to)}` : ordinal(from);
+}
+
+/**
+ * Who finished where in one of Bearing's events, from rows of final places that may belong to
+ * any event of those days. The event is the one that names most of the event's own teams; if
+ * none names at least two, or the winner Bearing knows is not its winner, nothing is said.
+ * Prize money is given per team, in `currency` where the wiki has it in that currency.
+ */
+export function readPlaces(
+  rows: LpPlace[],
+  teams: { id: string; name: string; short: string }[],
+  currency: string | undefined,
+  winnerId?: string,
+): { placements: Placement[]; total?: { amount: number; currency: string } } | null {
+  const idOf = (name: string) => teams.find((t) => isTeam(name, t))?.id;
+  const pages = new Map<string, LpPlace[]>();
+  for (const row of rows) pages.set(row.page, [...(pages.get(row.page) ?? []), row]);
+  let best: LpPlace[] = [];
+  let known = 1;
+  for (const list of pages.values()) {
+    const hits = list.filter((row) => idOf(row.team)).length;
+    if (hits > known) [best, known] = [list, hits];
+  }
+  if (!best.length) return null;
+  const first = best.find((row) => row.rank === "1");
+  if (winnerId && first && idOf(first.team) !== winnerId) return null;
+
+  const money = currency ?? "USD";
+  const amount = (row: LpPlace) =>
+    row.unit === money ? count(row.prize) : money === "USD" ? count(row.usd) : undefined;
+  const bands = new Map<string, LpPlace[]>();
+  for (const row of best) bands.set(row.place, [...(bands.get(row.place) ?? []), row]);
+  const placements = [...bands.entries()]
+    .map(([place, list]): Placement => {
+      const prize = amount(list[0]!);
+      return {
+        place: placeName(place),
+        rank: count(list[0]!.rank) ?? 99,
+        prize: prize && prize > 0 ? prize : undefined,
+        competitorIds: list.flatMap((row) => idOf(row.team) ?? []),
+      };
+    })
+    .sort((x, y) => x.rank - y.rank);
+  const sum = best.reduce((all, row) => all + (amount(row) ?? 0), 0);
+  return { placements, total: sum > 0 ? { amount: sum, currency: money } : undefined };
 }

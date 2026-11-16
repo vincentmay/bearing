@@ -9,6 +9,7 @@ import {
   isTeam,
   playersUrl,
   readGame,
+  readPlaces,
   rowsOf,
 } from "../src/sources/leaguepedia.ts";
 
@@ -118,6 +119,41 @@ describe("Leaguepedia", () => {
     expect(isTeam("Gen.G", { name: "Gen.G", short: "GEN" })).toBe(true);
     expect(isTeam("Gen.G", { name: "T1", short: "T1" })).toBe(false);
     expect(isTeam("Bilibili Gaming", { name: "BIG", short: "BIG" })).toBe(false);
+  });
+
+  test("final places are read for the event that names the event's own teams", () => {
+    const row = (page: string, place: string, rank: string, team: string, usd: string) => ({
+      page,
+      place,
+      rank,
+      team,
+      prize: usd,
+      usd,
+      unit: "USD",
+    });
+    const rows = [
+      row("Worlds", "1", "1", "Bilibili Gaming", "1000000"),
+      row("Worlds", "2", "2", "Gen.G", "800000"),
+      row("Worlds", "3-4", "3", "T1", "400000"),
+      row("Worlds", "3-4", "3", "Someone Else", "400000"),
+      row("Another Cup", "1", "1", "Gen.G", "5"),
+    ];
+    const teams = [
+      { id: "blg", name: "Bilibili Gaming", short: "BLG" },
+      { id: "gen", name: "Gen.G", short: "GEN" },
+      { id: "t1", name: "T1", short: "T1" },
+    ];
+    const read = readPlaces(rows, teams, "USD", "blg");
+    expect(read?.placements.map((p) => [p.place, p.prize, p.competitorIds])).toEqual([
+      ["1st", 1000000, ["blg"]],
+      ["2nd", 800000, ["gen"]],
+      ["3rd–4th", 400000, ["t1"]],
+    ]);
+    expect(read?.total).toEqual({ amount: 2600000, currency: "USD" });
+    // A winner that is not the one Bearing knows means another event: nothing is said.
+    expect(readPlaces(rows, teams, "USD", "gen")).toBeNull();
+    // In a currency the wiki does not give, the places stand without their money.
+    expect(readPlaces(rows, teams, "CNY", "blg")?.placements[0]?.prize).toBeUndefined();
   });
 
   test("a game of other teams is not read", () => {

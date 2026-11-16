@@ -130,6 +130,16 @@ export const put = internalMutation({
         .query("tournaments")
         .withIndex("by_key", (q) => q.eq("key", doc.id))
         .first();
+      // Places and prize money that another source filled in more fully are kept.
+      const old = row?.doc.placements;
+      const fuller =
+        old &&
+        (old.length > (doc.placements?.length ?? 0) ||
+          (old.some((p) => p.prize) && !doc.placements?.some((p) => p.prize)));
+      if (row && fuller) {
+        doc.placements = old;
+        doc.prize ??= row.doc.prize;
+      }
       // The time of checking differs on every run; alone it is no reason to write.
       const unchanged = row && same({ ...row.doc, provenance: null }, { ...doc, provenance: null });
       // Unchanged, but checked: the time of checking is written at most every half hour, so the
