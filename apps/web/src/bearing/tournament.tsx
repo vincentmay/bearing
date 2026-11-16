@@ -21,7 +21,7 @@ import { Bracket, DoubleBracket } from "./bracket";
 import { CrossTable, Heat } from "./stages";
 import { SwissFlow } from "./swiss";
 import { until } from "./time";
-import { Disc, Flag, FollowStar, Ping, Problem, Section, Segmented } from "./ui";
+import { Disc, EventMark, Flag, FollowStar, Ping, Problem, Section, Segmented } from "./ui";
 
 /** A pairing on one line, for rounds with many games: who played whom, and how it stands. */
 function PairRow({ match, board }: { match: Match; board: Board }) {
@@ -285,7 +285,10 @@ export function TournamentPage({ tournamentId }: { tournamentId: string }) {
       undefined;
   const state =
     status === "live"
-      ? `Live${current ? ` · ${current.name}` : ""}${live.length ? ` · ${live.length} on now` : ""}`
+      ? live.length
+        ? `Live${current ? ` · ${current.name}` : ""} · ${live.length} on now`
+        : // Under way, with nothing being played this minute: not "live".
+          `Under way${current ? ` · ${current.name}` : ""}`
       : status === "upcoming"
         ? `Starts ${until(`${t.start}T12:00:00Z`, now)}`
         : `Finished${winner ? ` · won by ${plainName(atlas, winner)}` : ""}`;
@@ -294,11 +297,12 @@ export function TournamentPage({ tournamentId }: { tournamentId: string }) {
     <>
       <Back />
       <header className="bx-entity">
+        <EventMark image={t.image} size={64} />
         <div>
           <p className="bx-label">{d.name}</p>
           <h1 className="bx-display">{t.name}</h1>
           <p className="bx-state" style={{ justifyContent: "flex-start", marginTop: 10 }}>
-            {status === "live" ? <Ping /> : null}
+            {status === "live" && live.length ? <Ping /> : null}
             {state}
           </p>
         </div>

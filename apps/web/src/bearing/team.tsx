@@ -8,6 +8,7 @@ import {
   tournamentStatus,
 } from "@bearing/domain";
 import type { CSSProperties } from "react";
+import { useHistory } from "../lib/meetings";
 import { achievements, didWin } from "../lib/view";
 import { type Board, useBoard } from "./board";
 import { Back, Go, useVisit } from "./links";
@@ -180,6 +181,77 @@ function Maps({ all, team, side }: { all: Match[]; team: Team; side: SideView })
                   {won}–{dots.length - won}
                 </span>
               </span>
+            </div>
+          );
+        })}
+      </div>
+    </Section>
+  );
+}
+
+/**
+ * What a team did before the weeks Bearing keeps as matches: its series back through the
+ * year, with who it played, at which event, and how it ended; and above them its record for
+ * the year so far.
+ */
+function Earlier({ team, board }: { team: Team; board: Board }) {
+  const { atlas, now, times } = board;
+  const past = useHistory(team.id);
+  const older = past.filter((p) => !atlas.match(p.id));
+  if (!older.length) return null;
+  const year = String(new Date(now).getFullYear());
+  const thisYear = past.filter((p) => p.at.startsWith(year));
+  const won = thisYear.filter((p) => p.won === true).length;
+  const lost = thisYear.filter((p) => p.won === false).length;
+  const when = (at: string) =>
+    at.startsWith(year) ? times.date(at) : `${times.date(at)} ${at.slice(0, 4)}`;
+  return (
+    <Section label={`Earlier${thisYear.length ? ` · ${won} won, ${lost} lost in ${year}` : ""}`}>
+      <div className="bx-list">
+        {older.slice(0, 12).map((p) => {
+          const known = atlas.team(p.opponentId);
+          const body = (
+            <>
+              <span className="bx-who">
+                <Disc
+                  size={26}
+                  side={
+                    known
+                      ? sideOf(atlas, known.id)
+                      : {
+                          id: null,
+                          name: p.opponent,
+                          label: p.opponent,
+                          short: p.opponent.slice(0, 2).toUpperCase(),
+                          color: "var(--ink)",
+                          ink: "var(--ground)",
+                          plural: true,
+                          image: p.image,
+                          person: false,
+                        }
+                  }
+                />
+                <span>
+                  <b>{p.opponent}</b>
+                  <span className="bx-sub">
+                    {when(p.at)} · {p.event}
+                  </span>
+                </span>
+              </span>
+              <span className="bx-h2h-score bx-num">
+                <b data-won={p.won === true ? "" : undefined}>{p.score[0]}</b>
+                <i className="bx-dash" />
+                <b data-won={p.won === false ? "" : undefined}>{p.score[1]}</b>
+              </span>
+            </>
+          );
+          return known ? (
+            <Go key={p.id} to={{ kind: "team", id: known.id }} className="bx-line bx-h2h-row">
+              {body}
+            </Go>
+          ) : (
+            <div key={p.id} className="bx-line bx-h2h-row">
+              {body}
             </div>
           );
         })}
@@ -371,6 +443,7 @@ export function TeamPage({ teamId }: { teamId: string }) {
               </div>
             </Section>
           ) : null}
+          <Earlier team={team} board={board} />
           {team.discipline === "cs2" ? <Maps all={all} team={team} side={side} /> : null}
         </div>
         <div>

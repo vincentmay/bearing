@@ -91,12 +91,70 @@ export const wanted = internalQuery({
         .query("meetings")
         .withIndex("by_key", (q) => q.eq("key", key))
         .first();
-      if (held && now - held.checkedAt < FRESH) continue;
+      // A pair is settled once their meetings are fresh and each has its own history.
+      const known = async (team: string) =>
+        !!(await ctx.db
+          .query("histories")
+          .withIndex("by_key", (q) => q.eq("key", team))
+          .first());
+      if (held && now - held.checkedAt < FRESH && (await known(x)) && (await known(y))) continue;
       const [a, b] = key.split("|") as [string, string];
       out.push({ a, b });
       if (out.length >= PAIRS_PER_RUN) break;
     }
     return out;
+  },
+});
+
+const past = v.object({
+  id: v.string(),
+  at: v.string(),
+  event: v.string(),
+  opponentId: v.string(),
+  opponent: v.string(),
+  image: v.optional(v.string()),
+  score: v.array(v.number()),
+  won: v.optional(v.boolean()),
+});
+
+/** A team's latest finished series, the newest first, or null where none were looked up. */
+export const history = query({
+  args: { team: v.string() },
+  returns: v.union(v.null(), v.array(past)),
+  handler: async (ctx, { team }) => {
+    const row = await ctx.db
+      .query("histories")
+      .withIndex("by_key", (q) => q.eq("key", team))
+      .first();
+    return row ? row.games : null;
+  },
+});
+
+/** Whether a team's history is there and recent enough to leave alone. */
+export const historyFresh = internalQuery({
+  args: { team: v.string(), now: v.number() },
+  returns: v.boolean(),
+  handler: async (ctx, { team, now }) => {
+    const row = await ctx.db
+      .query("histories")
+      .withIndex("by_key", (q) => q.eq("key", team))
+      .first();
+    return !!row && now - row.checkedAt < DAY;
+  },
+});
+
+export const putHistory = internalMutation({
+  args: { team: v.string(), games: v.array(past) },
+  returns: v.null(),
+  handler: async (ctx, { team, games }) => {
+    const row = await ctx.db
+      .query("histories")
+      .withIndex("by_key", (q) => q.eq("key", team))
+      .first();
+    const doc = { key: team, checkedAt: Date.now(), games };
+    if (row) await ctx.db.replace("histories", row._id, doc);
+    else await ctx.db.insert("histories", doc);
+    return null;
   },
 });
 
@@ -122,7 +180,7 @@ interface Listed {
   scheduled_at?: string | null;
   league?: { name?: string };
   serie?: { full_name?: string; name?: string | null };
-  opponents?: { opponent?: { id?: number } }[];
+  opponents?: { opponent?: { id?: number; name?: string; image_url?: string | null } }[];
   results?: { team_id?: number; score?: number }[];
   winner_id?: number | null;
 }
@@ -142,15 +200,51 @@ export const sync = internalAction({
         number,
       ];
       const games = [];
-      for (let page = 1; page <= PAGES; page++) {
+      /** One page of a team's finished series, the newest first; null when PandaScore says stop. */
+      const pageOf = async (team: number, page: number): Promise<Listed[] | null> => {
         await pause(700);
         const response = await fetch(
-          `${BASE}/teams/${idA}/matches?filter[status]=finished&sort=-begin_at&per_page=100&page=${page}`,
+          `${BASE}/teams/${team}/matches?filter[status]=finished&sort=-begin_at&per_page=100&page=${page}`,
           { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } },
         ).catch(() => null);
-        // The hour's allowance is used up, or no answer: stop, and carry on next time.
         if (!response || response.status === 429) return null;
-        const list = response.ok ? ((await response.json().catch(() => [])) as Listed[]) : [];
+        return response.ok ? ((await response.json().catch(() => [])) as Listed[]) : [];
+      };
+      /** A team's own history out of its first page. */
+      const keep = async (id: string, team: number, list: Listed[]) => {
+        const past = list.slice(0, 100).flatMap((m) => {
+          const other = m.opponents?.find((o) => o.opponent?.id !== team)?.opponent;
+          const at = m.begin_at ?? m.scheduled_at;
+          if (!other?.id || !at) return [];
+          const own = m.results?.find((r) => r.team_id === team)?.score ?? 0;
+          const theirs = m.results?.find((r) => r.team_id === other.id)?.score ?? 0;
+          return [
+            {
+              id: `ps-match-${m.id}`,
+              at,
+              event: [m.league?.name, m.serie?.full_name ?? m.serie?.name]
+                .filter(Boolean)
+                .join(" "),
+              opponentId: `ps-team-${other.id}`,
+              opponent: other.name ?? "",
+              image: other.image_url ?? undefined,
+              score: [own, theirs],
+              won: m.winner_id === team ? true : m.winner_id === other.id ? false : undefined,
+            },
+          ];
+        });
+        await ctx.runMutation(internal.meetings.putHistory, { team: id, games: past });
+      };
+      if (!(await ctx.runQuery(internal.meetings.historyFresh, { team: b, now: Date.now() }))) {
+        const theirs = await pageOf(idB, 1);
+        // The hour's allowance is used up, or no answer: stop, and carry on next time.
+        if (!theirs) return null;
+        await keep(b, idB, theirs);
+      }
+      for (let page = 1; page <= PAGES; page++) {
+        const list = await pageOf(idA, page);
+        if (!list) return null;
+        if (page === 1) await keep(a, idA, list);
         for (const m of list) {
           if (!m.opponents?.some((o) => o.opponent?.id === idB)) continue;
           const at = m.begin_at ?? m.scheduled_at;

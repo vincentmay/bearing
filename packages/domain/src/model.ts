@@ -153,6 +153,8 @@ export interface Tournament {
   placements?: Placement[];
   /** Short line on what the event is, shown on cards and headers. */
   blurb?: string;
+  /** The address of the event's own mark, where a source has one. */
+  image?: string;
 }
 
 export interface Placement {

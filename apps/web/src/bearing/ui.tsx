@@ -101,7 +101,9 @@ function judge(img: HTMLImageElement): { dim: boolean; pale: boolean } {
         if (lum < 64) dark++;
         else if (lum > 204) light++;
       }
-      verdict = { dim: seen > 0 && dark / seen > 0.62, pale: seen > 0 && light / seen > 0.62 };
+      // A mark that is half dark is already lost on a dark ground: what is left of it is a
+      // fragment. A pale one has to be nearly all pale to be lost on a light ground.
+      verdict = { dim: seen > 0 && dark / seen > 0.48, pale: seen > 0 && light / seen > 0.62 };
     }
   } catch {
     // A picture that may not be read is taken to be fine as it is.
@@ -139,6 +141,10 @@ export function Disc({ side, size = 44 }: { side: SideView; size?: number }) {
       aria-hidden
     >
       {size >= 30 && !picture ? <span>{side.short}</span> : null}
+      {/* A small disc of a person without a picture is not left blank: their first letter. */}
+      {size < 30 && size >= 18 && !picture && side.person ? (
+        <span data-letter="">{side.name.slice(0, 1)}</span>
+      ) : null}
       {picture ? (
         <img
           src={picture}
@@ -236,6 +242,30 @@ export function Flag({ country, keep }: { country: string | undefined; keep?: bo
       alt=""
       loading="lazy"
       decoding="async"
+    />
+  );
+}
+
+/**
+ * An event's own mark, where there is one. It is drawn the way a team's is: whole, on nothing,
+ * and on a plain plate only where it would be lost on the ground.
+ */
+export function EventMark({ image, size = 22 }: { image: string | undefined; size?: number }) {
+  if (!image) return null;
+  return (
+    <Disc
+      size={size}
+      side={{
+        id: null,
+        name: "",
+        label: "",
+        short: "",
+        color: "transparent",
+        ink: "var(--ink)",
+        plural: true,
+        image,
+        person: false,
+      }}
     />
   );
 }

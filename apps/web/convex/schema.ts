@@ -76,6 +76,29 @@ export default defineSchema({
       }),
     ),
   }).index("by_key", ["key"]),
+  /**
+   * A team's latest finished series, as far back as a hundred of them: more than the weeks of
+   * matches the store itself keeps. Asked for when the team is about to play.
+   */
+  histories: defineTable({
+    /** The team's id. */
+    key: v.string(),
+    checkedAt: v.number(),
+    games: v.array(
+      v.object({
+        id: v.string(),
+        at: v.string(),
+        event: v.string(),
+        /** The other side: its id as the store would name it, its name, its mark. */
+        opponentId: v.string(),
+        opponent: v.string(),
+        image: v.optional(v.string()),
+        /** Series score: the team's own, then the other side's. */
+        score: v.array(v.number()),
+        won: v.optional(v.boolean()),
+      }),
+    ),
+  }).index("by_key", ["key"]),
   /** What a signed-in viewer follows. An account holds this and nothing else. */
   follows: defineTable({
     /** The identity's token identifier, as issued by the sign-in provider. */

@@ -1,6 +1,7 @@
 import { type GameResult, type Provenance, form, playerTotals } from "@bearing/domain";
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
+import { ArrowUpRight, Play } from "lucide-react";
 import { useMeetings } from "../lib/meetings";
 import { type Board, useBoard, useWide } from "./board";
 import { Back, Go } from "./links";
@@ -311,7 +312,8 @@ function Meetings({ view, board }: { view: MatchView; board: Board }) {
               style={{
                 flexGrow: wins[1],
                 // Two sides drawn in the same ink are told apart by the second one stepping back.
-                background: b.color === a.color ? "var(--ink2)" : b.color,
+                background:
+                  b.color === a.color || b.color.includes("--surface") ? "var(--ink2)" : b.color,
               }}
             />
           </span>
@@ -374,6 +376,15 @@ export function MatchPage({ matchId }: { matchId: string }) {
   const scheduled = match.status === "scheduled";
   const games = ordered(match.games);
   const started = games.some((o) => o.game.status !== "scheduled");
+  // Only who won each game is known, of none of them what happened in it.
+  const bare =
+    !view.solo &&
+    started &&
+    match.status === "finished" &&
+    !board.loading &&
+    match.games.every(
+      (g) => !g.rounds && !g.events && !g.scores && !g.chess && !g.cup && !g.lines && !g.moves,
+    );
   // Round by round for a driver the viewer follows, or failing that for whoever leads.
   const followed = view.sides.findIndex((s) => atlas.world.follows.some((f) => f.id === s.id));
   const featured = followed >= 0 ? followed : (view.standings[0]?.index ?? 0);
@@ -411,7 +422,7 @@ export function MatchPage({ matchId }: { matchId: string }) {
               </Section>
             </>
           ) : null}
-          {!view.solo && started ? (
+          {!view.solo && started && !bare ? (
             <div className="bx-list" style={{ marginTop: 20 }}>
               {view.discipline.id === "chess" && match.bestOf > 1 ? (
                 <ChessLanes view={view} />
@@ -421,7 +432,10 @@ export function MatchPage({ matchId }: { matchId: string }) {
               ))}
             </div>
           ) : null}
-          {scheduled ? <Form view={view} board={board} /> : null}
+          {/* With nothing known of the inside of the games, the line above has said it all;
+              the room goes to what the two sides have done before. */}
+          {scheduled || bare ? <Meetings view={view} board={board} /> : null}
+          {scheduled || bare ? <Form view={view} board={board} /> : null}
         </div>
         <div>
           <Section label="In the event">
@@ -429,9 +443,28 @@ export function MatchPage({ matchId }: { matchId: string }) {
               <p className="bx-empty" style={{ color: "var(--ink)" }}>
                 {placeOf(atlas, view, now, times)}
               </p>
+              {match.stream && match.stream.url !== "#" ? (
+                <a
+                  href={match.stream.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="bx-line bx-watch"
+                >
+                  <span className="bx-who">
+                    <span className="bx-disc bx-disc-plain" style={{ "--s": "26px" } as never}>
+                      <Play size={12} strokeWidth={2.6} aria-hidden />
+                    </span>
+                    <span>
+                      <b>{match.status === "finished" ? "Watch it again" : "Watch"}</b>
+                      <span className="bx-sub">{match.stream.label}</span>
+                    </span>
+                  </span>
+                  <ArrowUpRight size={15} strokeWidth={2.2} aria-hidden />
+                </a>
+              ) : null}
             </div>
           </Section>
-          <Meetings view={view} board={board} />
+          {scheduled || bare ? null : <Meetings view={view} board={board} />}
           <Lineups view={view} board={board} />
         </div>
       </div>

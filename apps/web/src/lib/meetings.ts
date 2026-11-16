@@ -55,3 +55,24 @@ export function useMeetings(atlas: Atlas, a: string | null, b: string | null, no
     .filter((m) => m.matchId !== not)
     .sort((x, y) => y.at.localeCompare(x.at));
 }
+
+/** One earlier series of a team, as far back as was looked up. */
+export interface Past {
+  id: string;
+  at: string;
+  event: string;
+  opponentId: string;
+  opponent: string;
+  image?: string;
+  score: number[];
+  won?: boolean;
+}
+
+/** A team's finished series from before the weeks Bearing keeps as matches; newest first. */
+export function useHistory(team: string | undefined): Past[] {
+  const { data } = useQuery({
+    ...convexQuery(api.meetings.history, { team: team ?? "" }),
+    enabled: !!team && !!reader,
+  });
+  return data ?? [];
+}

@@ -26,7 +26,7 @@ import { type Board, useBoard, useWide } from "./board";
 import { Go } from "./links";
 import { type Dot, type SideView, bestOf, heat, inkOn, plainName, sideOf } from "./model";
 import { type Times, until } from "./time";
-import { Disc, Dots, Flag, FollowStar, Ping, Section, Segmented, Tick } from "./ui";
+import { Disc, Dots, EventMark, Flag, FollowStar, Ping, Section, Segmented, Tick } from "./ui";
 import { useFidePlayer, useFideSearch } from "../lib/fide";
 import { RankingRows, rankingTitle } from "./ranking";
 
@@ -111,6 +111,7 @@ export function Schedule() {
   };
   const eventRow = (t: Tournament, note: string[]) => (
     <Go key={t.id} to={{ kind: "tournament", id: t.id }} className="bx-line bx-event-line">
+      <EventMark image={t.image} size={22} />
       <span style={{ minWidth: 0 }}>
         <b>{t.name}</b>
         <span className="bx-sub">
@@ -190,6 +191,7 @@ export function Schedule() {
             return (
               <section key={id} className="bx-dayevent">
                 <Go to={{ kind: "tournament", id }} className="bx-dayevent-head">
+                  <EventMark image={t.image} size={26} />
                   <span>
                     <b>{t.name}</b>
                     <span className="bx-sub">
@@ -333,10 +335,16 @@ export function ScheduleRow({
           ? view.headline
           : undefined;
   const detail = live ? view.status.replace(/^Live(?: · )?/, "") : "";
-  const place = inEvent
-    ? `${bestOf(match.bestOf)}${view.solo ? "" : ` · ${view.where}`}`
-    : `${view.discipline.short} · ${view.event}${view.solo ? "" : ` · ${view.where}`}`;
-  const sub = [note, place, detail].filter(Boolean).join(" · ");
+  // What is short and says most comes first; the event's name, which may be long, comes last
+  // and is what gives way when the line runs out of room.
+  const sub = (
+    inEvent
+      ? [note, bestOf(match.bestOf), view.solo ? "" : view.where, detail]
+      : [view.discipline.short, note, view.solo ? "" : view.where, detail, view.event]
+  )
+    .filter(Boolean)
+    .join(" · ")
+    .replaceAll(" | ", " · ");
   const known = view.sides.filter((s) => s.id).map((s) => s.name);
   return (
     <Link to="/match/$matchId" params={{ matchId: match.id }} className="bx-mr">

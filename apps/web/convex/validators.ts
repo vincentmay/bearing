@@ -111,6 +111,7 @@ const stage = v.object({
 });
 
 export const tournament = v.object({
+  image: maybeText,
   id: text,
   discipline: disciplineId,
   name: text,

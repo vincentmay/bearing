@@ -16,7 +16,14 @@ function byWeight(atlas: Atlas) {
     const tb = atlas.tournamentOf(b);
     const teamA = atlas.discipline(ta.discipline).competitor === "team" ? 0 : 1;
     const teamB = atlas.discipline(tb.discipline).competitor === "team" ? 0 : 1;
-    return teamA - teamB || TIER[ta.tier] - TIER[tb.tier];
+    // Of two matches of the same standing, the one further into its event counts for more:
+    // a final before a quarterfinal.
+    const depth = (m: Match) => {
+      const rounds = atlas.stageOf(m).rounds;
+      const at = rounds.findIndex((r) => r.id === m.roundId);
+      return at < 0 ? 0 : rounds.length - at;
+    };
+    return teamA - teamB || TIER[ta.tier] - TIER[tb.tier] || depth(a) - depth(b);
   };
 }
 
@@ -33,10 +40,13 @@ export function leadMatch(atlas: Atlas, mine: Upcoming[]): Match | undefined {
   if (top) return top;
   const next = mine.find((u) => !u.conditional)?.match;
   if (next) return next;
-  return (
-    [...live].sort(byWeight(atlas))[0] ??
-    atlas.upcoming().find((m) => m.sides.every((s) => s.competitorId))
-  );
+  if (live.length) return [...live].sort(byWeight(atlas))[0];
+  // Nothing is on: of what begins within a day of the next match, the one that matters most.
+  const coming = atlas.upcoming().filter((m) => m.sides.every((s) => s.competitorId));
+  const first = coming[0];
+  if (!first) return undefined;
+  const until = Date.parse(first.scheduledAt) + 24 * 60 * 60 * 1000;
+  return coming.filter((m) => Date.parse(m.scheduledAt) <= until).sort(byWeight(atlas))[0];
 }
 
 /** One line of a list: a match, or a whole round of an event when it has too many games to list. */

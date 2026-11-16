@@ -91,9 +91,21 @@ export interface PandaStage {
   teams?: PandaTeam[];
 }
 
+/** Where a broadcast is shown, from its address: "Twitch", "YouTube", or just "Stream". */
+function streamName(address: string): string {
+  if (/twitch\.tv/i.test(address)) return "Twitch";
+  if (/youtu\.?be/i.test(address)) return "YouTube";
+  if (/kick\.com/i.test(address)) return "Kick";
+  if (/afreecatv|sooplive/i.test(address)) return "SOOP";
+  if (/huya\.com/i.test(address)) return "Huya";
+  if (/bilibili/i.test(address)) return "Bilibili";
+  return "Stream";
+}
+
 export interface PandaLeague {
   id: number;
   name: string;
+  image_url?: string | null;
 }
 
 export interface PandaEdition {
@@ -286,7 +298,9 @@ function toMatch(
       games.push({ label: `${unit} ${n}`, status: "scheduled" });
   }
 
+  // The organiser's own broadcast in English first, then its main one, then any.
   const stream =
+    m.streams_list?.find((s) => s.official && s.language === "en" && s.raw_url) ??
     m.streams_list?.find((s) => s.main && s.raw_url) ??
     m.streams_list?.find((s) => s.official && s.raw_url) ??
     m.streams_list?.find((s) => s.raw_url);
@@ -300,7 +314,9 @@ function toMatch(
     status,
     sides,
     games,
-    stream: stream?.raw_url ? { label: "Stream", url: stream.raw_url } : undefined,
+    stream: stream?.raw_url
+      ? { label: streamName(stream.raw_url), url: stream.raw_url }
+      : undefined,
   };
 }
 
@@ -475,6 +491,7 @@ export function mapSerie(source: PandaSerie, discipline: DisciplineId, now: numb
     name: edition ? `${league.name} ${edition}` : league.name,
     short: league.name,
     series: league.name,
+    image: league.image_url ?? undefined,
     tier: tiers.includes("s") ? "S" : tiers.includes("a") ? "A" : "B",
     organizer: "",
     location: offline?.country ? { city: "", country: offline.country } : null,
