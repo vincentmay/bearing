@@ -413,9 +413,18 @@ licence.
   the identity (K2). The backend's functions have their own tests (`apps/web/convex/*.test.ts`).
 - A pass over every screen on real data, phone and wide, light and dark, as someone following
   a few things (`.local/pass.mjs`). What it changed is listed below under the readings.
-- **Not done:** Liquipedia (the owner applies; the text is in `docs/LIQUIPEDIA-APPLICATION.md`),
-  publishing the code, hosting of the web app at `bearing.vincentmay.com`, a Clerk production
-  instance for that address, and Y4 (first-screen speed) has not been measured.
+- **Public since 2026-11-16:** the code at github.com/vincentmay/bearing under AGPL-3.0, and
+  the app at `bearing.vincentmay.com`: the web app on Cloudflare Pages (project `bearing`,
+  uploaded with Wrangler, see the README), the backend on the Convex production deployment on
+  real data, accounts on Clerk's production instance with email and password. Checked there in
+  a browser: every kind of page at phone and wide width, and signing in, following something
+  and finding it again after a reload.
+- **Not done:** Liquipedia (the owner sends the application in
+  `docs/LIQUIPEDIA-APPLICATION.md`), sign-in with Google on the public site (it needs a Google
+  OAuth client of the owner's; it is switched off there until then), deploys on every push
+  (they are run by hand), and Y4 (first-screen speed) has not been measured.
+- The development deployment is back on the sample world, so that only production asks the
+  sources.
 - **Missing on real data, for want of a free source:** all of Trackmania; Counter-Strike map
   names, map scores and rounds; Rocket League game scores and goals; prize money by place; when
   a player joined a team; events as Swiss tables or groups (they are lists of rounds).
@@ -487,9 +496,8 @@ Proposed. Each step ends with the owner seeing it working.
 6. **Accounts and sync** with Clerk. Done on 2026-11-16 in the owner's Clerk application
    `Bearing` (development instance), and checked signed in by `scripts/app-account.mjs`. A
    production instance needs a domain the owner controls.
-7. **Going public, small**: the code on GitHub under a licence the owner picks, the Liquipedia
-   application, the web app at `bearing.vincentmay.com`, a Convex production deployment and a
-   Clerk production instance for that address. Waits for the owner (section 14).
+7. **Going public, small**: done on 2026-11-16. The code is on GitHub under AGPL-3.0 and the app
+   at `bearing.vincentmay.com`. The Liquipedia application is the owner's to send.
 8. **More data without paying**: start.gg for Rocket League game scores (needs the owner's
    token); Liquipedia once granted, Trackmania first.
 

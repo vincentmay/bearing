@@ -1,8 +1,8 @@
 # Liquipedia: the application for data access
 
 For the form at [liquipedia.net/api](https://liquipedia.net/api). It has to be sent by the owner,
-as a person. Send it once the code is public, because the free plan asks for open-source code and
-the text points to the repository.
+as a person. The free plan asks for open-source code, and the text points to the repository, which
+is public.
 
 Everything below is true of Bearing as it stands. If something changes before it is sent (the
 address, the licence, any way of earning money), change the text too: access granted on a wrong
@@ -10,14 +10,14 @@ description can be withdrawn.
 
 ## The fields
 
-| Field              | What to enter                                   |
-| ------------------ | ----------------------------------------------- |
-| Full name          | Vincent May                                     |
-| Email              | the address replies should go to                |
-| Company (optional) | leave empty                                     |
-| Country            | Germany                                         |
-| Pricing plan       | Free (check FAQ first)                          |
-| Project            | the text below, with the repository link put in |
+| Field              | What to enter                    |
+| ------------------ | -------------------------------- |
+| Full name          | Vincent May                      |
+| Email              | the address replies should go to |
+| Company (optional) | leave empty                      |
+| Country            | Germany                          |
+| Pricing plan       | Free (check FAQ first)           |
+| Project            | the text below                   |
 
 ## The text
 
@@ -47,7 +47,7 @@ description can be withdrawn.
 > match or bracket, and points to the source for anything deeper.
 >
 > Where it will be published: as a public website at https://bearing.vincentmay.com, and the
-> code as open source at REPOSITORY LINK.
+> code as open source (AGPL-3.0) at https://github.com/vincentmay/bearing.
 >
 > How it is monetised: it is not. There are no advertisements, no subscriptions, no affiliate
 > links and no tracking. Should that ever change, I would ask you for a commercial plan before
@@ -55,8 +55,6 @@ description can be withdrawn.
 
 ## Before sending
 
-- Put the repository's address in place of REPOSITORY LINK.
 - Read the FAQ the form points to; if it names a condition this text does not meet, say so here
   first and the text can be adjusted.
-- The address `bearing.vincentmay.com` should answer by then, or the sentence should say "will
-  be published".
+- Both addresses in the text answer: the site and the repository are public since 2026-11-16.

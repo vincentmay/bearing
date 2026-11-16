@@ -83,8 +83,20 @@ npx convex env set LOLESPORTS_KEY <the key lolesports.com sends with its own req
 Schedules are read every hour; anything live or due every thirty seconds. What each source gives
 and lacks, and what paid plans would add, is in [docs/DATA-SOURCES.md](docs/DATA-SOURCES.md).
 
-To deploy: `npx convex deploy` for the backend, and build the app with the production values of
-the two `VITE_` variables.
+## Deploy
+
+Bearing runs at [bearing.vincentmay.com](https://bearing.vincentmay.com): the backend on a Convex
+production deployment, accounts on a Clerk production instance, the web app on Cloudflare Pages.
+
+```sh
+cd apps/web && npx convex deploy    # the backend
+vp run -r build                     # the app, with apps/web/.env.production.local
+pnpm dlx wrangler pages deploy apps/web/dist --project-name bearing --branch master
+```
+
+`apps/web/.env.production.local` (not in the repository) holds the production values of the
+`VITE_` variables: the address of the production deployment and the publishable key of Clerk's
+production instance. Wrangler asks for a sign-in to Cloudflare the first time.
 
 ## Licence
 

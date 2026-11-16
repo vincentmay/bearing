@@ -196,11 +196,26 @@ export function ResultRow({ view }: { view: MatchView }) {
   );
 }
 
-/** Followed results first, topped up with the latest others. */
+/**
+ * Followed results first, topped up with the latest others. The others are spread over events:
+ * one round of a chess open ends forty games at once, and they would otherwise be the whole list.
+ */
 function earlier(atlas: Atlas, limit: number, skip?: string): Match[] {
-  const mine = recentForYou(atlas, limit);
-  const rest = atlas.recent().filter((m) => !mine.includes(m));
-  return [...mine, ...rest].filter((m) => m.id !== skip).slice(0, limit);
+  const mine = recentForYou(atlas, limit).filter((m) => m.id !== skip);
+  const rest = atlas.recent().filter((m) => !mine.includes(m) && m.id !== skip);
+  const taken = new Map<string, number>();
+  const spread: Match[] = [];
+  const left: Match[] = [];
+  for (const m of rest) {
+    const t = atlas.tournamentOf(m);
+    const most = atlas.discipline(t.discipline).competitor === "team" ? 2 : 1;
+    const n = taken.get(t.id) ?? 0;
+    if (n < most) {
+      taken.set(t.id, n + 1);
+      spread.push(m);
+    } else left.push(m);
+  }
+  return [...mine, ...spread, ...left].slice(0, limit);
 }
 
 /**
