@@ -1,5 +1,5 @@
 import type { Follow } from "@bearing/domain";
-import { ClerkProvider, useAuth, useClerk, useUser } from "@clerk/clerk-react";
+import { ClerkProvider, useAuth, useClerk, useUser } from "@clerk/react";
 import { convexQuery } from "@convex-dev/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { ConvexProvider, useConvexAuth, useMutation } from "convex/react";
@@ -54,16 +54,29 @@ function useClerkLook() {
         border: `1px solid ${hair}`,
         boxShadow: dark ? "0 12px 28px -14px #000" : "0 10px 24px -14px rgb(0 0 0 / 0.28)",
       },
-      card: { boxShadow: "none", borderRadius: "24px" },
-      footer: { background: surface },
+      // No box inside the box: the card and its footer are one flat surface.
+      card: { boxShadow: "none", borderRadius: "0", border: "0", background: surface },
+      footer: {
+        background: surface,
+        backgroundImage: "none",
+        "& > *": { background: surface, backgroundImage: "none" },
+      },
       headerTitle: { fontWeight: 800, letterSpacing: "-0.03em", fontSize: "26px" },
+      // Flat: Clerk's own button has a sheen and a shadow, which the identity does not allow.
       formButtonPrimary: {
         borderRadius: "999px",
         boxShadow: "none",
+        backgroundImage: "none",
         textTransform: "none",
         fontWeight: 600,
+        "&::before, &::after": { display: "none" },
+        "&:hover, &:focus, &:active": { boxShadow: "none", backgroundImage: "none" },
       },
-      socialButtonsBlockButton: { borderRadius: "999px", boxShadow: "none" },
+      socialButtonsBlockButton: {
+        borderRadius: "999px",
+        boxShadow: "none",
+        border: `1px solid ${hair}`,
+      },
       formFieldInput: { borderRadius: "999px", boxShadow: "none", border: "0" },
       dividerLine: { background: hair },
     },

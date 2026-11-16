@@ -47,10 +47,12 @@ export default defineSchema({
     key: v.string(),
     /** Live matches change every few seconds; the rest hardly ever. They are read apart. */
     live: v.boolean(),
+    /** When it is scheduled, in milliseconds, so that a screen can ask for a window of time. */
+    at: v.number(),
     doc: match,
   })
     .index("by_key", ["key"])
-    .index("by_live", ["live"]),
+    .index("by_live_and_at", ["live", "at"]),
   /** What a signed-in viewer follows. An account holds this and nothing else. */
   follows: defineTable({
     /** The identity's token identifier, as issued by the sign-in provider. */
@@ -59,5 +61,5 @@ export default defineSchema({
     target: v.string(),
   })
     .index("by_user", ["user"])
-    .index("by_user_target", ["user", "kind", "target"]),
+    .index("by_user_and_kind_and_target", ["user", "kind", "target"]),
 });

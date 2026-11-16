@@ -11,6 +11,7 @@
 import type * as crons from "../crons.js";
 import type * as follows from "../follows.js";
 import type * as lichess from "../lichess.js";
+import type * as retention from "../retention.js";
 import type * as sample from "../sample.js";
 import type * as validators from "../validators.js";
 import type * as world from "../world.js";
@@ -25,6 +26,7 @@ declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   follows: typeof follows;
   lichess: typeof lichess;
+  retention: typeof retention;
   sample: typeof sample;
   validators: typeof validators;
   world: typeof world;

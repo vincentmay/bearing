@@ -104,8 +104,8 @@ export const liveTours = internalQuery({
   handler: async (ctx) => {
     const rows = await ctx.db
       .query("matches")
-      .withIndex("by_live", (q) => q.eq("live", true))
-      .collect();
+      .withIndex("by_live_and_at", (q) => q.eq("live", true))
+      .take(500);
     const ids = new Set(
       rows
         .map((r) => r.doc.tournamentId)
@@ -138,7 +138,7 @@ export const store = internalMutation({
         .withIndex("by_key", (q) => q.eq("key", doc.id))
         .first();
       if (!row) await ctx.db.insert("competitors", { key: doc.id, doc });
-      else if (!same(row.doc, doc)) await ctx.db.patch(row._id, { doc });
+      else if (!same(row.doc, doc)) await ctx.db.patch("competitors", row._id, { doc });
     }
     // Pairings of rounds fetched earlier are kept: this run may have fetched other rounds.
     const before = await ctx.db
@@ -161,7 +161,7 @@ export const store = internalMutation({
       })),
     };
     if (!before) await ctx.db.insert("tournaments", { key: doc.id, doc });
-    else if (!same(before.doc, doc)) await ctx.db.patch(before._id, { doc });
+    else if (!same(before.doc, doc)) await ctx.db.patch("tournaments", before._id, { doc });
 
     for (const m of args.matches) {
       const row = await ctx.db
@@ -169,8 +169,9 @@ export const store = internalMutation({
         .withIndex("by_key", (q) => q.eq("key", m.id))
         .first();
       const live = m.status === "live";
-      if (!row) await ctx.db.insert("matches", { key: m.id, live, doc: m });
-      else if (!same(row.doc, m)) await ctx.db.patch(row._id, { live, doc: m });
+      const at = Date.parse(m.scheduledAt);
+      if (!row) await ctx.db.insert("matches", { key: m.id, live, at, doc: m });
+      else if (!same(row.doc, m)) await ctx.db.patch("matches", row._id, { live, at, doc: m });
     }
   },
 });

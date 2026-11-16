@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@bearing/domain": "workspace:*",
-    "@clerk/clerk-react": "catalog:",
+    "@clerk/react": "catalog:",
     "@convex-dev/react-query": "catalog:",
     "@fontsource-variable/gabarito": "catalog:",
     "@fontsource-variable/geist-mono": "catalog:",

@@ -56,7 +56,7 @@ async function begin(ctx: MutationCtx, to: "sample" | "live", now: number) {
   const source = await ctx.db.query("source").first();
   const generation = (source?.generation ?? 0) + 1;
   const state = { kind: to, loadedAt: now, generation, loading: true };
-  if (source) await ctx.db.replace(source._id, state);
+  if (source) await ctx.db.replace("source", source._id, state);
   else await ctx.db.insert("source", state);
   await ctx.scheduler.runAfter(0, internal.sample.reload, { generation, kind: to });
 }
@@ -79,7 +79,7 @@ export const wake = mutation({
     if (source.loading) return;
     const watch = await ctx.db.query("watch").first();
     const state = { until: now + WATCH, running: true };
-    if (watch) await ctx.db.patch(watch._id, state);
+    if (watch) await ctx.db.patch("watch", watch._id, state);
     else await ctx.db.insert("watch", state);
     if (!watch?.running) {
       await ctx.scheduler.runAfter(BEAT, internal.sample.beat, { generation: source.generation });
@@ -120,7 +120,7 @@ export const clear = internalMutation({
   args: { table: v.union(...TABLES.map((t) => v.literal(t))) },
   handler: async (ctx, { table }): Promise<boolean> => {
     const rows = await ctx.db.query(table).take(BATCH * 2);
-    for (const row of rows) await ctx.db.delete(row._id);
+    for (const row of rows) await ctx.db.delete(table, row._id);
     return rows.length === BATCH * 2;
   },
 });
@@ -149,7 +149,12 @@ export const fill = internalMutation({
     for (const doc of args.tournaments ?? [])
       await ctx.db.insert("tournaments", { key: doc.id, doc });
     for (const doc of args.matches ?? [])
-      await ctx.db.insert("matches", { key: doc.id, live: doc.status === "live", doc });
+      await ctx.db.insert("matches", {
+        key: doc.id,
+        live: doc.status === "live",
+        at: Date.parse(doc.scheduledAt),
+        doc,
+      });
   },
 });
 
@@ -160,11 +165,11 @@ export const ready = internalMutation({
     const source = await ctx.db.query("source").first();
     if (!source || source.generation !== generation) return;
     const now = Date.now();
-    await ctx.db.patch(source._id, { loading: false, loadedAt: now });
+    await ctx.db.patch("source", source._id, { loading: false, loadedAt: now });
     const watch = await ctx.db.query("watch").first();
     const running = source.kind === "sample";
     const state = { until: now + WATCH, running };
-    if (watch) await ctx.db.patch(watch._id, state);
+    if (watch) await ctx.db.patch("watch", watch._id, state);
     else await ctx.db.insert("watch", state);
     if (running) await ctx.scheduler.runAfter(BEAT, internal.sample.beat, { generation });
     else await ctx.scheduler.runAfter(0, internal.lichess.sync, {});
@@ -181,11 +186,12 @@ export const beat = internalMutation({
     if (source.kind !== "sample" || source.generation !== generation) return;
     const now = Date.now();
     if (now > watch.until) {
-      await ctx.db.patch(watch._id, { running: false });
+      await ctx.db.patch("watch", watch._id, { running: false });
       return;
     }
-    const matches = await ctx.db.query("matches").collect();
-    const tournaments = await ctx.db.query("tournaments").collect();
+    // The sample is a few hundred rows, and the ceilings say so.
+    const matches = await ctx.db.query("matches").take(2000);
+    const tournaments = await ctx.db.query("tournaments").take(200);
     const world: World = {
       now: SAMPLE_NOW,
       disciplines: [],
@@ -206,12 +212,12 @@ export const beat = internalMutation({
       for (const [i, row] of matches.entries()) {
         const doc = next.matches[i];
         if (doc && doc !== row.doc) {
-          await ctx.db.patch(row._id, { live: doc.status === "live", doc: plain(doc) });
+          await ctx.db.patch("matches", row._id, { live: doc.status === "live", doc: plain(doc) });
         }
       }
       for (const [i, row] of tournaments.entries()) {
         const doc = next.tournaments[i];
-        if (doc && doc !== row.doc) await ctx.db.patch(row._id, { doc: plain(doc) });
+        if (doc && doc !== row.doc) await ctx.db.patch("tournaments", row._id, { doc: plain(doc) });
       }
     }
     await ctx.scheduler.runAfter(BEAT, internal.sample.beat, { generation });

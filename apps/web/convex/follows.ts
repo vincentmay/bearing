@@ -47,10 +47,12 @@ export const toggle = mutation({
     if (id.length > 200) throw new ConvexError("That is not something that can be followed.");
     const existing = await ctx.db
       .query("follows")
-      .withIndex("by_user_target", (q) => q.eq("user", user).eq("kind", kind).eq("target", id))
+      .withIndex("by_user_and_kind_and_target", (q) =>
+        q.eq("user", user).eq("kind", kind).eq("target", id),
+      )
       .first();
     if (existing) {
-      await ctx.db.delete(existing._id);
+      await ctx.db.delete("follows", existing._id);
       return;
     }
     if ((await rowsOf(ctx, user)).length >= LIMIT) {
@@ -86,6 +88,6 @@ export const clear = mutation({
   args: {},
   handler: async (ctx) => {
     const user = await signedIn(ctx);
-    for (const row of await rowsOf(ctx, user)) await ctx.db.delete(row._id);
+    for (const row of await rowsOf(ctx, user)) await ctx.db.delete("follows", row._id);
   },
 });

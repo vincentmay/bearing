@@ -27,7 +27,21 @@ export const worldQuery = queryOptions({
 });
 
 const frameQuery = convexQuery(api.world.frame, {});
-const settledQuery = convexQuery(api.world.settled, {});
+const DAY = 24 * 60 * 60 * 1000;
+/** How far back the settled matches reach. */
+const WINDOW = 45 * DAY;
+
+/** Matches from the start of the day, some weeks before `now`: the same request all day long. */
+function settledQuery(now: number) {
+  return convexQuery(api.world.settled, { since: Math.floor(now / DAY) * DAY - WINDOW });
+}
+
+type Clock = { pinned: string; since: number } | null;
+
+/** What time it is in a world with this clock: the sample's pinned instant moved on, or now. */
+function timeOf(clock: Clock): number {
+  return clock ? Date.parse(clock.pinned) + (Date.now() - clock.since) : Date.now();
+}
 const liveQuery = convexQuery(api.world.live, {});
 
 const TIMEOUT = 20_000;
@@ -46,9 +60,9 @@ export async function loadWorld(client: QueryClient): Promise<void> {
     while (!(await backend.query(api.world.ready, {}))) {
       await new Promise((done) => setTimeout(done, 400));
     }
+    const frame = await client.ensureQueryData(frameQuery);
     await Promise.all([
-      client.ensureQueryData(frameQuery),
-      client.ensureQueryData(settledQuery),
+      client.ensureQueryData(settledQuery(timeOf(frame.clock))),
       client.ensureQueryData(liveQuery),
     ]);
   })();
@@ -65,7 +79,7 @@ function useLocalWorld(): World {
 
 function useStoredWorld(): World {
   const frame = useSuspenseQuery(frameQuery).data;
-  const settled = useSuspenseQuery(settledQuery).data;
+  const settled = useSuspenseQuery(settledQuery(timeOf(frame.clock))).data;
   const live = useSuspenseQuery(liveQuery).data;
   return useMemo(() => {
     const { clock, ...rest } = frame;
