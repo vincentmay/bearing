@@ -212,6 +212,15 @@ The home screen. Answers questions 1 to 3.
   what the list has until they come. Small discs ask for small pictures. Measured on
   2026-11-16 on the live site: first visit, frame at 0.3 s and content at 1.0 s (before:
   blank, then 1.7 s); repeat visit 0.2 s; 0.8 MB of data a load (before 1.7 MB).
+- **G21 (Agreed on 2026-11-16).** Moving between pages loads nothing again. The world is
+  loaded once when the app opens and kept current by the store; a move between tabs is in the
+  page within a few milliseconds and transfers no data (measured on the live site). The tabs'
+  code is fetched ahead. Between tabs the change is plain and quick; into a page and back out
+  of it the page moves a little in the direction of the move. The owner: "that we don't have
+  entire page reloads all the time. It should do what is the best it can."
+- **G22 (Agreed on 2026-11-16).** A page that needs matches from before the weeks a list
+  reaches back asks for them by name: a match opened directly, an event that ended weeks ago.
+  The page that is not there keeps the frame and says where to go.
 - **G20 (Agreed on 2026-11-16).** An event is shown with its own mark where a source has one.
   A match says where it can be watched. A bracket too wide for a phone is moved sideways, not
   squeezed. A running event with nothing on this minute is "under way", not "live".
@@ -589,6 +598,19 @@ node scripts/app-account.mjs       # signing in and follows in the account; need
 
 In development `window.bearing.pause()` and `window.bearing.step(n)` drive the sample by hand, and
 `?world=slow` or `?world=fail` on any address shows the waiting and the failed state.
+
+### 12.1 How it is kept working (2026-11-16)
+
+- `vp check` and the tests of both packages run on every push (`.github/workflows/check.yml`).
+- The public site is checked by four scripts, which take any address: `scripts/site-sweep.mjs`
+  (every kind of page in both themes and both sizes, every internal link followed),
+  `scripts/site-features.mjs` (each feature used and checked), `scripts/site-load.mjs` and
+  `scripts/site-tabs.mjs` (what loading and moving between tabs cost).
+- Files with a fingerprint in their name are kept by browsers for a year
+  (`apps/web/public/_headers`).
+- Dependencies were all current on 2026-11-16 except the Vite+ toolchain (1.4.0, latest
+  1.6.0): the newer one's type-aware linter is a program this machine's policy does not let
+  run. Node is 24, the current long-term release.
 
 ## 13. Order of work
 
