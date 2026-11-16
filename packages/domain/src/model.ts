@@ -189,6 +189,8 @@ export interface GameResult {
    * finishing order of every round raced so far (side indices, first place first).
    */
   cup?: { limit: number; round: number; finalists: number[]; rounds?: number[][] };
+  /** The instant the game began, where a source says so. */
+  startedAt?: string;
   /** Seconds on the game clock: played so far while live, in total once finished. */
   clock?: number;
   /** Things that happened at a known moment, in order: Rocket League goals, League objectives. */

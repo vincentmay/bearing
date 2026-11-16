@@ -104,6 +104,7 @@ export function PlayerPage({ playerId }: { playerId: string }) {
   const next = matches.filter((m) => m.status === "scheduled").slice(0, 3);
   const done = matches.filter((m) => m.status === "finished").reverse();
   const career = careerStops(board, player);
+  const mates = team ? atlas.roster(team.id).filter((r) => r.player.id !== player.id) : [];
   const run = team ? [] : runStops(board, player, side, own);
   const event = own.length
     ? atlas.tournamentOf((own.find((m) => m.status !== "finished") ?? own.at(-1))!)
@@ -178,7 +179,7 @@ export function PlayerPage({ playerId }: { playerId: string }) {
         </dl>
       ) : null}
 
-      {career.length ? (
+      {career.length > 1 || stint?.from ? (
         <section className="bx-section" style={{ marginTop: 30 }}>
           <h2 className="bx-label" style={{ marginBottom: 14 }}>
             Career
@@ -221,6 +222,22 @@ export function PlayerPage({ playerId }: { playerId: string }) {
           )}
         </div>
         <div>
+          {mates.length ? (
+            <Section label={`With ${player.handle} at ${plainName(atlas, team?.id)}`}>
+              <div className="bx-list">
+                {mates.map(({ player: mate, stint: theirs }) => (
+                  <Go key={mate.id} to={{ kind: "player", id: mate.id }} className="bx-line">
+                    <span>
+                      <b>{mate.handle}</b>
+                      <span className="bx-sub">{mate.name || countryName(mate.country)}</span>
+                    </span>
+                    <span>{theirs.role}</span>
+                    <span />
+                  </Go>
+                ))}
+              </div>
+            </Section>
+          ) : null}
           {done.length ? (
             <Section label={team ? `Results with ${plainName(atlas, team.id)}` : "Results"}>
               <div className="bx-list">

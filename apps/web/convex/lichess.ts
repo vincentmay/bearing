@@ -23,7 +23,7 @@ import { competitor, match, tournament } from "./validators";
 
 const BASE = "https://lichess.org/api/broadcast";
 /** How many broadcasts are followed at once: the top of the game, not every club night. */
-const TOURS = 8;
+const TOURS = 5;
 
 async function get<T>(path: string): Promise<T | null> {
   const response = await fetch(`${BASE}${path}`, {
@@ -60,6 +60,8 @@ export const sync = internalAction({
     const tours = [...(top?.active ?? []), ...(top?.upcoming ?? [])]
       .map((entry) => entry.tour)
       .filter((tour) => (tour.tier ?? 0) >= 4)
+      // The top of the game first; the tier below it only fills what room is left.
+      .sort((a, b) => (b.tier ?? 0) - (a.tier ?? 0))
       .slice(0, TOURS);
     for (const tour of tours) {
       const broadcast = await fetchBroadcast(tour.id);

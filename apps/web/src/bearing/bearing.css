@@ -476,11 +476,21 @@ body {
   min-width: 0;
   white-space: nowrap;
 }
+.bx-meta > span:first-child {
+  flex: none;
+}
 .bx-meta > span:last-child {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
   color: var(--ink2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+/* The mono face has no half; a result with one is set in the reading face. */
+.bx-right[data-half] {
+  font: 500 12px var(--face);
 }
 .bx-versus {
   display: grid;
@@ -489,13 +499,14 @@ body {
   gap: 8px;
   margin: 14px 0 3px;
 }
-.bx-versus > span {
+.bx-versus > span,
+.bx-versus > a {
   display: flex;
   align-items: center;
   gap: 7px;
   min-width: 0;
 }
-.bx-versus > span:last-child {
+.bx-versus > :last-child {
   justify-content: flex-end;
 }
 .bx-versus .bx-name {
@@ -533,6 +544,10 @@ body {
   margin-bottom: 11px;
   white-space: nowrap;
 }
+/* Nothing under it (a match still to come): the card's own padding is enough. */
+.bx-subs:last-child {
+  margin-bottom: 0;
+}
 .bx-subs > span {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -549,8 +564,15 @@ body {
   gap: 12px;
   margin: 22px 0 28px;
 }
+.bx-wide .bx-versus:has(+ .bx-subs) {
+  margin-bottom: 10px;
+}
+.bx-wide .bx-subs {
+  margin-bottom: 4px;
+}
 .bx-wide .bx-versus > span,
-.bx-hero .bx-versus > span {
+.bx-hero .bx-versus > span,
+.bx-hero .bx-versus > a {
   gap: clamp(8px, 2cqw, 14px);
 }
 .bx-wide .bx-versus .bx-name,
@@ -1288,6 +1310,47 @@ body {
   top: 0;
   font: 500 8px var(--mono);
   color: var(--ink2);
+}
+
+/* A pairing on one line, and a round that opens at a tap. */
+.bx-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 12.5px;
+}
+.bx-pair b {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-fold {
+  margin-bottom: 14px;
+}
+.bx-fold > summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 8px;
+  padding: 6px 0;
+  cursor: pointer;
+  list-style: none;
+}
+.bx-fold > summary::-webkit-details-marker {
+  display: none;
+}
+.bx-fold > summary .bx-label::before {
+  content: "+ ";
+}
+.bx-fold[open] > summary .bx-label::before {
+  content: "– ";
+}
+.bx-fold[open] > summary {
+  margin-bottom: 4px;
 }
 
 /* Controls keep their shape. */

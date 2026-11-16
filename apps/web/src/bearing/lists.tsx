@@ -1,13 +1,31 @@
-import { type Atlas, type Follow, type Match, form, winnerOf } from "@bearing/domain";
+import {
+  type Atlas,
+  type Follow,
+  type Match,
+  champion,
+  form,
+  tournamentStatus,
+  winnerOf,
+} from "@bearing/domain";
 import { Link } from "@tanstack/react-router";
 import { Gamepad2, Search as SearchIcon, Trophy } from "lucide-react";
 import { type ReactNode, useState } from "react";
-import { scoreLine, upcomingForYou } from "../lib/view";
+import { bundle, scoreLine, upcomingForYou } from "../lib/view";
 import { estimatedMinutes } from "../lib/world";
 import { useRecents } from "../lib/recents";
 import { type Board, useBoard, useWide } from "./board";
 import { Go } from "./links";
-import { type Dot, type SideView, heat, inkOn, lineOf, plainName, sideOf, titleOf } from "./model";
+import {
+  type Dot,
+  type SideView,
+  bestOf,
+  heat,
+  inkOn,
+  lineOf,
+  plainName,
+  sideOf,
+  titleOf,
+} from "./model";
 import { type Times, until } from "./time";
 import { Disc, Dots, Duo, FollowStar, Ping, Section, Segmented, Tick } from "./ui";
 
@@ -42,14 +60,15 @@ export function Schedule() {
 
   // Two matches may overlap when one starts before the other is expected to be over.
   let busyUntil = -Infinity;
-  const rows = matches.map((m) => {
+  const rows = bundle(atlas, matches).map((item) => {
+    const m = item.kind === "match" ? item.match : item.matches[0]!;
     const start = Date.parse(m.scheduledAt);
     const length = estimatedMinutes(m, atlas.tournamentOf(m).discipline) * 60_000;
     const overlap = start < busyUntil;
     // A match that is over cannot overlap with anything that has yet to start.
     const end = m.status === "finished" ? Math.min(start + length, now) : start + length;
     busyUntil = Math.max(busyUntil, end);
-    return { m, overlap };
+    return { item, overlap };
   });
   const overlaps = rows.some((r) => r.overlap);
 
@@ -83,9 +102,18 @@ export function Schedule() {
           label={`${times.day(day, now)} · ${matches.length} ${matches.length === 1 ? "match" : "matches"}`}
         >
           <div className="bx-list">
-            {rows.map(({ m, overlap }) => (
-              <ScheduleRow key={m.id} match={m} board={board} overlap={overlap} />
-            ))}
+            {rows.map(({ item, overlap }) =>
+              item.kind === "match" ? (
+                <ScheduleRow
+                  key={item.match.id}
+                  match={item.match}
+                  board={board}
+                  overlap={overlap}
+                />
+              ) : (
+                <RoundRow key={item.key} matches={item.matches} board={board} overlap={overlap} />
+              ),
+            )}
             {matches.length ? null : (
               <p className="bx-empty">
                 {scope === "mine"
@@ -106,17 +134,85 @@ export function Schedule() {
   );
 }
 
+/** A whole round of an event on one line: how many games, and how many are being played. */
+export function RoundRow({
+  matches,
+  board,
+  overlap = false,
+  bare = false,
+}: {
+  matches: Match[];
+  board: Board;
+  overlap?: boolean;
+  /** Without the time and the count in a disc, for a list that has neither column. */
+  bare?: boolean;
+}) {
+  const first = matches[0]!;
+  const { atlas, times } = board;
+  const tournament = atlas.tournamentOf(first);
+  const round = atlas.roundOf(first)?.name ?? atlas.stageOf(first).name;
+  const live = matches.filter((m) => m.status === "live").length;
+  const done = matches.filter((m) => m.status === "finished").length;
+  const games = `${matches.length} games`;
+  const state =
+    live === matches.length
+      ? `${games} being played`
+      : live
+        ? `${games}, ${live} being played`
+        : done === matches.length
+          ? `${games}, all played`
+          : done
+            ? `${games}, ${done} played`
+            : games;
+  const text = (
+    <span style={{ minWidth: 0 }}>
+      <b>{tournament.name}</b>
+      <span className="bx-sub">
+        {atlas.discipline(tournament.discipline).short} · {round} · {state}
+      </span>
+    </span>
+  );
+  const to = { kind: "tournament", id: tournament.id } as const;
+  if (bare) {
+    return (
+      <Go to={to} className="bx-result">
+        {text}
+        <span className="bx-right" data-live={live ? "" : undefined}>
+          {live ? <Ping /> : null}
+          {matches.length}
+        </span>
+      </Go>
+    );
+  }
+  return (
+    <Go to={to} className="bx-next" data-overlap={overlap ? "" : undefined}>
+      <span className="bx-disc bx-disc-plain" style={{ "--s": "34px" } as never} aria-hidden>
+        {matches.length}
+      </span>
+      <span className="bx-time">{times.clock(first.scheduledAt)}</span>
+      {text}
+      <span className="bx-right" data-live={live ? "" : undefined}>
+        {live ? <Ping /> : null}
+        {live ? "live" : ""}
+      </span>
+    </Go>
+  );
+}
+
 export function ScheduleRow({
   match,
   board,
   overlap,
   day = false,
+  inEvent = false,
 }: {
   match: Match;
   board: Board;
   overlap: boolean;
   /** Say which day it is on, for lists that span several. */
   day?: boolean;
+  /** Shown on the page of its own event: the event's name is left out. */
+  inEvent?: boolean;
 }) {
   const view = board.view(match);
   const { now, times } = board;
@@ -144,7 +240,11 @@ export function ScheduleRow({
       <span style={{ minWidth: 0 }}>
         <b>{title}</b>
         <span className="bx-sub">
-          {view.solo ? lineOf(view) : `${lineOf(view)} · ${view.where}`}
+          {inEvent
+            ? `${bestOf(match.bestOf)}${view.solo ? "" : ` · ${view.where}`}`
+            : view.solo
+              ? lineOf(view)
+              : `${lineOf(view)} · ${view.where}`}
           {overlap ? <span className="bx-only"> · may overlap with the match above</span> : null}
         </span>
       </span>
@@ -154,7 +254,10 @@ export function ScheduleRow({
           {score ? <Tick>{score}</Tick> : "live"}
         </span>
       ) : (
-        <span className="bx-right">
+        <span
+          className="bx-right"
+          data-half={match.status === "finished" && scoreLine(match).includes("½") ? "" : undefined}
+        >
           {match.status === "finished"
             ? view.solo
               ? `${view.standings[0]?.side.name ?? ""} won`
@@ -232,6 +335,7 @@ function target(atlas: Atlas, follow: Follow): Target | undefined {
         follow,
         name: t.name,
         kind: `Event · ${atlas.discipline(t.discipline).name}`,
+        game: atlas.discipline(t.discipline).short,
         disc: plain(<Trophy size={13} />),
       };
     }
@@ -279,12 +383,15 @@ function standing(board: Board, follow: Follow): string {
   if (live.length) {
     return single || live.length === 1
       ? `Live now: ${against(live[0]!)}`
-      : `${live.length} matches live now`;
+      : `${live.length} ${atlas.tournamentOf(live[0]!).discipline === "chess" ? "games" : "matches"} live now`;
   }
   if (next) return `Next: ${against(next)}, ${when(times, next.scheduledAt, now)}`;
   if (follow.kind === "tournament") {
     const t = atlas.tournament(follow.id);
-    if (t && relevant.length && relevant.every((m) => m.status === "finished")) return "Finished.";
+    if (t && relevant.length && relevant.every((m) => m.status === "finished")) {
+      const winner = champion(t);
+      return winner ? `Finished. Won by ${plainName(atlas, winner)}.` : "Finished.";
+    }
     return t ? `Starts ${times.date(`${t.start}T12:00:00Z`)}. No matches are scheduled yet.` : "";
   }
   const last = relevant
@@ -322,7 +429,7 @@ function TargetRow({ item, board, line }: { item: Target; board: Board; line?: b
         {item.disc}
         <span style={{ minWidth: 0 }}>
           <b>{item.name}</b>
-          <span className="bx-sub">
+          <span className="bx-sub" style={line ? { whiteSpace: "normal" } : undefined}>
             {line
               ? `${item.game ? `${item.game} · ` : ""}${standing(board, item.follow)}`
               : item.kind}
@@ -481,6 +588,14 @@ export function Search() {
       .filter(defined),
   })).filter((g) => g.items.length);
   const followed = atlas.world.follows.map((f) => target(atlas, f)).filter(defined);
+  // Events that are being played or about to be: the top of each game first.
+  const tier = { S: 0, A: 1, B: 2 } as const;
+  const events = atlas.world.tournaments
+    .filter((t) => tournamentStatus(atlas, t, board.now) !== "completed")
+    .sort((x, y) => tier[x.tier] - tier[y.tier] || x.start.localeCompare(y.start))
+    .slice(0, 12)
+    .map((t) => target(atlas, { kind: "tournament", id: t.id }))
+    .filter(defined);
   const recent = useRecents()
     .map((f) => target(atlas, f))
     .filter(defined);
@@ -527,6 +642,15 @@ export function Search() {
               </div>
             </Section>
           ))}
+          {q || !events.length ? null : (
+            <Section label="Events on now and coming">
+              <div className="bx-list">
+                {events.map((item) => (
+                  <TargetRow key={item.follow.id} item={item} board={board} line />
+                ))}
+              </div>
+            </Section>
+          )}
           {q || !recent.length ? null : (
             <Section label="Recently looked at">
               <div className="bx-list">

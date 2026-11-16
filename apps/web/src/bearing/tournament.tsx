@@ -1,4 +1,5 @@
 import {
+  type Match,
   type Stage,
   type Tournament,
   champion,
@@ -7,7 +8,9 @@ import {
   money,
   tournamentStatus,
 } from "@bearing/domain";
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { scoreLine } from "../lib/view";
 import { type Board, useBoard, useWide } from "./board";
 import { Back, Go, useVisit } from "./links";
 import { ScheduleRow } from "./lists";
@@ -16,6 +19,97 @@ import { plainName, sideOf } from "./model";
 import { Bracket, CrossTable, Heat, SwissTable } from "./stages";
 import { until } from "./time";
 import { Disc, FollowStar, Ping, Problem, Section, Segmented } from "./ui";
+
+/** A pairing on one line, for rounds with many games: who played whom, and how it stands. */
+function PairRow({ match, board }: { match: Match; board: Board }) {
+  const view = board.view(match);
+  const move = view.game?.chess?.move;
+  return (
+    <Link to="/match/$matchId" params={{ matchId: match.id }} className="bx-pair">
+      <b>{view.sides.map((s) => s.name).join(" v ")}</b>
+      <span
+        className="bx-right"
+        data-live={view.live ? "" : undefined}
+        data-half={match.status === "finished" && scoreLine(match).includes("½") ? "" : undefined}
+      >
+        {view.live ? <Ping /> : null}
+        {view.live
+          ? move
+            ? `move ${move}`
+            : "live"
+          : match.status === "finished"
+            ? scoreLine(match)
+            : board.times.clock(match.scheduledAt)}
+      </span>
+    </Link>
+  );
+}
+
+/**
+ * The rounds of a stage, in the order they are played. A short round lists its matches in full.
+ * A long one (a chess open has dozens of boards) lists pairings a line each, and only the round
+ * being played, or the latest one, is open; the others open at a tap.
+ */
+function Rounds({ stage, board }: { stage: Stage; board: Board }) {
+  const rounds = stage.rounds
+    .map((round) => ({
+      round,
+      matches: round.matchIds.flatMap((id) => board.atlas.match(id) ?? []),
+    }))
+    .filter((r) => r.matches.length);
+  const long = rounds.some((r) => r.matches.length > 6);
+  if (!long) {
+    return (
+      <>
+        {rounds.map(({ round, matches }) => (
+          <div key={round.id} style={{ marginBottom: 20 }}>
+            <h3 className="bx-label" style={{ margin: "0 8px 8px" }}>
+              {round.name}
+            </h3>
+            <div className="bx-list">
+              {matches.map((m) => (
+                <ScheduleRow key={m.id} match={m} board={board} overlap={false} day inEvent />
+              ))}
+            </div>
+          </div>
+        ))}
+      </>
+    );
+  }
+  const current =
+    rounds.find((r) => r.matches.some((m) => m.status === "live")) ??
+    rounds.findLast((r) => r.matches.some((m) => m.status === "finished")) ??
+    rounds[0];
+  // The round that matters now first, then the rest, latest first.
+  const ordered = [
+    ...rounds.filter((r) => r === current),
+    ...rounds.filter((r) => r !== current).reverse(),
+  ];
+  return (
+    <>
+      {ordered.map(({ round, matches }) => {
+        const live = matches.filter((m) => m.status === "live").length;
+        const done = matches.filter((m) => m.status === "finished").length;
+        return (
+          <details key={round.id} className="bx-fold" open={round === current?.round}>
+            <summary>
+              <span className="bx-label">{round.name}</span>
+              <span className="bx-sub">
+                {matches.length} games
+                {live ? `, ${live} being played` : done === matches.length ? ", all played" : ""}
+              </span>
+            </summary>
+            <div className="bx-list">
+              {matches.map((m) => (
+                <PairRow key={m.id} match={m} board={board} />
+              ))}
+            </div>
+          </details>
+        );
+      })}
+    </>
+  );
+}
 
 /** A stage drawn for its format: a bracket, a table of paths, a cross table, or heats. */
 function StageDrawing({
@@ -38,28 +132,9 @@ function StageDrawing({
     );
   }
   // A list of rounds: for a stage known only as its pairings, and for double elimination,
-  // which has no drawing of its own yet. The latest round with games comes first.
+  // which has no drawing of its own yet.
   if (stage.format === "rounds" || stage.format === "double-elim") {
-    const rounds = stage.rounds.filter((r) => r.matchIds.length).reverse();
-    return (
-      <>
-        {rounds.map((round) => (
-          <div key={round.id} style={{ marginBottom: 20 }}>
-            <h3 className="bx-label" style={{ margin: "0 8px 8px" }}>
-              {round.name}
-            </h3>
-            <div className="bx-list">
-              {round.matchIds.map((id) => {
-                const m = board.atlas.match(id);
-                return m ? (
-                  <ScheduleRow key={id} match={m} board={board} overlap={false} day />
-                ) : null;
-              })}
-            </div>
-          </div>
-        ))}
-      </>
-    );
+    return <Rounds stage={stage} board={board} />;
   }
   if (stage.format === "swiss") {
     return (

@@ -194,6 +194,7 @@ const game = v.object({
       rounds: v.optional(v.array(numbers)),
     }),
   ),
+  startedAt: maybeText,
   clock: v.optional(v.number()),
   events: v.optional(
     v.array(

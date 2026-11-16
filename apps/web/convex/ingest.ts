@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { type Infer, v } from "convex/values";
 import { internal } from "./_generated/api";
 import { internalMutation, internalQuery } from "./_generated/server";
 import { competitor, match, stint, tournament } from "./validators";
@@ -11,6 +11,35 @@ import { competitor, match, stint, tournament } from "./validators";
  */
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
+type Doc = Infer<typeof match>;
+
+/**
+ * One source knows who won a game; another knows what happened in it. When a match is written
+ * again, what the store already knows about the inside of each game is kept unless the new
+ * copy says it too.
+ */
+function keepDetail(before: Doc | undefined, fresh: Doc): Doc {
+  if (!before) return fresh;
+  return {
+    ...fresh,
+    games: fresh.games.map((game, i) => {
+      const old = before.games[i];
+      if (!old) return game;
+      return {
+        ...game,
+        startedAt: game.startedAt ?? old.startedAt,
+        firstSide: game.firstSide ?? old.firstSide,
+        clock: game.clock ?? old.clock,
+        scores: game.scores ?? old.scores,
+        objectives: game.objectives ?? old.objectives,
+        events: game.events ?? old.events,
+        rounds: game.rounds ?? old.rounds,
+        lines: game.lines ?? old.lines,
+      };
+    }),
+  };
+}
 
 /** True when the deployment is on real data and not in the middle of being reloaded. */
 export const enabled = internalQuery({
@@ -45,11 +74,12 @@ export const put = internalMutation({
       if (!row) await ctx.db.insert("stints", { key: doc.id, doc });
       else if (!same(row.doc, doc)) await ctx.db.patch("stints", row._id, { doc });
     }
-    for (const doc of args.matches ?? []) {
+    for (const fresh of args.matches ?? []) {
       const row = await ctx.db
         .query("matches")
-        .withIndex("by_key", (q) => q.eq("key", doc.id))
+        .withIndex("by_key", (q) => q.eq("key", fresh.id))
         .first();
+      const doc = keepDetail(row?.doc, fresh);
       const live = doc.status === "live";
       const at = Date.parse(doc.scheduledAt);
       if (!row) await ctx.db.insert("matches", { key: doc.id, live, at, doc });
@@ -63,8 +93,14 @@ export const put = internalMutation({
         .first();
       // The time of checking differs on every run; alone it is no reason to write.
       const unchanged = row && same({ ...row.doc, provenance: null }, { ...doc, provenance: null });
+      // Unchanged, but checked: the time of checking is written at most every half hour, so the
+      // page can say when its facts were last confirmed without waking every screen each run.
+      const stale =
+        row &&
+        Date.parse(doc.provenance.checkedAt) - Date.parse(row.doc.provenance.checkedAt) >
+          30 * 60_000;
       if (!row) await ctx.db.insert("tournaments", { key: doc.id, doc });
-      else if (!unchanged) await ctx.db.patch("tournaments", row._id, { doc });
+      else if (!unchanged || stale) await ctx.db.patch("tournaments", row._id, { doc });
     }
   },
 });
@@ -84,7 +120,7 @@ export const refreshMatches = internalMutation({
         .first();
       if (!row) continue;
       const doc = {
-        ...fresh,
+        ...keepDetail(row.doc, fresh),
         tournamentId: row.doc.tournamentId,
         stageId: row.doc.stageId,
         roundId: row.doc.roundId,
@@ -149,6 +185,8 @@ export const tick = internalMutation({
     for (const delay of [0, 30_000]) {
       await ctx.scheduler.runAfter(delay, internal.pandascore.refresh, {});
       await ctx.scheduler.runAfter(delay, internal.lichess.refresh, {});
+      // After the scores, what is happening inside the League games under way.
+      await ctx.scheduler.runAfter(delay + 5_000, internal.lolesports.enrich, {});
     }
   },
 });

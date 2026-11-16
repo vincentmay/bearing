@@ -210,6 +210,21 @@ export function TeamPage({ teamId }: { teamId: string }) {
       c.kind === "team" && !!team.orgId && c.orgId === team.orgId && c.id !== team.id,
   );
   const roster = atlas.roster(team.id);
+  const year = yearStops(board, team, side, all);
+  const won = done.filter((m) => didWin(m, team.id) === true).length;
+  // Maps or games won and lost, across every finished match.
+  const games = done.reduce(
+    (sum, m) => {
+      const index = m.sides.findIndex((x) => x.competitorId === team.id);
+      for (const g of m.games) {
+        if (g.status !== "finished" || typeof g.winner !== "number") continue;
+        sum[g.winner === index ? 0 : 1]!++;
+      }
+      return sum;
+    },
+    [0, 0],
+  );
+  const titles = achievements(atlas, team.id).filter((x) => x.p.rank === 1).length;
 
   return (
     <>
@@ -244,14 +259,49 @@ export function TeamPage({ teamId }: { teamId: string }) {
         </p>
       ) : null}
 
-      <section className="bx-section" style={{ marginTop: 30 }}>
-        <h2 className="bx-label" style={{ marginBottom: 14 }}>
-          The year, event by event
-        </h2>
-        <div className="bx-hero">
-          <StopLine stops={yearStops(board, team, side, all)} />
-        </div>
-      </section>
+      {done.length ? (
+        <dl className="bx-figures">
+          <div>
+            <dd className="bx-num">
+              {won}
+              <i className="bx-dash" />
+              {done.length - won}
+            </dd>
+            <dt className="bx-label">Matches won, lost</dt>
+          </div>
+          <div>
+            <dd className="bx-num">
+              {games[0]}
+              <i className="bx-dash" />
+              {games[1]}
+            </dd>
+            <dt className="bx-label">{d.unit.many} won, lost</dt>
+          </div>
+          {titles ? (
+            <div>
+              <dd className="bx-num">{titles}</dd>
+              <dt className="bx-label">{titles === 1 ? "Event won" : "Events won"}</dt>
+            </div>
+          ) : null}
+        </dl>
+      ) : null}
+      {done.length ? (
+        <p className="bx-note" style={{ margin: "8px 0 0" }}>
+          From the {done.length} {done.length === 1 ? "match" : "matches"} Bearing has on record.
+        </p>
+      ) : null}
+
+      {/* One event is not a line; it is already said in the results below. */}
+      {year.length > 1 ? (
+        <section className="bx-section" style={{ marginTop: 30 }}>
+          <h2 className="bx-label" style={{ marginBottom: 14 }}>
+            The year, event by event
+          </h2>
+          <div className="bx-hero">
+            <StopLine stops={year} />
+          </div>
+        </section>
+      ) : null}
 
       <div className="bx-cols">
         <div>

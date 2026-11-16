@@ -2,9 +2,18 @@ import type { Atlas, Match } from "@bearing/domain";
 import { Link } from "@tanstack/react-router";
 import { Settings } from "lucide-react";
 import { useEffect, useState } from "react";
-import { type Upcoming, featuredLive, recentForYou, upcomingForYou } from "../lib/view";
+import {
+  type Listed,
+  type Upcoming,
+  bundle,
+  elsewhere,
+  leadMatch,
+  recentForYou,
+  upcomingForYou,
+} from "../lib/view";
 import { type Board, useBoard, useWide } from "./board";
 import { Stops } from "./forms";
+import { RoundRow } from "./lists";
 import { type MatchView, lineOf, plainName, stopsOf, titleOf } from "./model";
 import { until } from "./time";
 import { Disc, DotRows, Dots, Duo, Mark, Ping, Score, Section, Tick, useReady } from "./ui";
@@ -219,10 +228,7 @@ export function Today() {
 
   const mine = upcomingForYou(atlas);
   const open = atlas.upcoming().filter((m) => m.sides.every((s) => s.competitorId));
-  const lead = useLead(
-    atlas,
-    featuredLive(atlas) ?? mine.find((u) => !u.conditional)?.match ?? open[0],
-  );
+  const lead = useLead(atlas, leadMatch(atlas, mine));
   const alsoLive = atlas
     .live()
     .filter((m) => m.id !== lead?.id)
@@ -230,10 +236,28 @@ export function Today() {
   const next: Upcoming[] = (mine.length ? mine : open.map((match) => ({ match })))
     .filter((u) => u.match.id !== lead?.id)
     .slice(0, 6);
+  // With little of the viewer's own coming up, the page also says what else is on its way.
+  const others =
+    mine.length && next.length < 4
+      ? bundle(
+          atlas,
+          elsewhere(atlas, new Set([lead?.id ?? "", ...next.map((u) => u.match.id)]), 5),
+        ).slice(0, 5)
+      : [];
+  // The viewer's only upcoming match may already be the one in the lead.
+  const leadIsMine = !!lead && mine.some((u) => u.match.id === lead.id);
+  const live = bundle(atlas, alsoLive);
   const results = earlier(atlas, wide ? 6 : 5, lead?.id);
 
+  const otherRow = (item: Listed) =>
+    item.kind === "match" ? (
+      <NextRow key={item.match.id} item={{ match: item.match }} board={board} />
+    ) : (
+      <RoundRow key={item.key} matches={item.matches} board={board} />
+    );
+
   const nextList = (
-    <Section label="Next">
+    <Section label={next.length || !others.length || !leadIsMine ? "Next" : "Also coming up"}>
       <div className="bx-list">
         {next.map((u) => (
           <NextRow
@@ -242,12 +266,21 @@ export function Today() {
             board={board}
           />
         ))}
-        {next.length ? null : (
+        {next.length || leadIsMine ? null : (
           <p className="bx-empty">
             {following ? "Nothing is scheduled for anything you follow." : "Nothing is scheduled."}
           </p>
         )}
+        {next.length || !leadIsMine ? null : others.map(otherRow)}
       </div>
+      {others.length && (next.length || !leadIsMine) ? (
+        <>
+          <h2 className="bx-label" style={{ margin: "20px 8px 8px" }}>
+            Also coming up
+          </h2>
+          <div className="bx-list">{others.map(otherRow)}</div>
+        </>
+      ) : null}
     </Section>
   );
 
@@ -295,14 +328,19 @@ export function Today() {
           {alsoLive.length ? (
             <Section label="Also live">
               <div className="bx-list">
-                {alsoLive.slice(0, LIVE_ROWS).map((m) => (
-                  <ResultRow key={m.id} view={board.view(m)} />
-                ))}
+                {live
+                  .slice(0, LIVE_ROWS)
+                  .map((item) =>
+                    item.kind === "match" ? (
+                      <ResultRow key={item.match.id} view={board.view(item.match)} />
+                    ) : (
+                      <RoundRow key={item.key} matches={item.matches} board={board} bare />
+                    ),
+                  )}
               </div>
-              {alsoLive.length > LIVE_ROWS ? (
+              {live.length > LIVE_ROWS ? (
                 <p className="bx-note">
-                  And {alsoLive.length - LIVE_ROWS} more being played.{" "}
-                  <Link to="/schedule">All of today</Link>
+                  And {live.length - LIVE_ROWS} more. <Link to="/schedule">All of today</Link>
                 </p>
               ) : null}
             </Section>

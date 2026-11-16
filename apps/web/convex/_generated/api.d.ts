@@ -12,6 +12,7 @@ import type * as crons from "../crons.js";
 import type * as follows from "../follows.js";
 import type * as ingest from "../ingest.js";
 import type * as lichess from "../lichess.js";
+import type * as lolesports from "../lolesports.js";
 import type * as pandascore from "../pandascore.js";
 import type * as retention from "../retention.js";
 import type * as sample from "../sample.js";
@@ -29,6 +30,7 @@ declare const fullApi: ApiFromModules<{
   follows: typeof follows;
   ingest: typeof ingest;
   lichess: typeof lichess;
+  lolesports: typeof lolesports;
   pandascore: typeof pandascore;
   retention: typeof retention;
   sample: typeof sample;

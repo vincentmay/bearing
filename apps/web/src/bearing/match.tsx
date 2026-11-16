@@ -11,15 +11,29 @@ export function Source({
   provenance,
   now,
   times,
+  also,
 }: {
   provenance: Provenance;
   now: number;
   times: Times;
+  /** A second source that added to what the first one gave. */
+  also?: string;
 }) {
+  const link = provenance.note?.startsWith("http") ? provenance.note : undefined;
   return (
     <p className="bx-source">
       Source: {provenance.source}, checked {times.day(provenance.checkedAt, now).toLowerCase()} at{" "}
-      {times.clock(provenance.checkedAt)}.{provenance.note ? ` ${provenance.note}` : ""}
+      {times.clock(provenance.checkedAt)}.{also ? ` ${also}` : ""}
+      {provenance.note && !link ? ` ${provenance.note}` : ""}
+      {link ? (
+        <>
+          {" "}
+          <a href={link} target="_blank" rel="noreferrer" style={{ textDecoration: "underline" }}>
+            Open it there
+          </a>
+          .
+        </>
+      ) : null}
     </p>
   );
 }
@@ -334,7 +348,16 @@ export function MatchPage({ matchId }: { matchId: string }) {
         </div>
       </div>
 
-      <Source provenance={view.tournament.provenance} now={now} times={times} />
+      <Source
+        provenance={view.tournament.provenance}
+        now={now}
+        times={times}
+        also={
+          view.discipline.id === "lol" && match.games.some((g) => g.events)
+            ? "What happened inside each game is from the feed of lolesports.com."
+            : undefined
+        }
+      />
     </>
   );
 }

@@ -114,7 +114,9 @@ function extreme(color: string): boolean {
   const c = rgb(color);
   if (!c) return false;
   const light = (c[0] * 299 + c[1] * 587 + c[2] * 114) / 1000;
-  return light < 48 || light > 236;
+  // Pale and nearly without colour (a cream, a light grey) counts too: on white it is a ghost.
+  const chroma = Math.max(...c) - Math.min(...c);
+  return light < 48 || light > 236 || (light > 195 && chroma < 45);
 }
 
 /** "Team Vitality" is "Vitality" in running text. */
@@ -131,7 +133,10 @@ function tag(c: Competitor | undefined): string {
 export function sideOf(atlas: Atlas, id: string): SideView {
   const c = atlas.competitor(id);
   const name = plainName(atlas, id);
-  const color = c?.colors?.primary ?? "var(--ink)";
+  // A colour that is nearly white or nearly black disappears on one of the two grounds, so a
+  // team known by such a colour is drawn in ink, which is always the opposite of the ground.
+  const own = c?.colors?.primary;
+  const color = own && !extreme(own) ? own : "var(--ink)";
   return {
     id,
     name,

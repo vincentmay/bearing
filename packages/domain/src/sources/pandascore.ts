@@ -51,6 +51,7 @@ export interface PandaGame {
   status: string;
   /** Seconds the game lasted. */
   length?: number | null;
+  begin_at?: string | null;
   forfeit?: boolean;
   winner?: { id: number | null; type?: string | null } | null;
 }
@@ -267,6 +268,7 @@ function toMatch(
         label: `${unit} ${g.position}`,
         status: state,
         winner: state === "finished" && w >= 0 ? w : undefined,
+        startedAt: g.begin_at && state !== "scheduled" ? instant(g.begin_at) : undefined,
         // Only League's length is time on the game clock; elsewhere it is time on the wall.
         clock: state === "finished" && discipline === "lol" && g.length ? g.length : undefined,
         detail: g.forfeit ? "Forfeit" : undefined,

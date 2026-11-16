@@ -103,8 +103,18 @@ export function money(amount: number, currency: string): string {
   }).format(amount);
 }
 
+/** Codes that stand for something other than a country with a two-letter code. */
+const OTHER_PLACES: Record<string, string> = {
+  FID: "FIDE",
+  ENG: "England",
+  SCO: "Scotland",
+  WLS: "Wales",
+};
+
 export function countryName(country: string | undefined): string {
   if (!country) return "";
+  const other = OTHER_PLACES[country.toUpperCase()];
+  if (other) return other;
   try {
     return (
       new Intl.DisplayNames(undefined, { type: "region" }).of(country.toUpperCase()) ?? country
