@@ -408,3 +408,36 @@ export function readPlaces(
   const sum = best.reduce((all, row) => all + (amount(row) ?? 0), 0);
   return { placements, total: sum > 0 ? { amount: sum, currency: money } : undefined };
 }
+
+/** One row of the table of who is on which team, with the names asked for in `tenuresUrl`. */
+export interface LpTenure {
+  player: string;
+  team: string;
+  joined: string;
+}
+
+/** Everyone the wiki has on these teams right now, with the day each joined. */
+export function tenuresUrl(teams: string[]): string {
+  return url(
+    "Tenures",
+    { player: "Player", team: "Team", joined: "DateJoin" },
+    `IsCurrent='1' AND Team IN (${teams.map(quoted).join(",")})`,
+    "Team,DateJoin",
+  );
+}
+
+/**
+ * The day a player joined a team, as the wiki has it. The wiki starts a new stretch when a
+ * player's standing in the team changes, so this is the start of the stretch they are in.
+ */
+export function joinedOf(
+  rows: LpTenure[],
+  team: { name: string; short: string },
+  handle: string,
+): string | undefined {
+  const name = plain(handle);
+  const row = rows.find(
+    (r) => isTeam(r.team, team) && plain(r.player.replace(/\s*\(.*\)\s*$/, "")) === name,
+  );
+  return row && /^\d{4}-\d{2}-\d{2}$/.test(row.joined) ? row.joined : undefined;
+}

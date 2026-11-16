@@ -3,7 +3,9 @@ import {
   type LpPlayer,
   championKeys,
   type LpPlace,
+  type LpTenure,
   findGames,
+  joinedOf,
   gamesUrl,
   placePage,
   placesOfUrl,
@@ -12,6 +14,7 @@ import {
   readGame,
   readPlaces,
   rowsOf,
+  tenuresUrl,
 } from "@bearing/domain/leaguepedia";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
@@ -410,6 +413,100 @@ export const places = internalAction({
         prize: read?.total,
       });
     }
+    return null;
+  },
+});
+
+/**
+ * Since when each League player has been in their team: the day the wiki gives, for the stints
+ * whose source says who is in a team but not since when. A team is asked about once.
+ */
+const TEAMS_PER_RUN = 12;
+
+interface Undated {
+  id: string;
+  name: string;
+  short: string;
+  stints: { id: string; handle: string }[];
+}
+
+export const undated = internalQuery({
+  args: {},
+  returns: v.array(
+    v.object({
+      id: v.string(),
+      name: v.string(),
+      short: v.string(),
+      stints: v.array(v.object({ id: v.string(), handle: v.string() })),
+    }),
+  ),
+  handler: async (ctx) => {
+    const asked = await ctx.db
+      .query("digests")
+      .withIndex("by_key", (q) => q.gte("key", "tenure:").lt("key", "tenure:\uffff"))
+      .take(4000);
+    const done = new Set(asked.map((row) => row.key.slice("tenure:".length)));
+    const competitors = await ctx.db.query("competitors").take(8000);
+    const byId = new Map(competitors.map((row) => [row.key, row.doc]));
+    const stints = await ctx.db.query("stints").take(8000);
+    const out: Undated[] = [];
+    for (const row of competitors) {
+      const team = row.doc;
+      if (team.kind !== "team" || team.discipline !== "lol" || done.has(team.id)) continue;
+      const open = stints.flatMap((s) => {
+        const player = byId.get(s.doc.playerId);
+        return s.doc.teamId === team.id && !s.doc.to && !s.doc.from && player?.kind === "player"
+          ? [{ id: s.doc.id, handle: player.handle }]
+          : [];
+      });
+      if (open.length) out.push({ id: team.id, name: team.name, short: team.short, stints: open });
+      if (out.length >= TEAMS_PER_RUN) break;
+    }
+    return out;
+  },
+});
+
+export const setJoined = internalMutation({
+  args: {
+    teamId: v.string(),
+    dates: v.array(v.object({ stintId: v.string(), from: v.string() })),
+  },
+  returns: v.null(),
+  handler: async (ctx, { teamId, dates }) => {
+    await ctx.db.insert("digests", { key: `tenure:${teamId}`, hash: String(dates.length) });
+    for (const { stintId, from } of dates) {
+      const row = await ctx.db
+        .query("stints")
+        .withIndex("by_key", (q) => q.eq("key", stintId))
+        .first();
+      if (row && !row.doc.from)
+        await ctx.db.patch("stints", row._id, { doc: { ...row.doc, from } });
+    }
+    return null;
+  },
+});
+
+export const tenures = internalAction({
+  args: { runs: v.optional(v.number()) },
+  returns: v.null(),
+  handler: async (ctx, { runs = 0 }) => {
+    if (!(await ctx.runQuery(internal.ingest.enabled, {}))) return null;
+    const teams: Undated[] = await ctx.runQuery(internal.leaguepedia.undated, {});
+    if (!teams.length) return null;
+    await pause(BREATH);
+    const rows = await ask<LpTenure>(tenuresUrl(teams.map((t) => t.name)));
+    // The wiki did not answer: another day.
+    if (!rows) return null;
+    for (const team of teams) {
+      const dates = team.stints.flatMap((stint) => {
+        const from = joinedOf(rows, team, stint.handle);
+        return from ? [{ stintId: stint.id, from }] : [];
+      });
+      await ctx.runMutation(internal.leaguepedia.setJoined, { teamId: team.id, dates });
+    }
+    // More teams may be waiting; a full run books the next, a handful of times at most.
+    if (teams.length >= TEAMS_PER_RUN && runs < 10)
+      await ctx.scheduler.runAfter(10_000, internal.leaguepedia.tenures, { runs: runs + 1 });
     return null;
   },
 });

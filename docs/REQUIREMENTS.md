@@ -180,6 +180,13 @@ The home screen. Answers questions 1 to 3.
   moves beside it: step, jump, play it through, or pick a move. It stays with a game that is
   still being played. The owner: "for chess i would expect the board in our style with the
   moves so you can view it quickly".
+- **M12 (Agreed on 2026-11-16).** A match shows how its two sides have done against each
+  other before: who won how often, and their latest meetings with event, day and score. For
+  teams it reaches back years. The owner: "What about matchups between teams, historic data
+  between them."
+- **M13 (Agreed on 2026-11-16).** A game of League that is being played shows each player's
+  line as it stands, by name; once the wiki has the game, the lines lead to the players and
+  the bans are there too.
 - **M11 (Agreed on 2026-11-16).** A game of League also shows who led in gold, minute by
   minute, under its objectives.
 - **M10 (Agreed on 2026-11-16).** A game of League of Legends shows how it was played: lane
@@ -190,6 +197,10 @@ The home screen. Answers questions 1 to 3.
   in the order of their positions (League: top, jungle, mid, bot, support), with substitutes
   and staff in lists of their own. A role is written as its word, then its sign; League's five
   positions use the game's own signs.
+- **G18 (Agreed on 2026-11-16).** A game's ranking has a page of its own, with every place the
+  source is kept to; Search shows its first ten. A chess player who is in no event can be
+  followed, and is listed under Following as not playing at the moment. A mark in a row
+  travels into the page it leads to.
 - **G15 (Agreed on 2026-11-16).** The account button opens a menu: who is signed in, the way
   to their account, the settings, and signing in or out. Without accounts it leads straight
   to the settings.
@@ -339,6 +350,10 @@ All **Agreed** in the prototype. Timings are in `docs/BRAND.md`.
 - **D5d (Agreed on 2026-11-16).** No paid data plans. The owner on PandaScore's prices: "I will
   absolutely NOT pay 1000€ per game per month". What the free plans lack comes from sources that
   cost nothing, or is left out (D5b).
+- **D5i (Agreed on 2026-11-16).** Head-to-head history is each team's finished matches from
+  PandaScore's free plan, asked for by pair when two teams are about to meet, and kept. Since
+  when a League player has been in their team comes from Leaguepedia's table of tenures. A
+  League game's players while it is played come from the same feed looks as its objectives.
 - **D5g (Agreed on 2026-11-16).** Further sources, all free and without a key: Leaguepedia
   also for final places and prize money; Valve's public standings repository for the
   Counter-Strike world ranking; Lichess's list of FIDE players for chess players' pictures

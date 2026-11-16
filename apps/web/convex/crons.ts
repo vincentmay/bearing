@@ -28,6 +28,9 @@ crons.interval("head to head", { hours: 3 }, internal.meetings.sync, {});
 // Counter-Strike's world ranking, which Valve publishes about once a month.
 crons.interval("valve ranking", { hours: 24 }, internal.valve.sync, {});
 
+// Since when each League player has been in their team, once per team.
+crons.interval("league tenures", { hours: 24 }, internal.leaguepedia.tenures, {});
+
 // Chess players new to the store are looked up for a picture, once each.
 crons.interval("chess faces", { hours: 24 }, internal.lichess.faces, {});
 

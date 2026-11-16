@@ -110,8 +110,10 @@ export const put = internalMutation({
         .query("stints")
         .withIndex("by_key", (q) => q.eq("key", doc.id))
         .first();
+      // Since when, where another source has found it out, is kept.
+      const kept = row && !doc.from && row.doc.from ? { ...doc, from: row.doc.from } : doc;
       if (!row) await ctx.db.insert("stints", { key: doc.id, doc });
-      else if (!same(row.doc, doc)) await ctx.db.patch("stints", row._id, { doc });
+      else if (!same(row.doc, kept)) await ctx.db.patch("stints", row._id, { doc: kept });
     }
     for (const fresh of args.matches ?? []) {
       const row = await ctx.db

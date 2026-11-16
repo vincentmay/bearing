@@ -164,7 +164,16 @@ export function otherEvents(): Tournament[] {
         start: "2026-07-06",
         end: "2026-07-10",
         prize: { amount: 175_000, currency: "USD" },
-        participantIds: [],
+        participantIds: [
+          "chess-carlsen",
+          "chess-nakamura",
+          "chess-firouzja",
+          "chess-caruana",
+          "chess-gukesh",
+          "chess-pragg",
+          "chess-weiyi",
+          "chess-abdusattorov",
+        ],
         blurb: "Carlsen by a point and a half.",
         placements: done(
           [["chess-carlsen"], ["chess-nakamura"], ["chess-firouzja"]],

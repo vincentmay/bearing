@@ -61,6 +61,11 @@ What paying would change in Bearing:
   Bearing stays on the free plan; what the free plan lacks is to come from sources that cost
   nothing (the lolesports feed, Liquipedia, start.gg).
 
+The free plan also answers `/teams/<id>/matches` with every finished series of a team, back
+through the years (621 for Vitality on 2026-11-16). Bearing reads up to three hundred of one
+team's for a pair of teams about to meet, keeps the series between the two as their
+head-to-head, and asks again after three days.
+
 Terms that matter: the stats plans are for uses that have nothing to do with betting, which fits.
 The token lives on the Convex deployment as `PANDASCORE_TOKEN`.
 
@@ -126,7 +131,9 @@ lacks, and that have not allowed it:
 The owner asks both in writing. Until one says yes, nothing is built on it. Also found:
 trackmania.io allows use of its API with the credit "Powered by Trackmania.io", for online
 community cups only; the lolesports feed also has per-player statistics during a game
-(`livestats/v1/details`), which Bearing does not read yet.
+(`livestats/v1/details`). Bearing does not need that address: the looks it already takes
+at a game (`livestats/v1/window`) name the ten players and carry each one's kills, deaths,
+assists, gold and minions, and that is what the match page shows while a game is played.
 
 ## Leaguepedia
 
@@ -151,6 +158,8 @@ Liquipedia and has nothing to do with it. Found on 2026-11-16, after Liquipedia'
   sources give.
 - The champions' pictures are Riot's own public files (Data Dragon,
   `ddragon.leagueoflegends.com`); only the name a picture is filed under is stored.
+- `Tenures` gives the day each player joined their team; Bearing reads it once per League
+  team, for the stints PandaScore gives without a date.
 - `TournamentResults` gives every final place of an event and what it paid; Bearing reads it
   once per League event that is over.
 - Not used yet, and there: `RosterChanges` (who joined and left, with dates), `Tenures`,
