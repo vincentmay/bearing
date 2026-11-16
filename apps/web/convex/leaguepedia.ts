@@ -27,7 +27,7 @@ import { game } from "./validators";
 const DAY = 24 * 60 * 60 * 1000;
 const HOUR = 60 * 60 * 1000;
 /** Series looked at in one run; the run carries on further back while it finds something. */
-const SERIES_PER_RUN = 20;
+const SERIES_PER_RUN = 12;
 /** Leaguepedia is asked one question at a time, with a breath between. */
 const BREATH = 3000;
 const AGENT = { "User-Agent": "Bearing (esports schedule viewer)" };
@@ -47,7 +47,7 @@ async function ask<T>(url: string): Promise<T[] | null> {
     if (!body) return null;
     if (!body.error) return rowsOf<T>(body);
     if (body.error.code !== "ratelimited") return null;
-    await pause(attempt * 12_000);
+    await pause(attempt * 6000);
   }
   return null;
 }
@@ -181,6 +181,8 @@ export const enrich = internalAction({
     days: v.optional(v.number()),
     /** Only series scheduled before this moment: how a run carries on where the last one ended. */
     before: v.optional(v.number()),
+    /** How often a run of this chain was cut short by the wiki; after a few it gives up. */
+    stumbles: v.optional(v.number()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -206,10 +208,20 @@ export const enrich = internalAction({
       return rows;
     };
 
+    // A run has minutes, not hours: past this moment it writes what it has and hands over.
+    const until = now + 4 * 60_000;
+    let stumbled = false;
+    /** The oldest series this run got to; the next run carries on behind it. */
+    let reached: number | undefined;
     const found: { match: Target; games: LpGame[] }[] = [];
     for (const match of wanted) {
+      if (Date.now() > until) break;
       const rows = await gamesOn(match.at);
-      if (!rows) return null;
+      if (!rows) {
+        stumbled = true;
+        break;
+      }
+      reached = match.at;
       const games = findGames(rows, match.sides, match.scheduledAt);
       if (games.length) found.push({ match, games });
     }
@@ -232,7 +244,11 @@ export const enrich = internalAction({
       for (let i = 0; i < ids.length; i += 25) {
         await pause(BREATH);
         const rows = await ask<LpPlayer>(playersUrl(ids.slice(i, i + 25)));
-        if (!rows) return null;
+        // The games whose lines did not arrive are simply still waiting next time.
+        if (!rows) {
+          stumbled = true;
+          break;
+        }
         players.push(...rows);
       }
 
@@ -264,10 +280,16 @@ export const enrich = internalAction({
       }
     }
 
-    // A full run may have more behind it: carry on from the oldest series looked at.
-    const oldest = wanted.at(-1)!.at;
-    if (wanted.length >= SERIES_PER_RUN && oldest > now - days * DAY)
-      await ctx.scheduler.runAfter(5000, internal.leaguepedia.enrich, { days, before: oldest - 1 });
+    // There may be more behind: carry on from the oldest series this run got to. A run the
+    // wiki cut short waits a while first, and after three of those the chain ends.
+    const stumbles = (args.stumbles ?? 0) + (stumbled ? 1 : 0);
+    const more = wanted.length >= SERIES_PER_RUN || reached !== wanted.at(-1)!.at;
+    if (more && stumbles <= 3 && (reached ?? to) > now - days * DAY)
+      await ctx.scheduler.runAfter(stumbled ? 90_000 : 5000, internal.leaguepedia.enrich, {
+        days,
+        before: reached === undefined ? to : reached - 1,
+        stumbles,
+      });
     return null;
   },
 });
