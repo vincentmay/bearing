@@ -62,23 +62,30 @@ const mark = (ms: number) =>
 
 /** League matches that are being played, or were played lately and still lack their detail. */
 export const targets = internalQuery({
-  args: { now: v.number() },
-  handler: async (ctx, { now }) => {
+  args: {
+    now: v.number(),
+    /** Only what is being played now; the days behind it are not looked through. */
+    live: v.boolean(),
+  },
+  handler: async (ctx, { now, live: liveOnly }) => {
     const tournaments = await ctx.db.query("tournaments").take(1000);
     const league = new Set(tournaments.filter((t) => t.doc.discipline === "lol").map((t) => t.key));
     const live = await ctx.db
       .query("matches")
       .withIndex("by_live_and_at", (q) => q.eq("live", true))
       .take(500);
-    const recent = await ctx.db
-      .query("matches")
-      .withIndex("by_live_and_at", (q) =>
-        q
-          .eq("live", false)
-          .gte("at", now - BACKFILL)
-          .lte("at", now),
-      )
-      .take(2000);
+    // Looking through the days behind is the costly part, and is left to the half-hourly run.
+    const recent = liveOnly
+      ? []
+      : await ctx.db
+          .query("matches")
+          .withIndex("by_live_and_at", (q) =>
+            q
+              .eq("live", false)
+              .gte("at", now - BACKFILL)
+              .lte("at", now),
+          )
+          .take(2000);
     const wanted = [...live, ...recent].filter(
       (row) =>
         league.has(row.doc.tournamentId) &&
@@ -169,12 +176,18 @@ export const apply = internalMutation({
 });
 
 export const enrich = internalAction({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    /** Asked for by the live tick: follow the games under way, and leave the past alone. */
+    live: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
     const k = key();
     if (!k || !(await ctx.runQuery(internal.ingest.enabled, {}))) return;
     const now = Date.now();
-    const wanted = await ctx.runQuery(internal.lolesports.targets, { now });
+    const wanted = await ctx.runQuery(internal.lolesports.targets, {
+      now,
+      live: args.live ?? false,
+    });
     if (!wanted.length) return;
 
     // The schedule comes in pages around today; one page back covers the days being filled in.
@@ -266,6 +279,6 @@ export const enrich = internalAction({
     }
     // More finished games may be waiting; carry on shortly, a few at a time.
     if (whole >= GAMES_PER_RUN)
-      await ctx.scheduler.runAfter(20_000, internal.lolesports.enrich, {});
+      await ctx.scheduler.runAfter(20_000, internal.lolesports.enrich, { live: args.live });
   },
 });

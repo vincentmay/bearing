@@ -180,6 +180,13 @@ The home screen. Answers questions 1 to 3.
   moves beside it: step, jump, play it through, or pick a move. It stays with a game that is
   still being played. The owner: "for chess i would expect the board in our style with the
   moves so you can view it quickly".
+- **M10 (Agreed on 2026-11-16).** A game of League of Legends shows how it was played: lane
+  against lane, each player with their champion and their kills, deaths and assists, and what
+  each side banned. The owner: "in my dream scenario we could rely on this application for all
+  this data, rosters, history, how each game played out".
+- **G13 (Agreed on 2026-11-16).** Bearing is meant to carry the depth itself, so that nobody
+  has to leave for HLTV or Liquipedia, wherever a source for it can be had free or for little.
+  The owner turned down the smaller aim ("a dumbed down version").
 
 ### 4.4 Schedule
 
@@ -304,6 +311,10 @@ All **Agreed** in the prototype. Timings are in `docs/BRAND.md`.
 - **D5d (Agreed on 2026-11-16).** No paid data plans. The owner on PandaScore's prices: "I will
   absolutely NOT pay 1000€ per game per month". What the free plans lack comes from sources that
   cost nothing, or is left out (D5b).
+- **D5f (Agreed on 2026-11-16).** League drafts and player lines come from Leaguepedia
+  (lol.fandom.com), a wiki under CC BY-SA 3.0 with an open query interface. It is not
+  Liquipedia. It is named as a source, asked a few questions an hour, and carries far more
+  than is used so far: line-up changes with dates, prize money by place, years of history.
 - **D5e (Proposed).** The lolesports feed is unofficial: Riot publishes no terms for it, neither
   allowing nor forbidding. It is used for a non-commercial Bearing, named as a source on the
   match page, and is one deployment variable (`LOLESPORTS_KEY`) away from being off.
@@ -527,8 +538,11 @@ Proposed. Each step ends with the owner seeing it working.
    production instance needs a domain the owner controls.
 7. **Going public, small**: done on 2026-11-16. The code is on GitHub under AGPL-3.0 and the app
    at `bearing.vincentmay.com`. The Liquipedia application is the owner's to send.
-8. **More data without paying**: Liquipedia refused (section 12). Next: start.gg for Rocket
-   League game scores, with the owner's token; then a source for Trackmania.
+8. **More data without paying**: Liquipedia refused (section 12). League of Legends now has
+   its depth from Leaguepedia (D5f, M10). Next for League, from the same source: who joined and
+   left a team and when, prize money by place, and a player's past games. Next for Rocket
+   League: start.gg, with the owner's token. Counter-Strike has no free source for maps and
+   rounds; the cheapest found costs about 40 US dollars a month (`docs/DATA-SOURCES.md`).
 9. **The owner's first round of feedback on the built screens** (2026-11-16): done as G8 to
    G12, B3, B4, M9 and TO3 say. The owner called it "just the beginning".
 
@@ -536,12 +550,18 @@ Proposed. Each step ends with the owner seeing it working.
 
 1. A start.gg token (start.gg, Developer Settings, "Create new token"), for Rocket League game
    scores. It was the fallback if Liquipedia said no, and Liquipedia has.
-2. Trackmania has no source. The candidates are Nadeo's own services (official, needs a Ubisoft
-   account of the owner's) and leaving Trackmania out of the public version until one exists.
-3. English only, or German as well?
-4. The lasting domain: nothing is bought. Within budget the clean options found were
+2. Trackmania has no source, and in 2026 no circuit of its own: the World Tour is paused for
+   the Esports World Cup. Proposed: leave it out of the public version until there is both.
+3. Counter-Strike maps, rounds and player lines: BALLDONTLIE's Counter-Strike plan at 39.99 US
+   dollars a month has them and allows any use, paid products included. A week's trial needs a
+   card. Yes or no is the owner's.
+4. Convex reports the account above the limits of its free plan (seen on 2026-11-16). The two
+   jobs that read most were cut down that day; whether that is enough shows on the dashboard's
+   usage page, which only the owner can open.
+5. English only, or German as well?
+6. The lasting domain: nothing is bought. Within budget the clean options found were
    bearinglive.com and watchbearing.com. Until then `bearing.vincentmay.com`.
-5. Before any launch that earns money: an EU trade mark check on the name "Bearing", a check of
+7. Before any launch that earns money: an EU trade mark check on the name "Bearing", a check of
    the logo against existing marks, and paid data agreements (D7, D8).
 
 Settled on 2026-11-16 and no longer open: the card layout of round 10 ("Yes it is perfect now"),

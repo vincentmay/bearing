@@ -140,7 +140,9 @@ export const tournament = v.object({
 
 const status = v.union(v.literal("scheduled"), v.literal("live"), v.literal("finished"));
 
-const game = v.object({
+const champion = v.object({ name: text, key: maybeText });
+
+export const game = v.object({
   label: text,
   status,
   scores: v.optional(numbers),
@@ -174,8 +176,19 @@ const game = v.object({
         rating: v.optional(v.number()),
         role: maybeText,
         gold: v.optional(v.number()),
+        handle: maybeText,
+        champion: maybeText,
+        cs: v.optional(v.number()),
+        damage: v.optional(v.number()),
       }),
     ),
+  ),
+  draft: v.optional(
+    v.object({
+      patch: maybeText,
+      picks: v.array(v.array(champion)),
+      bans: v.array(v.array(champion)),
+    }),
   ),
   objectives: v.optional(
     v.object({ towers: numbers, dragons: numbers, barons: numbers, gold: numbers }),

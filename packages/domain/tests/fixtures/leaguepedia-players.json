@@ -1,0 +1,304 @@
+{
+  "cargoquery": [
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_1",
+        "name": "Kiin",
+        "side": "1",
+        "champion": "Olaf",
+        "kills": "2",
+        "deaths": "1",
+        "assists": "13",
+        "gold": "14628",
+        "cs": "295",
+        "damage": "19167",
+        "role": "Top"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_1",
+        "name": "Canyon",
+        "side": "1",
+        "champion": "Lee Sin",
+        "kills": "3",
+        "deaths": "2",
+        "assists": "13",
+        "gold": "16287",
+        "cs": "290",
+        "damage": "8680",
+        "role": "Jungle"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_1",
+        "name": "Chovy",
+        "side": "1",
+        "champion": "Syndra",
+        "kills": "6",
+        "deaths": "1",
+        "assists": "11",
+        "gold": "15699",
+        "cs": "285",
+        "damage": "24538",
+        "role": "Mid"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_1",
+        "name": "Ruler",
+        "side": "1",
+        "champion": "Corki",
+        "kills": "7",
+        "deaths": "0",
+        "assists": "8",
+        "gold": "22930",
+        "cs": "455",
+        "damage": "37137",
+        "role": "Bot"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_1",
+        "name": "Duro",
+        "side": "1",
+        "champion": "Nami",
+        "kills": "1",
+        "deaths": "0",
+        "assists": "16",
+        "gold": "10467",
+        "cs": "27",
+        "damage": "6308",
+        "role": "Support"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_1",
+        "name": "Bin",
+        "side": "2",
+        "champion": "K'Sante",
+        "kills": "0",
+        "deaths": "4",
+        "assists": "1",
+        "gold": "12404",
+        "cs": "309",
+        "damage": "12914",
+        "role": "Top"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_1",
+        "name": "Xun",
+        "side": "2",
+        "champion": "Jarvan IV",
+        "kills": "1",
+        "deaths": "4",
+        "assists": "3",
+        "gold": "12919",
+        "cs": "266",
+        "damage": "11346",
+        "role": "Jungle"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_1",
+        "name": "Knight",
+        "side": "2",
+        "champion": "Locke",
+        "kills": "2",
+        "deaths": "2",
+        "assists": "1",
+        "gold": "15428",
+        "cs": "374",
+        "damage": "17058",
+        "role": "Mid"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_1",
+        "name": "Viper",
+        "side": "2",
+        "champion": "Kalista",
+        "kills": "1",
+        "deaths": "5",
+        "assists": "3",
+        "gold": "16137",
+        "cs": "408",
+        "damage": "14447",
+        "role": "Bot"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_1",
+        "name": "ON",
+        "side": "2",
+        "champion": "Renata Glasc",
+        "kills": "0",
+        "deaths": "4",
+        "assists": "4",
+        "gold": "9068",
+        "cs": "41",
+        "damage": "4564",
+        "role": "Support"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_4",
+        "name": "Bin",
+        "side": "1",
+        "champion": "Gwen",
+        "kills": "8",
+        "deaths": "2",
+        "assists": "9",
+        "gold": "17652",
+        "cs": "337",
+        "damage": "25670",
+        "role": "Top"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_4",
+        "name": "Xun",
+        "side": "1",
+        "champion": "Nocturne",
+        "kills": "3",
+        "deaths": "3",
+        "assists": "11",
+        "gold": "16315",
+        "cs": "276",
+        "damage": "15782",
+        "role": "Jungle"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_4",
+        "name": "Knight",
+        "side": "1",
+        "champion": "Twisted Fate",
+        "kills": "2",
+        "deaths": "1",
+        "assists": "17",
+        "gold": "20573",
+        "cs": "364",
+        "damage": "34820",
+        "role": "Mid"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_4",
+        "name": "Viper",
+        "side": "1",
+        "champion": "Yunara",
+        "kills": "6",
+        "deaths": "4",
+        "assists": "9",
+        "gold": "23158",
+        "cs": "421",
+        "damage": "33625",
+        "role": "Bot"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_4",
+        "name": "ON",
+        "side": "1",
+        "champion": "Neeko",
+        "kills": "2",
+        "deaths": "1",
+        "assists": "13",
+        "gold": "12022",
+        "cs": "66",
+        "damage": "14852",
+        "role": "Support"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_4",
+        "name": "Kiin",
+        "side": "2",
+        "champion": "Aurora",
+        "kills": "0",
+        "deaths": "5",
+        "assists": "6",
+        "gold": "13785",
+        "cs": "325",
+        "damage": "24333",
+        "role": "Top"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_4",
+        "name": "Canyon",
+        "side": "2",
+        "champion": "Pantheon",
+        "kills": "0",
+        "deaths": "5",
+        "assists": "5",
+        "gold": "14098",
+        "cs": "289",
+        "damage": "8842",
+        "role": "Jungle"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_4",
+        "name": "Chovy",
+        "side": "2",
+        "champion": "Akali",
+        "kills": "5",
+        "deaths": "4",
+        "assists": "1",
+        "gold": "17752",
+        "cs": "385",
+        "damage": "26668",
+        "role": "Mid"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_4",
+        "name": "Ruler",
+        "side": "2",
+        "champion": "Xayah",
+        "kills": "6",
+        "deaths": "3",
+        "assists": "4",
+        "gold": "24009",
+        "cs": "488",
+        "damage": "38779",
+        "role": "Bot"
+      }
+    },
+    {
+      "title": {
+        "game": "2026 Season World Championship/Main Event_Finals_1_4",
+        "name": "Duro",
+        "side": "2",
+        "champion": "Lulu",
+        "kills": "0",
+        "deaths": "4",
+        "assists": "9",
+        "gold": "10180",
+        "cs": "29",
+        "damage": "4317",
+        "role": "Support"
+      }
+    }
+  ]
+}

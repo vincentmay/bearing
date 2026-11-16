@@ -1165,6 +1165,119 @@ body {
 .bx-game > .bx-dots {
   margin-top: 9px;
 }
+/*
+ * A game of League as it was played: lane against lane. Each half is a champion, the player
+ * and their line; the right half is the left one mirrored, so the two meet at the lane's sign.
+ */
+.bx-score {
+  display: grid;
+  gap: 2px;
+  margin-top: 12px;
+}
+.bx-score-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+}
+.bx-score-row > .bx-role {
+  justify-content: center;
+  color: var(--ink2);
+}
+.bx-score-row > .bx-role svg {
+  color: inherit;
+}
+.bx-score-half {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.bx-score-half[data-side="1"] {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+.bx-score-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: inherit;
+  text-decoration: none;
+}
+.bx-score-kda,
+.bx-score-gold {
+  flex: none;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink2);
+  white-space: nowrap;
+}
+.bx-score-kda b {
+  color: var(--ink);
+  font-weight: 700;
+}
+.bx-score-gold {
+  display: none;
+}
+.bx-score-bans {
+  min-height: 0;
+  margin-top: 8px;
+}
+.bx-score-bans .bx-score-half {
+  gap: 4px;
+}
+/* A champion's own picture, cropped a little as the game itself shows it. */
+.bx-champ {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--s, 28px);
+  height: var(--s, 28px);
+  border-radius: calc(var(--s, 28px) * 0.28);
+  overflow: hidden;
+  background: var(--hover);
+  font-size: calc(var(--s, 28px) * 0.36);
+  font-weight: 700;
+  color: var(--ink2);
+}
+.bx-champ img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.12);
+  opacity: 0;
+  transition: opacity 0.28s var(--out);
+}
+.bx-champ[data-shown] img {
+  opacity: 1;
+}
+.bx-champ[data-out] img {
+  filter: grayscale(1);
+}
+.bx-champ[data-out][data-shown] img {
+  opacity: 0.55;
+}
+@media (min-width: 620px) {
+  .bx-score-gold {
+    display: inline;
+  }
+  .bx-score-row {
+    gap: 14px;
+  }
+}
+@media (hover: hover) {
+  a.bx-score-name:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
 .bx-plot {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr)) 6px repeat(12, minmax(0, 1fr));

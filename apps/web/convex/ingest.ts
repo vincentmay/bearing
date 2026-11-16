@@ -36,6 +36,7 @@ function keepDetail(before: Doc | undefined, fresh: Doc): Doc {
         events: game.events ?? old.events,
         rounds: game.rounds ?? old.rounds,
         lines: game.lines ?? old.lines,
+        draft: game.draft ?? old.draft,
       };
     }),
   };
@@ -50,14 +51,51 @@ export const enabled = internalQuery({
   },
 });
 
+/** The fingerprints of what one event's source last handed over, by piece. */
+export const digests = internalQuery({
+  args: { scope: v.string() },
+  returns: v.record(v.string(), v.string()),
+  handler: async (ctx, { scope }) => {
+    const rows = await ctx.db
+      .query("digests")
+      .withIndex("by_key", (q) => q.gte("key", `${scope}:`).lt("key", `${scope}:\uffff`))
+      .take(500);
+    return Object.fromEntries(rows.map((r) => [r.key, r.hash]));
+  },
+});
+
+/** A fingerprint of a piece of data: equal pieces have equal ones, others all but never. */
+export function fingerprint(value: unknown): string {
+  const text = JSON.stringify(value);
+  let a = 0x811c9dc5;
+  let b = 0x1b873593;
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    a = Math.imul(a ^ code, 0x01000193);
+    b = Math.imul((b << 5) ^ (b >>> 27) ^ code, 0x85ebca6b);
+  }
+  return `${text.length.toString(36)}.${(a >>> 0).toString(36)}.${(b >>> 0).toString(36)}`;
+}
+
 export const put = internalMutation({
   args: {
     tournament: v.optional(tournament),
     competitors: v.optional(v.array(competitor)),
     stints: v.optional(v.array(stint)),
     matches: v.optional(v.array(match)),
+    /** The fingerprint of this piece, kept so that the same piece need not be sent again. */
+    digest: v.optional(v.object({ key: v.string(), hash: v.string() })),
   },
   handler: async (ctx, args) => {
+    if (args.digest) {
+      const { key, hash } = args.digest;
+      const row = await ctx.db
+        .query("digests")
+        .withIndex("by_key", (q) => q.eq("key", key))
+        .first();
+      if (!row) await ctx.db.insert("digests", { key, hash });
+      else if (row.hash !== hash) await ctx.db.patch("digests", row._id, { hash });
+    }
     for (const doc of args.competitors ?? []) {
       const row = await ctx.db
         .query("competitors")
@@ -186,7 +224,7 @@ export const tick = internalMutation({
       await ctx.scheduler.runAfter(delay, internal.pandascore.refresh, {});
       await ctx.scheduler.runAfter(delay, internal.lichess.refresh, {});
       // After the scores, what is happening inside the League games under way.
-      await ctx.scheduler.runAfter(delay + 5_000, internal.lolesports.enrich, {});
+      await ctx.scheduler.runAfter(delay + 5_000, internal.lolesports.enrich, { live: true });
     }
   },
 });

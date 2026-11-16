@@ -140,5 +140,6 @@ describe("playing the sample forward", () => {
     expect(open.placements!.find((p) => p.rank === 3)!.competitorIds).toHaveLength(2);
     const classic = after.tournament("chess-fall-classic-2026")!;
     expect(classic.placements!.every((p) => p.competitorIds.length <= 1)).toBe(true);
-  });
+    // Four thousand steps of the whole sample: a long run by design.
+  }, 30_000);
 });

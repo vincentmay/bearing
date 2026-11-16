@@ -1,4 +1,4 @@
-import type { Follow, GameEvent } from "@bearing/domain";
+import type { Champion, Follow, GameEvent } from "@bearing/domain";
 import { Link } from "@tanstack/react-router";
 import {
   ClipboardList,
@@ -167,7 +167,7 @@ const LANES: Record<string, string[]> = {
 };
 
 /** What a player does in the team, as a sign with the word beside it. */
-export function Role({ role }: { role: string | undefined }) {
+export function Role({ role, bare }: { role: string | undefined; bare?: boolean }) {
   if (!role) return <span />;
   const key = role.toLowerCase();
   const lane =
@@ -198,7 +198,7 @@ export function Role({ role }: { role: string | undefined }) {
                     ? Target
                     : undefined;
   return (
-    <span className="bx-role">
+    <span className="bx-role" title={bare ? role : undefined}>
       {lane ? (
         <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden>
           <path d={LANES[lane]![0]} fill="currentColor" />
@@ -207,7 +207,52 @@ export function Role({ role }: { role: string | undefined }) {
       ) : Icon ? (
         <Icon size={13} strokeWidth={2.2} aria-hidden />
       ) : null}
-      {role}
+      {bare ? null : role}
+    </span>
+  );
+}
+
+/**
+ * A champion as its own picture, from the game's public files; its first letters where there
+ * is no picture or it does not arrive.
+ */
+export function Champ({
+  champion,
+  patch,
+  size = 28,
+  out,
+}: {
+  champion: Champion;
+  patch: string | undefined;
+  size?: number;
+  /** Denied to the other side rather than played. */
+  out?: boolean;
+}) {
+  const [state, setState] = useState<"wait" | "shown" | "failed">("wait");
+  const picture = champion.key && patch && state !== "failed";
+  return (
+    <span
+      className="bx-champ"
+      data-out={out ? "" : undefined}
+      data-shown={state === "shown" ? "" : undefined}
+      style={{ "--s": `${size}px` } as CSSProperties}
+      title={champion.name}
+    >
+      {picture ? (
+        <img
+          src={`https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/${champion.key}.png`}
+          alt={champion.name}
+          loading="lazy"
+          decoding="async"
+          ref={(img) => {
+            if (img?.complete && img.naturalWidth > 0 && state === "wait") setState("shown");
+          }}
+          onLoad={() => setState("shown")}
+          onError={() => setState("failed")}
+        />
+      ) : (
+        <span>{champion.name.slice(0, 2)}</span>
+      )}
     </span>
   );
 }

@@ -202,6 +202,22 @@ export interface GameResult {
   clock?: number;
   /** Things that happened at a known moment, in order: Rocket League goals, League objectives. */
   events?: GameEvent[];
+  /** LoL: which champions each side took and which it denied the other. */
+  draft?: Draft;
+}
+
+/** A champion by name, and by the name its picture is filed under where that is known. */
+export interface Champion {
+  name: string;
+  key?: string;
+}
+
+/** The champions of one game, per side in the order of `Match.sides`. */
+export interface Draft {
+  /** The version of the game the pictures are taken from. */
+  patch?: string;
+  picks: Champion[][];
+  bans: Champion[][];
 }
 
 /** One goal or objective, with the moment it happened. */
@@ -220,7 +236,10 @@ export interface RoundRecord {
 }
 
 export interface PlayerLine {
+  /** Empty when the source names a player Bearing does not know; `handle` then says who. */
   playerId: string;
+  /** The player's name as the source of the line writes it. */
+  handle?: string;
   side: number;
   kills: number;
   deaths: number;
@@ -231,6 +250,10 @@ export interface PlayerLine {
   /** LoL: role played and gold earned. */
   role?: string;
   gold?: number;
+  /** LoL: the champion played, minions killed, and damage dealt to champions. */
+  champion?: string;
+  cs?: number;
+  damage?: number;
 }
 
 export interface Veto {

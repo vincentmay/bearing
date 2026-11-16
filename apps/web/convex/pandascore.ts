@@ -13,6 +13,7 @@ import {
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { type ActionCtx, internalAction } from "./_generated/server";
+import { fingerprint } from "./ingest";
 
 /**
  * Counter-Strike 2, League of Legends and Rocket League from PandaScore.
@@ -59,14 +60,21 @@ type Listed = PandaMatch & {
 
 async function store(ctx: ActionCtx, source: PandaSerie, discipline: DisciplineId) {
   const mapped = plain(mapSerie(source, discipline, Date.now()));
-  for (let i = 0; i < mapped.competitors.length; i += CHUNK)
-    await ctx.runMutation(internal.ingest.put, {
-      competitors: mapped.competitors.slice(i, i + CHUNK),
-    });
-  for (let i = 0; i < mapped.stints.length; i += CHUNK)
-    await ctx.runMutation(internal.ingest.put, { stints: mapped.stints.slice(i, i + CHUNK) });
-  for (let i = 0; i < mapped.matches.length; i += CHUNK / 2)
-    await ctx.runMutation(internal.ingest.put, { matches: mapped.matches.slice(i, i + CHUNK / 2) });
+  // Most of an event is the same from one hour to the next. Each piece is handed over only if
+  // it differs from the piece handed over last time, which is told from its fingerprint alone.
+  const scope = mapped.tournament.id;
+  const known: Record<string, string> = await ctx.runQuery(internal.ingest.digests, { scope });
+  const pieces = <T>(kind: "competitors" | "stints" | "matches", all: T[], size: number) =>
+    Array.from({ length: Math.ceil(all.length / size) }, (_, i) => {
+      const piece = all.slice(i * size, (i + 1) * size);
+      return { piece, digest: { key: `${scope}:${kind}:${i}`, hash: fingerprint(piece) } };
+    }).filter(({ digest }) => known[digest.key] !== digest.hash);
+  for (const { piece, digest } of pieces("competitors", mapped.competitors, CHUNK))
+    await ctx.runMutation(internal.ingest.put, { competitors: piece, digest });
+  for (const { piece, digest } of pieces("stints", mapped.stints, CHUNK))
+    await ctx.runMutation(internal.ingest.put, { stints: piece, digest });
+  for (const { piece, digest } of pieces("matches", mapped.matches, CHUNK / 2))
+    await ctx.runMutation(internal.ingest.put, { matches: piece, digest });
   await ctx.runMutation(internal.ingest.put, { tournament: mapped.tournament });
 }
 

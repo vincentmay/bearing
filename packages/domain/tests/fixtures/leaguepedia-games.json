@@ -1,0 +1,112 @@
+{
+  "cargoquery": [
+    {
+      "title": {
+        "id": "2026 Season World Championship/Main Event_Finals_1_1",
+        "series": "2026 Season World Championship/Main Event_Finals_1",
+        "n": "1",
+        "at": "2026-11-14 19:53:00",
+        "minutes": "38.983333333333",
+        "team1": "Gen.G",
+        "team2": "Bilibili Gaming",
+        "winner": "1",
+        "picks1": "Olaf,Lee Sin,Syndra,Corki,Nami",
+        "picks2": "K'Sante,Jarvan IV,Locke,Kalista,Renata Glasc",
+        "bans1": "Nocturne,Orianna,Vi,Jax,Camille",
+        "bans2": "Qiyana,Cassiopeia,Lulu,Ezreal,Seraphine",
+        "kills1": "19",
+        "kills2": "4",
+        "gold1": "80011",
+        "gold2": "65956",
+        "towers1": "9",
+        "towers2": "3",
+        "dragons1": "1",
+        "dragons2": "5",
+        "barons1": "3",
+        "barons2": "0",
+        "at__precision": "0"
+      }
+    },
+    {
+      "title": {
+        "id": "2026 Season World Championship/Main Event_Finals_1_2",
+        "series": "2026 Season World Championship/Main Event_Finals_1",
+        "n": "2",
+        "at": "2026-11-14 20:59:00",
+        "minutes": "53.266666666667",
+        "team1": "Gen.G",
+        "team2": "Bilibili Gaming",
+        "winner": "2",
+        "picks1": "Vayne,Cho'Gath,Orianna,Ezreal,Karma",
+        "picks2": "Gnar,Naafiri,Cassiopeia,Ziggs,Camille",
+        "bans1": "Nocturne,Qiyana,Nautilus,Lulu,Akali",
+        "bans2": "Jayce,Vi,Galio,Renekton,Viktor",
+        "kills1": "14",
+        "kills2": "19",
+        "gold1": "94214",
+        "gold2": "99450",
+        "towers1": "4",
+        "towers2": "11",
+        "dragons1": "4",
+        "dragons2": "4",
+        "barons1": "1",
+        "barons2": "3",
+        "at__precision": "0"
+      }
+    },
+    {
+      "title": {
+        "id": "2026 Season World Championship/Main Event_Finals_1_3",
+        "series": "2026 Season World Championship/Main Event_Finals_1",
+        "n": "3",
+        "at": "2026-11-14 22:18:00",
+        "minutes": "37.666666666667",
+        "team1": "Gen.G",
+        "team2": "Bilibili Gaming",
+        "winner": "2",
+        "picks1": "Ambessa,Wukong,Annie,Jhin,Rakan",
+        "picks2": "Jax,Vi,Viktor,Taliyah,Alistar",
+        "bans1": "Nautilus,Renekton,Seraphine,Kai'Sa,Sivir",
+        "bans2": "Qiyana,Jayce,Lulu,Xayah,Poppy",
+        "kills1": "8",
+        "kills2": "20",
+        "gold1": "65701",
+        "gold2": "74048",
+        "towers1": "4",
+        "towers2": "10",
+        "dragons1": "2",
+        "dragons2": "4",
+        "barons1": "0",
+        "barons2": "1",
+        "at__precision": "0"
+      }
+    },
+    {
+      "title": {
+        "id": "2026 Season World Championship/Main Event_Finals_1_4",
+        "series": "2026 Season World Championship/Main Event_Finals_1",
+        "n": "4",
+        "at": "2026-11-14 23:18:00",
+        "minutes": "42.966666666667",
+        "team1": "Bilibili Gaming",
+        "team2": "Gen.G",
+        "winner": "1",
+        "picks1": "Gwen,Nocturne,Twisted Fate,Yunara,Neeko",
+        "picks2": "Aurora,Pantheon,Akali,Xayah,Lulu",
+        "bans1": "Qiyana,Jayce,Seraphine,Sylas,Rumble",
+        "bans2": "Nautilus,Skarner,Kindred,Renekton,Galio",
+        "kills1": "21",
+        "kills2": "11",
+        "gold1": "89720",
+        "gold2": "79824",
+        "towers1": "10",
+        "towers2": "5",
+        "dragons1": "3",
+        "dragons2": "4",
+        "barons1": "2",
+        "barons2": "1",
+        "at__precision": "0"
+      }
+    }
+  ]
+}

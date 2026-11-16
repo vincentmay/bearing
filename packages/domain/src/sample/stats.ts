@@ -1,4 +1,12 @@
-import type { GameEvent, Match, PlayerLine, RoundRecord, Stint } from "../model.ts";
+import type {
+  Champion,
+  Draft,
+  GameEvent,
+  Match,
+  PlayerLine,
+  RoundRecord,
+  Stint,
+} from "../model.ts";
 import { IMPACT } from "./rosters.ts";
 import { rng, shuffle, type Rand } from "./kit.ts";
 
@@ -171,6 +179,28 @@ function lolEvents(
   return out.sort((a, b) => a.at - b.at);
 }
 
+const c = (name: string, key = name): Champion => ({ name, key });
+
+/** Champions by the role they are usually played in, top to support. */
+const CHAMPIONS: Champion[][] = [
+  [c("Gwen"), c("Ambessa"), c("Jax"), c("Aurora"), c("Rumble"), c("Renekton"), c("Jayce")],
+  [c("Nocturne"), c("Wukong", "MonkeyKing"), c("Vi"), c("Pantheon"), c("Skarner"), c("Sejuani")],
+  [c("Twisted Fate", "TwistedFate"), c("Annie"), c("Viktor"), c("Akali"), c("Azir"), c("Orianna")],
+  [c("Jhin"), c("Xayah"), c("Kai'Sa", "Kaisa"), c("Sivir"), c("Ezreal"), c("Varus")],
+  [c("Neeko"), c("Lulu"), c("Rakan"), c("Alistar"), c("Nautilus"), c("Braum")],
+];
+
+/** A draft: each side takes one champion per role, and bans five of those left over. */
+function draftOf(r: Rand): Draft {
+  const pools = CHAMPIONS.map((role) => shuffle(r, role));
+  const picks = [0, 1].map((side) => pools.map((pool) => pool[side]!));
+  const rest = shuffle(
+    r,
+    pools.flatMap((pool) => pool.slice(2)),
+  );
+  return { patch: "16.22.1", picks, bans: [rest.slice(0, 5), rest.slice(5, 10)] };
+}
+
 export function decorateLol(matches: Match[], rosters: Map<string, string[]>) {
   const r = rng(5151);
   for (const m of matches) {
@@ -196,6 +226,7 @@ export function decorateLol(matches: Match[], rosters: Map<string, string[]>) {
       const [min, sec] = (g.detail ?? "32:00").split(":").map(Number) as [number, number];
       g.clock = min * 60 + sec;
       g.events = lolEvents(r, g.objectives, g.clock);
+      g.draft = draftOf(r);
       if (sideRosters.some((x) => !x || x.length < 5)) continue;
       const lines: PlayerLine[] = [];
       sideRosters.forEach((roster, side) => {
@@ -218,6 +249,8 @@ export function decorateLol(matches: Match[], rosters: Map<string, string[]>) {
             playerId,
             side,
             role: LOL_ROLES[i],
+            champion: g.draft!.picks[side]![i]!.name,
+            cs: i === 4 ? 25 + Math.floor(r() * 30) : 190 + Math.floor(r() * 150),
             kills: kills[i]!,
             deaths: deaths[i]!,
             assists: Math.max(0, Math.round(teamKills * participation) - kills[i]!),

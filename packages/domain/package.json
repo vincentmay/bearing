@@ -10,7 +10,8 @@
     "./sample": "./src/sample/index.ts",
     "./lichess": "./src/sources/lichess.ts",
     "./pandascore": "./src/sources/pandascore.ts",
-    "./lolesports": "./src/sources/lolesports.ts"
+    "./lolesports": "./src/sources/lolesports.ts",
+    "./leaguepedia": "./src/sources/leaguepedia.ts"
   },
   "scripts": {
     "test": "vp test"

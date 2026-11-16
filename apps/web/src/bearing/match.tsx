@@ -1,4 +1,5 @@
 import { type GameResult, type Provenance, form, playerTotals } from "@bearing/domain";
+import type { ReactNode } from "react";
 import { type Board, useBoard, useWide } from "./board";
 import { Back, Go } from "./links";
 import { ChessLanes, CupPlaces, CupStandings, GameRow, Stops } from "./forms";
@@ -20,8 +21,8 @@ export function Source({
   provenance: Provenance;
   now: number;
   times: Times;
-  /** A second source that added to what the first one gave. */
-  also?: string;
+  /** Further sources that added to what the first one gave, each led by its comma. */
+  also?: ReactNode;
   /** Still to be played or being played: what is shown can go out of date. */
   pending?: boolean;
 }) {
@@ -46,7 +47,7 @@ export function Source({
       ) : (
         provenance.source
       )}
-      {also ? `, ${also}` : ""} · {day === "Today" ? "" : `${day} `}
+      {also} · {day === "Today" ? "" : `${day} `}
       {times.clock(provenance.checkedAt)}
     </p>
   );
@@ -296,7 +297,6 @@ export function MatchPage({ matchId }: { matchId: string }) {
   const scheduled = match.status === "scheduled";
   const games = ordered(match.games);
   const started = games.some((o) => o.game.status !== "scheduled");
-  const explainAt = games.find((o) => o.game.status !== "scheduled")?.index;
   // Round by round for a driver the viewer follows, or failing that for whoever leads.
   const followed = view.sides.findIndex((s) => atlas.world.follows.some((f) => f.id === s.id));
   const featured = followed >= 0 ? followed : (view.standings[0]?.index ?? 0);
@@ -340,13 +340,7 @@ export function MatchPage({ matchId }: { matchId: string }) {
                 <ChessLanes view={view} />
               ) : null}
               {games.map(({ game, index }) => (
-                <GameRow
-                  key={index}
-                  game={game}
-                  index={index}
-                  view={view}
-                  explain={index === explainAt}
-                />
+                <GameRow key={index} game={game} index={index} view={view} />
               ))}
             </div>
           ) : null}
@@ -370,9 +364,20 @@ export function MatchPage({ matchId }: { matchId: string }) {
         times={times}
         pending={match.status !== "finished"}
         also={
-          view.discipline.id === "lol" && match.games.some((g) => g.events)
-            ? "lolesports.com"
-            : undefined
+          view.discipline.id === "lol" ? (
+            <>
+              {match.games.some((g) => g.events) ? ", lolesports.com" : ""}
+              {match.games.some((g) => g.draft) ? (
+                <>
+                  ,{" "}
+                  <a href="https://lol.fandom.com" target="_blank" rel="noreferrer">
+                    Leaguepedia
+                  </a>{" "}
+                  (CC BY-SA 3.0)
+                </>
+              ) : null}
+            </>
+          ) : undefined
         }
       />
     </>

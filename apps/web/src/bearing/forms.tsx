@@ -1,4 +1,4 @@
-import type { GameResult } from "@bearing/domain";
+import type { GameResult, PlayerLine } from "@bearing/domain";
 import { formatPoints, seriesScore } from "@bearing/domain";
 import { ChessGame } from "./chessboard";
 import type { CSSProperties } from "react";
@@ -12,9 +12,10 @@ import {
   roundDots,
   roundSlots,
 } from "./model";
+import { useAtlas } from "../lib/world";
 import { Go } from "./links";
 import { gameClock } from "./time";
-import { Clockline, Disc, Dots } from "./ui";
+import { Champ, Clockline, Disc, Dots, Role } from "./ui";
 
 /** How much of a League game the line shows: thirty-six minutes, or more once a game runs long. */
 function lolSpan(game: GameResult): number {
@@ -155,18 +156,92 @@ function toCome(view: MatchView, index: number): string {
   return index < played + (need - lead) ? "to come" : "if needed";
 }
 
+const LANE = ["top", "jungle", "mid", "bot", "support"];
+const lane = (line: PlayerLine) => {
+  const at = LANE.indexOf((line.role ?? "").toLowerCase());
+  return at < 0 ? LANE.length : at;
+};
+const thousands = (n: number) => `${(n / 1000).toFixed(1)}k`;
+
+/**
+ * A game of League of Legends as it was played: lane against lane, each player with the
+ * champion they took and their kills, deaths and assists, and beneath them what each side
+ * denied the other.
+ */
+function Scoreboard({ game }: { game: GameResult }) {
+  const atlas = useAtlas();
+  const { draft, lines } = game;
+  if (!draft && !lines?.length) return null;
+  const patch = draft?.patch;
+  const of = (side: number) =>
+    (lines ?? []).filter((l) => l.side === side).sort((x, y) => lane(x) - lane(y));
+  const [left, right] = [of(0), of(1)];
+  const rows = Math.max(left.length, right.length, lines?.length ? 0 : 5);
+  const half = (line: PlayerLine | undefined, side: number, row: number) => {
+    const name = line?.champion ?? draft?.picks[side]?.[row]?.name;
+    const champion = name
+      ? (draft?.picks[side]?.find((c) => c.name === name) ?? { name })
+      : undefined;
+    const who = (line?.playerId ? atlas.player(line.playerId)?.handle : undefined) ?? line?.handle;
+    return (
+      <span className="bx-score-half" data-side={side}>
+        {champion ? <Champ champion={champion} patch={patch} /> : <span className="bx-champ" />}
+        {line ? (
+          <>
+            {line.playerId ? (
+              <Go to={{ kind: "player", id: line.playerId }} className="bx-score-name">
+                {who ?? champion?.name}
+              </Go>
+            ) : (
+              <span className="bx-score-name">{who ?? champion?.name}</span>
+            )}
+            {line.gold !== undefined ? (
+              <span className="bx-score-gold">{thousands(line.gold)}</span>
+            ) : null}
+            <span className="bx-score-kda">
+              <b>{line.kills}</b>–{line.deaths}–{line.assists}
+            </span>
+          </>
+        ) : (
+          <span className="bx-score-name">{champion?.name}</span>
+        )}
+      </span>
+    );
+  };
+  return (
+    <div className="bx-score">
+      {Array.from({ length: rows }, (_, row) => (
+        <div key={row} className="bx-score-row">
+          {half(left[row], 0, row)}
+          <Role role={left[row]?.role ?? right[row]?.role ?? LANE[row]} bare />
+          {half(right[row], 1, row)}
+        </div>
+      ))}
+      {draft?.bans.some((b) => b.length) ? (
+        <div className="bx-score-row bx-score-bans">
+          {[0, 1].flatMap((side) => [
+            side ? <span key="mid" /> : null,
+            <span key={side} className="bx-score-half" data-side={side}>
+              {(draft.bans[side] ?? []).map((c) => (
+                <Champ key={c.name} champion={c} patch={patch} size={20} out />
+              ))}
+            </span>,
+          ])}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 /** One map or game of a series, in the full form for its game. */
 export function GameRow({
   game,
   index,
   view,
-  explain,
 }: {
   game: GameResult;
   index: number;
   view: MatchView;
-  /** Say how to read the drawing; wanted once per page. */
-  explain: boolean;
 }) {
   const { sides, discipline } = view;
   const d = discipline.id;
@@ -258,12 +333,7 @@ export function GameRow({
             labels={marks}
           />
         ) : null}
-        {explain ? (
-          <span className="bx-sub">
-            Objectives by the minute: {sides[0]?.name} above the line, {sides[1]?.name} below.
-            Bigger matters more.
-          </span>
-        ) : null}
+        <Scoreboard game={game} />
       </div>
     );
   }
@@ -291,7 +361,6 @@ export function GameRow({
               { at: 300, text: "0:00", end: !overtime },
             ]}
           />
-          {explain ? <span className="bx-sub">Each goal at the moment it was scored.</span> : null}
         </div>
       );
     }

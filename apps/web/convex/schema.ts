@@ -53,6 +53,11 @@ export default defineSchema({
   })
     .index("by_key", ["key"])
     .index("by_live_and_at", ["live", "at"]),
+  /**
+   * What a source last handed over, piece by piece, as a fingerprint. A piece that has not
+   * changed since is not handed over again, so nothing is read to find that out.
+   */
+  digests: defineTable({ key: v.string(), hash: v.string() }).index("by_key", ["key"]),
   /** What a signed-in viewer follows. An account holds this and nothing else. */
   follows: defineTable({
     /** The identity's token identifier, as issued by the sign-in provider. */

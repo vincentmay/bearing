@@ -11,6 +11,7 @@
 import type * as crons from "../crons.js";
 import type * as follows from "../follows.js";
 import type * as ingest from "../ingest.js";
+import type * as leaguepedia from "../leaguepedia.js";
 import type * as lichess from "../lichess.js";
 import type * as lolesports from "../lolesports.js";
 import type * as pandascore from "../pandascore.js";
@@ -29,6 +30,7 @@ declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   follows: typeof follows;
   ingest: typeof ingest;
+  leaguepedia: typeof leaguepedia;
   lichess: typeof lichess;
   lolesports: typeof lolesports;
   pandascore: typeof pandascore;
