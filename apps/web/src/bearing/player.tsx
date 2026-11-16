@@ -90,6 +90,7 @@ function Pool({ handle, team, board }: { handle: string; team: string; board: Bo
     for (const g of m.games)
       for (const c of g.draft?.picks.flat() ?? [])
         if (c.key && !filed.has(c.name)) filed.set(c.name, { key: c.key, patch: g.draft?.patch });
+  const anyPatch = [...filed.values()].find((f) => f.patch)?.patch;
   const most = pool[0]!.games;
   return (
     <Section label={`Champions in ${year}`}>
@@ -100,8 +101,13 @@ function Pool({ handle, team, board }: { handle: string; team: string; board: Bo
             <div key={p.champion} className="bx-line bx-pool">
               <span className="bx-who">
                 <Champ
-                  champion={{ name: p.champion, key: art?.key }}
-                  patch={art?.patch}
+                  // A champion in none of Bearing's drafts is looked for under its plain name,
+                  // which is where most are filed.
+                  champion={{
+                    name: p.champion,
+                    key: art?.key ?? p.champion.replace(/[^A-Za-z]/g, ""),
+                  }}
+                  patch={art?.patch ?? anyPatch}
                   size={30}
                 />
                 <span>
