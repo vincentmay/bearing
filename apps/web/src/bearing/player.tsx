@@ -272,6 +272,9 @@ export function PlayerPage({ playerId }: { playerId: string }) {
           ) : null}
         </div>
       </div>
+      {player.imageCredit ? (
+        <p className="bx-source">Picture: {player.imageCredit.replace(/\s*<[^>]*>/g, "")}</p>
+      ) : null}
     </>
   );
 }

@@ -70,6 +70,8 @@ export interface Player {
   colors?: Colors;
   /** The address of a picture of the player, where a source has one. */
   image?: string;
+  /** Who took the picture and under which licence, where it has to be said. */
+  imageCredit?: string;
 }
 
 export type Competitor = Team | Player;

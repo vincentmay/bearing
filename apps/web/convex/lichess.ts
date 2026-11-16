@@ -149,8 +149,16 @@ export const store = internalMutation({
         .query("competitors")
         .withIndex("by_key", (q) => q.eq("key", doc.id))
         .first();
-      if (!row) await ctx.db.insert("competitors", { key: doc.id, doc });
-      else if (!same(row.doc, doc)) await ctx.db.patch("competitors", row._id, { doc });
+      if (!row) {
+        await ctx.db.insert("competitors", { key: doc.id, doc });
+        continue;
+      }
+      // A broadcast knows nothing of a player's picture; the one found for them is kept.
+      const kept =
+        row.doc.kind === "player" && doc.kind === "player"
+          ? { ...doc, image: row.doc.image, imageCredit: row.doc.imageCredit }
+          : doc;
+      if (!same(row.doc, kept)) await ctx.db.patch("competitors", row._id, { doc: kept });
     }
     // Pairings of rounds fetched earlier are kept: this run may have fetched other rounds.
     const before = await ctx.db
@@ -197,5 +205,93 @@ export const store = internalMutation({
       };
       if (!same(row.doc, doc)) await ctx.db.patch("matches", row._id, { live, at, doc });
     }
+  },
+});
+
+/**
+ * Pictures of chess players. Lichess keeps a page for every player FIDE lists, and for the
+ * better known a photograph with the name of who took it and its licence. Each player is asked
+ * about once; the strongest first, a few dozen a run, one request at a time.
+ */
+const FACES_PER_RUN = 40;
+
+export const faceless = internalQuery({
+  args: {},
+  returns: v.array(v.string()),
+  handler: async (ctx) => {
+    const asked = await ctx.db
+      .query("digests")
+      .withIndex("by_key", (q) => q.gte("key", "face:").lt("key", "face:\uffff"))
+      .take(8000);
+    const done = new Set(asked.map((row) => row.key.slice("face:".length)));
+    const players = await ctx.db.query("competitors").take(8000);
+    return players
+      .flatMap((row) =>
+        row.doc.kind === "player" &&
+        row.doc.discipline === "chess" &&
+        row.key.startsWith("fide-") &&
+        !row.doc.image &&
+        !done.has(row.key)
+          ? [{ key: row.key, rating: row.doc.rating?.value ?? 0 }]
+          : [],
+      )
+      .sort((x, y) => y.rating - x.rating)
+      .slice(0, FACES_PER_RUN)
+      .map((p) => p.key);
+  },
+});
+
+export const setFace = internalMutation({
+  args: { key: v.string(), image: v.optional(v.string()), credit: v.optional(v.string()) },
+  returns: v.null(),
+  handler: async (ctx, { key, image, credit }) => {
+    await ctx.db.insert("digests", { key: `face:${key}`, hash: image ? "found" : "none" });
+    if (!image) return null;
+    const row = await ctx.db
+      .query("competitors")
+      .withIndex("by_key", (q) => q.eq("key", key))
+      .first();
+    if (row?.doc.kind === "player")
+      await ctx.db.patch("competitors", row._id, {
+        doc: { ...row.doc, image, imageCredit: credit },
+      });
+    return null;
+  },
+});
+
+export const faces = internalAction({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    if (!(await ctx.runQuery(internal.ingest.enabled, {}))) return null;
+    const wanted: string[] = await ctx.runQuery(internal.lichess.faceless, {});
+    for (const key of wanted) {
+      await pause(1000);
+      const response = await fetch(
+        `https://lichess.org/api/fide/player/${key.slice("fide-".length)}`,
+        {
+          headers: {
+            Accept: "application/json",
+            "User-Agent": "Bearing (esports schedule viewer)",
+          },
+        },
+      ).catch(() => null);
+      // Told to slow down, or not answered: stop, and carry on another day.
+      if (!response || response.status === 429) return null;
+      const body = response.ok
+        ? ((await response.json().catch(() => null)) as {
+            photo?: { small?: string; credit?: string };
+          } | null)
+        : null;
+      await ctx.runMutation(internal.lichess.setFace, {
+        key,
+        image: body?.photo?.small,
+        credit: body?.photo?.credit,
+      });
+    }
+    // More may be waiting; a full run books the next.
+    if (wanted.length >= FACES_PER_RUN)
+      await ctx.scheduler.runAfter(30_000, internal.lichess.faces, {});
+    return null;
   },
 });

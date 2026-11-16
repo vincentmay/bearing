@@ -19,6 +19,9 @@ crons.interval("league lines", { hours: 6 }, internal.leaguepedia.enrich, {});
 // sources are asked now and again half a minute later.
 crons.interval("live", { minutes: 1 }, internal.ingest.tick, {});
 
+// Chess players new to the store are looked up for a picture, once each.
+crons.interval("chess faces", { hours: 24 }, internal.lichess.faces, {});
+
 // What is long over is removed once a day.
 crons.interval("retention", { hours: 24 }, internal.retention.prune, {});
 

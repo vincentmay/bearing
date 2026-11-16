@@ -69,6 +69,7 @@ const player = v.object({
   rating: v.optional(v.object({ system: text, value: v.number() })),
   colors: v.optional(colors),
   image: maybeText,
+  imageCredit: maybeText,
 });
 
 export const competitor = v.union(team, player);
