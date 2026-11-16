@@ -16,7 +16,6 @@
   --edge: rgb(0 0 0 / 0.18);
   --rest: rgb(0 0 0 / 0.2);
   --sh: 0 1px 1px rgb(0 0 0 / 0.04), 0 10px 24px -14px rgb(0 0 0 / 0.28);
-  --nav: rgb(255 255 255 / 0.8);
   --face: "Gabarito Variable", system-ui, sans-serif;
   --mono: "Geist Mono Variable", ui-monospace, monospace;
   --out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -58,7 +57,6 @@
   --edge: rgb(255 255 255 / 0.2);
   --rest: rgb(255 255 255 / 0.3);
   --sh: 0 12px 28px -14px #000;
-  --nav: rgb(30 30 30 / 0.8);
   color-scheme: dark;
 }
 /* The page behind the app, for overscroll. */
@@ -1497,9 +1495,8 @@ body {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   border-radius: 999px;
-  background: var(--nav);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  backdrop-filter: blur(20px) saturate(180%);
+  /* Opaque: a see-through capsule would blur team colours as they pass under it. */
+  background: var(--surface);
   border: 1px solid var(--hair);
   box-shadow: var(--sh);
   z-index: 10;

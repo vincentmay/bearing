@@ -99,10 +99,14 @@ Tournament and Settings were never designed.
 
 - **G1 (Agreed).** The navigation is visible on every screen. Its four entries are Today,
   Schedule, Following and Search. A marker slides to the selected one.
-- **G1a (Agreed on 2026-11-16; form Proposed).** The small capsule at the bottom is for phones.
-  The owner: "the mobile navigation probably should not be used at full hd desktop sizing." From
-  900 px the same capsule sits at the top with its labels, between the mark with its name on
-  the left and Settings on the right. The owner has not yet seen this form.
+- **G1a (Agreed on 2026-11-16).** The small capsule at the bottom is for phones. The owner: "the
+  mobile navigation probably should not be used at full hd desktop sizing." From 900 px the same
+  capsule sits at the top with its labels, between the mark with its name on the left and
+  Settings on the right. The owner on this form and on the three new pages: "Yes, looks right i
+  suppose."
+- **G1b (Proposed).** The capsule is opaque. In the prototype it was translucent with a blur,
+  which let team colours show through as a haze; B4 forbids blurred colour, and this document
+  outranks the prototype. The owner asked to see both and has not answered yet.
 - **G2.** Phone layout up to 600 px wide: one column. Wide layout from 900 px: the same content in
   a wider column, with the wide match header (4.3) and lists set side by side where that helps.
   Nothing scrolls sideways at any width from 320 px.
@@ -433,9 +437,8 @@ Proposed. Each step ends with the owner seeing it working.
 1. **Commit** the repository as it stands. Done on 2026-11-16.
 2. **Finish the five existing screens** against sections 4.1 to 4.6, 5 and 6, on the sample world,
    at phone and wide width, with motion. Done on 2026-11-16.
-3. **Design, show, then build** Team, Player and Tournament. Built on 2026-11-16. The owner saw
-   the first design and said to carry on with everything; they have not commented on the pages
-   themselves, so the design is still Proposed.
+3. **Design, show, then build** Team, Player and Tournament. Built on 2026-11-16 and accepted by
+   the owner the same day ("Yes, looks right i suppose").
 4. **Remove the old directions** and the leftovers listed in section 12. Done on 2026-11-16.
 5. **Backend**: Convex, with the sample world loaded into it first, then the Lichess adapter. Done
    on 2026-11-16 against a local deployment. Liquipedia waits for access to be confirmed.
@@ -453,12 +456,11 @@ Proposed. Each step ends with the owner seeing it working.
    watchbearing.com.
 5. Before any public launch: an EU trade mark check on the name "Bearing", and a check of the logo
    against existing marks. Neither has been done.
-6. The navigation capsule is translucent with a blur behind it, as in the prototype, so team
-   colours blur as they pass under it. B4 forbids blurred colour. Keep it, or make it opaque?
-7. Team, Player and Tournament, and the navigation at the top of a wide screen: are they right?
-8. Convex and Clerk: the owner creates both projects (README, "The backend and accounts"). Until
+6. The navigation capsule: opaque (as built, following B4) or translucent with a blur (as in
+   the prototype)? See G1b.
+7. Convex and Clerk: the owner creates both projects (README, "The backend and accounts"). Until
    then the app runs in the browser on the sample.
-9. Once on real data only chess has a source. Is a chess-only real version useful to the owner
+8. Once on real data only chess has a source. Is a chess-only real version useful to the owner
    now, or should it stay on the sample until Liquipedia is in?
 
 Settled on 2026-11-16 and no longer open: the card layout of round 10 ("Yes it is perfect now"),
