@@ -30,7 +30,7 @@ async function open() {
 /** Everything that changes as matches are played: the lead card and the rows under it. */
 const state = (page) =>
   page.evaluate(() =>
-    [...document.querySelectorAll(".bx-card .bx-meta, .bx-card .bx-score, .bx-result b")]
+    [...document.querySelectorAll(".bx-card .bx-meta, .bx-card .bx-score, .bx-mr b, .bx-mr i")]
       .map((el) => el.textContent)
       .join(" | "),
   );

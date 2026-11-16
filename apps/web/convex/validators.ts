@@ -52,6 +52,8 @@ const team = v.object({
   country: maybeText,
   colors: v.optional(colors),
   founded: maybeText,
+  image: maybeText,
+  imageDark: maybeText,
 });
 
 const player = v.object({
@@ -66,6 +68,7 @@ const player = v.object({
   title: maybeText,
   rating: v.optional(v.object({ system: text, value: v.number() })),
   colors: v.optional(colors),
+  image: maybeText,
 });
 
 export const competitor = v.union(team, player);

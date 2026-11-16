@@ -12,24 +12,11 @@ import {
 } from "../lib/view";
 import { type Board, useBoard, useWide } from "./board";
 import { Stops } from "./forms";
-import { RoundRow } from "./lists";
-import { type MatchView, lineOf, plainName, stopsOf, titleOf } from "./model";
+import { RoundRow, ScheduleRow } from "./lists";
+import { type MatchView, plainName, stopsOf } from "./model";
 import { until } from "./time";
-import {
-  AccountLink,
-  Disc,
-  DotRows,
-  Dots,
-  Duo,
-  Mark,
-  Ping,
-  Score,
-  Section,
-  Tick,
-  useReady,
-} from "./ui";
+import { AccountLink, Disc, DotRows, Dots, Mark, Ping, Score, Section, useReady } from "./ui";
 
-const SIX_HOURS = 6 * 60 * 60 * 1000;
 /** How many other live matches Today lists before it points to the schedule. */
 const LIVE_ROWS = 6;
 
@@ -142,69 +129,12 @@ function condition(atlas: Atlas, item: Upcoming): string | undefined {
 }
 
 function NextRow({ item, board }: { item: Upcoming; board: Board }) {
-  const view = board.view(item.match);
-  const { now, times } = board;
-  const at = view.match.scheduledAt;
-  const wait = Date.parse(at) - now;
-  const today = times.dayKey(at) === times.dayKey(now);
-  const cond = condition(board.atlas, item);
-  const known = view.sides.filter((s) => s.id);
-  // With a side still open, lead with the round and whoever is already waiting there.
-  const title =
-    !view.solo && known.length === 1 ? `${view.where} v ${known[0]!.name}` : titleOf(view);
-  return (
-    <Link to="/match/$matchId" params={{ matchId: view.match.id }} className="bx-next">
-      <Duo sides={view.sides} progress={1 - wait / SIX_HOURS} />
-      <span className="bx-time">
-        {times.clock(at)}
-        {today ? null : (
-          <span className="bx-sub" style={{ display: "block", fontFamily: "var(--face)" }}>
-            {times.weekday(at)} {times.dayOfMonth(at)}
-          </span>
-        )}
-      </span>
-      <span style={{ minWidth: 0 }}>
-        <b>{title}</b>
-        <span className="bx-sub">
-          {cond ? `${cond} · ` : ""}
-          {lineOf(view)}
-        </span>
-      </span>
-      <span className="bx-right">{until(at, now).replace("in ", "")}</span>
-    </Link>
-  );
+  return <ScheduleRow match={item.match} board={board} day note={condition(board.atlas, item)} />;
 }
 
-/** A live or finished match in one row: who, the score, and its dots. */
-export function ResultRow({ view }: { view: MatchView }) {
-  const [a, b] = view.sides;
-  const live = view.live;
-  const score = view.headline.length === 2 ? view.headline.join("–") : undefined;
-  const state = view.status.replace(/^Live · /, "");
-  // A long line of rounds is cut to the latest few so the row keeps its shape.
-  const dots = view.series.slice(-10);
-  return (
-    <Link to="/match/$matchId" params={{ matchId: view.match.id }} className="bx-result">
-      <span>
-        <b>
-          {view.solo ? (
-            `${view.event} · ${view.standings[0]?.side.name ?? ""} ${live ? "leads" : "won"}`
-          ) : (
-            <>
-              {a?.name} {score ? <Tick>{score}</Tick> : "v"} {b?.name}
-            </>
-          )}
-        </b>
-        <span className="bx-sub">
-          {view.discipline.short} ·{" "}
-          {live
-            ? `${view.game && view.discipline.id === "cs2" ? `${view.game.label} · ` : ""}${view.solo ? `${view.where} · round ${view.game?.cup?.round ?? ""}` : state}`
-            : `${view.event} · ${view.where}`}
-        </span>
-      </span>
-      <Dots dots={dots} sides={view.sides} size={11} fix />
-    </Link>
-  );
+/** A live or finished match, in the same row as everywhere else. */
+export function ResultRow({ match, board }: { match: Match; board: Board }) {
+  return <ScheduleRow match={match} board={board} day />;
 }
 
 /**
@@ -351,9 +281,9 @@ export function Today() {
                   .slice(0, LIVE_ROWS)
                   .map((item) =>
                     item.kind === "match" ? (
-                      <ResultRow key={item.match.id} view={board.view(item.match)} />
+                      <ResultRow key={item.match.id} match={item.match} board={board} />
                     ) : (
-                      <RoundRow key={item.key} matches={item.matches} board={board} bare />
+                      <RoundRow key={item.key} matches={item.matches} board={board} />
                     ),
                   )}
               </div>
@@ -368,7 +298,7 @@ export function Today() {
           <Section label="Earlier">
             <div className="bx-list">
               {results.map((m) => (
-                <ResultRow key={m.id} view={board.view(m)} />
+                <ResultRow key={m.id} match={m} board={board} />
               ))}
               {results.length ? null : <p className="bx-empty">No results yet.</p>}
             </div>

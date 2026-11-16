@@ -50,6 +50,9 @@ export interface Team {
   /** Absent when no colours are known for the team; it is then drawn in ink. */
   colors?: Colors;
   founded?: string;
+  /** The address of the team's mark, where a source has one; and one made for dark grounds. */
+  image?: string;
+  imageDark?: string;
 }
 
 export interface Player {
@@ -65,6 +68,8 @@ export interface Player {
   title?: string;
   rating?: { system: string; value: number };
   colors?: Colors;
+  /** The address of a picture of the player, where a source has one. */
+  image?: string;
 }
 
 export type Competitor = Team | Player;

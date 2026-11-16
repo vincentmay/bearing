@@ -300,7 +300,7 @@ export function TeamPage({ teamId }: { teamId: string }) {
             <Section label="On now and next">
               <div className="bx-list">
                 {[...live, ...next].map((m) => (
-                  <ScheduleRow key={m.id} match={m} board={board} overlap={false} day />
+                  <ScheduleRow key={m.id} match={m} board={board} day />
                 ))}
               </div>
             </Section>
@@ -315,7 +315,7 @@ export function TeamPage({ teamId }: { teamId: string }) {
             <Section label="Results">
               <div className="bx-list">
                 {done.slice(0, 6).map((m) => (
-                  <ResultRow key={m.id} view={board.view(m)} />
+                  <ResultRow key={m.id} match={m} board={board} />
                 ))}
               </div>
             </Section>
@@ -328,9 +328,12 @@ export function TeamPage({ teamId }: { teamId: string }) {
               <div className="bx-list">
                 {roster.map(({ player, stint }) => (
                   <Go key={player.id} to={{ kind: "player", id: player.id }} className="bx-line">
-                    <span>
-                      <b>{player.handle}</b>
-                      <span className="bx-sub">{player.name || countryName(player.country)}</span>
+                    <span className="bx-who">
+                      <Disc side={sideOf(atlas, player.id)} size={30} />
+                      <span>
+                        <b>{player.handle}</b>
+                        <span className="bx-sub">{player.name || countryName(player.country)}</span>
+                      </span>
                     </span>
                     <span>{stint.role}</span>
                     <span>{stint.from?.slice(0, 4) ?? ""}</span>

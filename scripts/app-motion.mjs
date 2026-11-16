@@ -81,7 +81,7 @@ async function until(page, test, limit = 400) {
   check("the new card steps forward", (await page.locator(".bx-card.bx-step").count()) === 1);
   check(
     "the finished match is now under Earlier",
-    (await page.locator(`.bx-result[href="${first}"]`).count()) === 1,
+    (await page.locator(`.bx-mr[href="${first}"]`).count()) === 1,
   );
   await page.screenshot({ path: `${out}/stepped.png`, fullPage: true });
 

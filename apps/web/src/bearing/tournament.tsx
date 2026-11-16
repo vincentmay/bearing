@@ -68,7 +68,7 @@ function Rounds({ stage, board }: { stage: Stage; board: Board }) {
             </h3>
             <div className="bx-list">
               {matches.map((m) => (
-                <ScheduleRow key={m.id} match={m} board={board} overlap={false} day inEvent />
+                <ScheduleRow key={m.id} match={m} board={board} day inEvent />
               ))}
             </div>
           </div>
@@ -287,7 +287,7 @@ export function TournamentPage({ tournamentId }: { tournamentId: string }) {
             <Section label="On now and next">
               <div className="bx-list">
                 {[...live, ...next].map((m) => (
-                  <ScheduleRow key={m.id} match={m} board={board} overlap={false} day />
+                  <ScheduleRow key={m.id} match={m} board={board} day />
                 ))}
               </div>
             </Section>

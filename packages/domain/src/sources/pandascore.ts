@@ -32,6 +32,8 @@ export interface PandaTeam {
   acronym?: string | null;
   location?: string | null;
   slug?: string | null;
+  image_url?: string | null;
+  dark_mode_image_url?: string | null;
 }
 
 export interface PandaPlayer {
@@ -43,6 +45,7 @@ export interface PandaPlayer {
   role?: string | null;
   birthday?: string | null;
   active?: boolean;
+  image_url?: string | null;
 }
 
 export interface PandaGame {
@@ -179,6 +182,8 @@ function toTeam(t: PandaTeam, discipline: DisciplineId): Team {
     region: "",
     country: t.location ?? undefined,
     colors: teamColors(t.name),
+    image: t.image_url ?? undefined,
+    imageDark: t.dark_mode_image_url ?? undefined,
   };
 }
 
@@ -193,6 +198,7 @@ function toPlayer(p: PandaPlayer, discipline: DisciplineId): Player {
     country: p.nationality ?? "",
     born: p.birthday ?? undefined,
     role: p.role ? (ROLES[p.role] ?? p.role) : undefined,
+    image: p.image_url ?? undefined,
   };
 }
 

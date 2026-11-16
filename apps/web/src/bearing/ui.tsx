@@ -65,46 +65,37 @@ function TickEl({ play, text }: { play: boolean; text: string }) {
   return <span className={on ? "bx-tick" : undefined}>{text}</span>;
 }
 
-/** A team or player: a flat disc in their colour with a short name. No logos. */
+/**
+ * A team or player as a disc. Where a source has their mark or picture it is shown, on a plain
+ * plate so that any mark reads on either ground; until it has arrived, and where there is none,
+ * the disc is their colour with a short name.
+ */
 export function Disc({ side, size = 44 }: { side: SideView; size?: number }) {
+  const [state, setState] = useState<"wait" | "shown" | "failed">("wait");
+  const picture = side.image && state !== "failed" ? side.image : undefined;
   return (
     <span
       className="bx-disc"
       data-long={side.short.length > 3 ? "" : undefined}
+      data-pic={picture ? (side.person ? "person" : "mark") : undefined}
+      data-shown={picture && state === "shown" ? "" : undefined}
       style={{ "--s": `${size}px`, background: side.color, color: side.ink } as CSSProperties}
       aria-hidden
     >
-      {size >= 22 ? side.short : null}
-    </span>
-  );
-}
-
-/** Flat halves, or quarters for a field of four. */
-function split(sides: SideView[]): string {
-  if (sides.length <= 1) return sides[0]?.color ?? "var(--sunk)";
-  if (sides.length === 2)
-    return `linear-gradient(90deg, ${sides[0]!.color} 50%, ${sides[1]!.color} 50%)`;
-  const step = 100 / sides.length;
-  return `conic-gradient(${sides.map((s, i) => `${s.color} ${i * step}% ${(i + 1) * step}%`).join(", ")})`;
-}
-
-/** A match that has not started: its sides in one disc, inside a ring that fills as the start gets closer. */
-export function Duo({
-  sides,
-  progress = 0,
-  small = false,
-}: {
-  sides: SideView[];
-  progress?: number;
-  small?: boolean;
-}) {
-  return (
-    <span
-      className={small ? "bx-duo bx-duo-s" : "bx-duo"}
-      style={{ "--q": Math.round(Math.max(0, Math.min(1, progress)) * 100) } as CSSProperties}
-      aria-hidden
-    >
-      <i style={{ background: split(sides) }} />
+      {size >= 30 && !(picture && state === "shown") ? <span>{side.short}</span> : null}
+      {picture ? (
+        <img
+          src={picture}
+          alt=""
+          decoding="async"
+          // A picture already in the cache is there before React listens for it.
+          ref={(img) => {
+            if (img?.complete && img.naturalWidth > 0) setState("shown");
+          }}
+          onLoad={() => setState("shown")}
+          onError={() => setState("failed")}
+        />
+      ) : null}
     </span>
   );
 }
@@ -143,6 +134,13 @@ export function AccountLink({ className }: { className?: string }) {
 /** Live, without a colour: a dot that sends out a ring. */
 export function Ping() {
   return <i className="bx-ping" aria-hidden />;
+}
+
+/** Two flat halves: a game that both sides share. */
+function split(sides: SideView[]): string {
+  const [a, b] = sides;
+  if (!a || !b) return a?.color ?? "var(--sunk)";
+  return `linear-gradient(90deg, ${a.color} 50%, ${b.color} 50%)`;
 }
 
 function dotStyle(dot: Dot, sides: SideView[]): CSSProperties | undefined {

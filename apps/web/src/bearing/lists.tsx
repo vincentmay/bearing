@@ -8,29 +8,17 @@ import {
   winnerOf,
 } from "@bearing/domain";
 import { Link } from "@tanstack/react-router";
-import { Gamepad2, Search as SearchIcon, Trophy } from "lucide-react";
+import { Gamepad2, Rows3, Search as SearchIcon, Trophy, Users } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { bundle, scoreLine, upcomingForYou } from "../lib/view";
-import { estimatedMinutes } from "../lib/world";
 import { useRecents } from "../lib/recents";
 import { type Board, useBoard, useWide } from "./board";
 import { Go } from "./links";
-import {
-  type Dot,
-  type SideView,
-  bestOf,
-  heat,
-  inkOn,
-  lineOf,
-  plainName,
-  sideOf,
-  titleOf,
-} from "./model";
+import { type Dot, type SideView, bestOf, heat, inkOn, plainName, sideOf } from "./model";
 import { type Times, until } from "./time";
-import { Disc, Dots, Duo, FollowStar, Ping, Section, Segmented, Tick } from "./ui";
+import { Disc, Dots, FollowStar, Ping, Section, Segmented, Tick } from "./ui";
 
 const DAY = 24 * 60 * 60 * 1000;
-const SIX_HOURS = 6 * 60 * 60 * 1000;
 
 // ---------------------------------------------------------------------------------------------
 // Schedule
@@ -58,18 +46,7 @@ export function Schedule() {
     .filter((m) => times.dayKey(m.scheduledAt) === key && (scope === "all" || mine(m)))
     .sort((x, y) => x.scheduledAt.localeCompare(y.scheduledAt));
 
-  // Two matches may overlap when one starts before the other is expected to be over.
-  let busyUntil = -Infinity;
-  const rows = bundle(atlas, matches).map((item) => {
-    const m = item.kind === "match" ? item.match : item.matches[0]!;
-    const start = Date.parse(m.scheduledAt);
-    const length = estimatedMinutes(m, atlas.tournamentOf(m).discipline) * 60_000;
-    const overlap = start < busyUntil;
-    // A match that is over cannot overlap with anything that has yet to start.
-    const end = m.status === "finished" ? Math.min(start + length, now) : start + length;
-    busyUntil = Math.max(busyUntil, end);
-    return { item, overlap };
-  });
+  const rows = bundle(atlas, matches);
 
   return (
     <>
@@ -101,16 +78,11 @@ export function Schedule() {
           label={`${times.day(day, now)} · ${matches.length} ${matches.length === 1 ? "match" : "matches"}`}
         >
           <div className="bx-list">
-            {rows.map(({ item, overlap }) =>
+            {rows.map((item) =>
               item.kind === "match" ? (
-                <ScheduleRow
-                  key={item.match.id}
-                  match={item.match}
-                  board={board}
-                  overlap={overlap}
-                />
+                <ScheduleRow key={item.match.id} match={item.match} board={board} />
               ) : (
-                <RoundRow key={item.key} matches={item.matches} board={board} overlap={overlap} />
+                <RoundRow key={item.key} matches={item.matches} board={board} />
               ),
             )}
             {matches.length ? null : (
@@ -128,18 +100,7 @@ export function Schedule() {
 }
 
 /** A whole round of an event on one line: how many games, and how many are being played. */
-export function RoundRow({
-  matches,
-  board,
-  overlap = false,
-  bare = false,
-}: {
-  matches: Match[];
-  board: Board;
-  overlap?: boolean;
-  /** Without the time and the count in a disc, for a list that has neither column. */
-  bare?: boolean;
-}) {
+export function RoundRow({ matches, board }: { matches: Match[]; board: Board }) {
   const first = matches[0]!;
   const { atlas, times } = board;
   const tournament = atlas.tournamentOf(first);
@@ -157,36 +118,31 @@ export function RoundRow({
           : done
             ? `${games}, ${done} played`
             : games;
-  const text = (
-    <span style={{ minWidth: 0 }}>
-      <b>{tournament.name}</b>
-      <span className="bx-sub">
-        {atlas.discipline(tournament.discipline).short} · {round} · {state}
-      </span>
-    </span>
-  );
   const to = { kind: "tournament", id: tournament.id } as const;
-  if (bare) {
-    return (
-      <Go to={to} className="bx-result">
-        {text}
-        <span className="bx-right" data-live={live ? "" : undefined}>
-          {live ? <Ping /> : null}
-          {matches.length}
-        </span>
-      </Go>
-    );
-  }
   return (
-    <Go to={to} className="bx-next" data-overlap={overlap ? "" : undefined}>
-      <span className="bx-disc bx-disc-plain" style={{ "--s": "34px" } as never} aria-hidden>
-        {matches.length}
+    <Go to={to} className="bx-mr">
+      <span className="bx-mr-when">
+        <b>{times.clock(first.scheduledAt)}</b>
+        {live ? (
+          <span data-live="">
+            <Ping />
+            Live
+          </span>
+        ) : (
+          <span>{done === matches.length ? "Final" : ""}</span>
+        )}
       </span>
-      <span className="bx-time">{times.clock(first.scheduledAt)}</span>
-      {text}
-      <span className="bx-right" data-live={live ? "" : undefined}>
-        {live ? <Ping /> : null}
-        {live ? "live" : ""}
+      <span className="bx-mr-body">
+        <span className="bx-mr-side">
+          <span className="bx-disc bx-disc-plain" style={{ "--s": "20px" } as never} aria-hidden>
+            <Rows3 size={11} strokeWidth={2.4} />
+          </span>
+          <b>{tournament.name}</b>
+          <i className="bx-num">{matches.length}</i>
+        </span>
+        <span className="bx-sub">
+          {atlas.discipline(tournament.discipline).short} · {round} · {state}
+        </span>
       </span>
     </Go>
   );
@@ -195,67 +151,93 @@ export function RoundRow({
 export function ScheduleRow({
   match,
   board,
-  overlap,
   day = false,
   inEvent = false,
+  note,
 }: {
   match: Match;
   board: Board;
-  overlap: boolean;
   /** Say which day it is on, for lists that span several. */
   day?: boolean;
   /** Shown on the page of its own event: the event's name is left out. */
   inEvent?: boolean;
+  /** Something to say first in the small line: "If Vitality beat Aurora". */
+  note?: string;
 }) {
   const view = board.view(match);
   const { now, times } = board;
-  const wait = Date.parse(match.scheduledAt) - now;
-  const known = view.sides.filter((s) => s.id);
-  const title =
-    !view.solo && known.length === 1 ? `${view.where} v ${known[0]!.name}` : titleOf(view);
-  const score = view.headline.length === 2 ? view.headline.join("–") : undefined;
+  const live = match.status === "live";
+  const done = match.status === "finished";
+  const elsewhen = day && times.dayKey(match.scheduledAt) !== times.dayKey(now);
+  const won = done ? winnerOf(match) : undefined;
+  // A series is told by its games won; a single game by its own score while it is played.
+  const marks =
+    view.solo || match.status === "scheduled"
+      ? undefined
+      : match.bestOf > 1 || done
+        ? scoreLine(match).split("–")
+        : view.headline.length === 2
+          ? view.headline
+          : undefined;
+  const detail = live ? view.status.replace(/^Live(?: · )?/, "") : "";
+  const place = inEvent
+    ? `${bestOf(match.bestOf)}${view.solo ? "" : ` · ${view.where}`}`
+    : `${view.discipline.short} · ${view.event}${view.solo ? "" : ` · ${view.where}`}`;
+  const sub = [note, place, detail].filter(Boolean).join(" · ");
+  const known = view.sides.filter((s) => s.id).map((s) => s.name);
   return (
-    <Link
-      to="/match/$matchId"
-      params={{ matchId: match.id }}
-      className="bx-next"
-      data-overlap={overlap ? "" : undefined}
-    >
-      <Duo sides={view.sides} progress={match.status === "scheduled" ? 1 - wait / SIX_HOURS : 1} />
-      <span className="bx-time">
-        {times.clock(match.scheduledAt)}
-        {day && times.dayKey(match.scheduledAt) !== times.dayKey(now) ? (
-          <span className="bx-sub" style={{ display: "block", fontFamily: "var(--face)" }}>
-            {times.weekday(match.scheduledAt)} {times.dayOfMonth(match.scheduledAt)}
+    <Link to="/match/$matchId" params={{ matchId: match.id }} className="bx-mr">
+      <span className="bx-mr-when">
+        <b>
+          {elsewhen
+            ? `${times.weekday(match.scheduledAt)} ${times.dayOfMonth(match.scheduledAt)}`
+            : times.clock(match.scheduledAt)}
+        </b>
+        {live ? (
+          <span data-live="">
+            <Ping />
+            Live
           </span>
-        ) : null}
+        ) : (
+          <span>
+            {done
+              ? "Final"
+              : elsewhen
+                ? times.clock(match.scheduledAt)
+                : until(match.scheduledAt, now)}
+          </span>
+        )}
       </span>
-      <span style={{ minWidth: 0 }}>
-        <b>{title}</b>
-        <span className="bx-sub">
-          {inEvent
-            ? `${bestOf(match.bestOf)}${view.solo ? "" : ` · ${view.where}`}`
-            : view.solo
-              ? lineOf(view)
-              : `${lineOf(view)} · ${view.where}`}
-          {overlap ? <span className="bx-only"> · may overlap with the match above</span> : null}
-        </span>
-      </span>
-      {match.status === "live" ? (
-        <span className="bx-right" data-live="">
-          <Ping />
-          {score ? <Tick>{score}</Tick> : "live"}
+      {view.solo ? (
+        <span className="bx-mr-body">
+          <span className="bx-mr-side">
+            <span className="bx-disc bx-disc-plain" style={{ "--s": "20px" } as never} aria-hidden>
+              <Users size={11} strokeWidth={2.4} />
+            </span>
+            <b>{view.where}</b>
+            {done ? <i>{view.standings[0]?.side.name ?? ""} won</i> : null}
+          </span>
+          <span className="bx-sub">
+            {known.length ? known.join(", ") : "Field not decided yet"}
+          </span>
+          <span className="bx-sub">{sub}</span>
         </span>
       ) : (
-        <span
-          className="bx-right"
-          data-half={match.status === "finished" && scoreLine(match).includes("½") ? "" : undefined}
-        >
-          {match.status === "finished"
-            ? view.solo
-              ? `${view.standings[0]?.side.name ?? ""} won`
-              : scoreLine(match)
-            : until(match.scheduledAt, now).replace("in ", "")}
+        <span className="bx-mr-body">
+          {view.sides.map((side, i) => (
+            <span
+              key={side.id ?? i}
+              className="bx-mr-side"
+              data-lost={typeof won === "number" && won !== i ? "" : undefined}
+            >
+              <Disc side={side} size={20} />
+              <b>{side.name}</b>
+              {marks?.[i] !== undefined ? (
+                <i className="bx-num">{live ? <Tick>{marks[i]}</Tick> : marks[i]}</i>
+              ) : null}
+            </span>
+          ))}
+          <span className="bx-sub">{sub}</span>
         </span>
       )}
     </Link>

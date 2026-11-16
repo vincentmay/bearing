@@ -96,6 +96,9 @@ export function PlayerPage({ playerId }: { playerId: string }) {
     ...sideOf(atlas, team?.id ?? player.id),
     name: player.handle,
     short: player.handle.slice(0, 2).toUpperCase(),
+    // The colour is the team's; the picture is the player's own.
+    image: player.image,
+    person: true,
   };
   const own = atlas.matchesFor(player.id);
   const matches = team ? atlas.matchesFor(team.id) : own;
@@ -179,7 +182,7 @@ export function PlayerPage({ playerId }: { playerId: string }) {
         </dl>
       ) : null}
 
-      {career.length > 1 || stint?.from ? (
+      {career.length > 1 ? (
         <section className="bx-section" style={{ marginTop: 30 }}>
           <h2 className="bx-label" style={{ marginBottom: 14 }}>
             Career
@@ -206,7 +209,7 @@ export function PlayerPage({ playerId }: { playerId: string }) {
             <Section label="On now and next">
               <div className="bx-list">
                 {[...live, ...next].map((m) => (
-                  <ScheduleRow key={m.id} match={m} board={board} overlap={false} day />
+                  <ScheduleRow key={m.id} match={m} board={board} day />
                 ))}
               </div>
             </Section>
@@ -224,9 +227,12 @@ export function PlayerPage({ playerId }: { playerId: string }) {
               <div className="bx-list">
                 {mates.map(({ player: mate, stint: theirs }) => (
                   <Go key={mate.id} to={{ kind: "player", id: mate.id }} className="bx-line">
-                    <span>
-                      <b>{mate.handle}</b>
-                      <span className="bx-sub">{mate.name || countryName(mate.country)}</span>
+                    <span className="bx-who">
+                      <Disc side={sideOf(atlas, mate.id)} size={30} />
+                      <span>
+                        <b>{mate.handle}</b>
+                        <span className="bx-sub">{mate.name || countryName(mate.country)}</span>
+                      </span>
                     </span>
                     <span>{theirs.role}</span>
                     <span />
@@ -239,7 +245,7 @@ export function PlayerPage({ playerId }: { playerId: string }) {
             <Section label={team ? `Results with ${plainName(atlas, team.id)}` : "Results"}>
               <div className="bx-list">
                 {done.slice(0, 6).map((m) => (
-                  <ResultRow key={m.id} view={board.view(m)} />
+                  <ResultRow key={m.id} match={m} board={board} />
                 ))}
               </div>
             </Section>

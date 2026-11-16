@@ -35,6 +35,10 @@ export interface SideView {
   ink: string;
   /** Teams take a plural verb ("Vitality win"), players a singular one. */
   plural: boolean;
+  /** A team's mark or a player's picture, where a source has one. */
+  image?: string;
+  /** The picture is of a person, and is cropped to the face; a mark is shown whole. */
+  person?: boolean;
 }
 
 export type Dot =
@@ -145,6 +149,8 @@ export function sideOf(atlas: Atlas, id: string): SideView {
     color,
     ink: inkOn(color),
     plural: c?.kind === "team",
+    image: c?.image,
+    person: c?.kind === "player",
   };
 }
 

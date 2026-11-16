@@ -4,6 +4,7 @@ import { buildCs2, cs2Players, cs2Stints, cs2Teams } from "./cs2.ts";
 import { disciplines, organizations } from "./disciplines.ts";
 import { fillPlacements, otherEvents, rankings } from "./events.ts";
 import { SAMPLE_NOW } from "./kit.ts";
+import { sampleImage } from "./images.ts";
 import { buildLol, lolPlayers, lolStints, lolTeams } from "./lol.ts";
 import { buildRocketLeague, buildRocketLeagueOpen, rlTeams } from "./rocket-league.ts";
 import { cs2Rosters, lolRosters, rlRosters } from "./rosters.ts";
@@ -47,7 +48,7 @@ export function buildSampleWorld(): World {
   const tm = buildTrackmania();
   const rl = buildRocketLeague();
   const rlOpen = buildRocketLeagueOpen();
-  const competitors: Competitor[] = unique([
+  const competitors: Competitor[] = unique<Competitor>([
     ...cs2Teams,
     ...cs2Players,
     ...cs2Rosters.players,
@@ -58,7 +59,10 @@ export function buildSampleWorld(): World {
     ...tmPlayers,
     ...rlTeams,
     ...rlRosters.players,
-  ]);
+  ]).map((c) => {
+    const image = sampleImage(c.id);
+    return image ? { ...c, image } : c;
+  });
   const stints = [
     ...cs2Stints,
     ...cs2Rosters.stints,

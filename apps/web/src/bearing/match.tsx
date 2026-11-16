@@ -2,7 +2,7 @@ import { type GameResult, type Provenance, form, playerTotals } from "@bearing/d
 import { type Board, useBoard, useWide } from "./board";
 import { Back, Go } from "./links";
 import { ChessLanes, CupPlaces, CupStandings, GameRow, Stops } from "./forms";
-import { type Dot, type MatchView, type SideView, placeOf, stopsOf } from "./model";
+import { type Dot, type MatchView, type SideView, placeOf, sideOf, stopsOf } from "./model";
 import { type Times, until } from "./time";
 import { Disc, Dots, Ping, Problem, Score, Section } from "./ui";
 
@@ -246,9 +246,12 @@ function Lineups({ view, board }: { view: MatchView; board: Board }) {
             <div className="bx-list">
               {lines.map(({ player, stint, totals }) => (
                 <Go key={player.id} to={{ kind: "player", id: player.id }} className="bx-line">
-                  <span>
-                    <b>{player.handle}</b>
-                    <span className="bx-sub">{stint.role}</span>
+                  <span className="bx-who">
+                    <Disc side={sideOf(board.atlas, player.id)} size={30} />
+                    <span>
+                      <b>{player.handle}</b>
+                      <span className="bx-sub">{stint.role}</span>
+                    </span>
                   </span>
                   {totals ? (
                     <span>

@@ -380,6 +380,54 @@ body {
 .bx-disc[data-long] {
   font-size: calc(var(--s, 44px) * 0.22);
 }
+.bx-disc > * {
+  grid-area: 1 / 1;
+}
+/* A mark sits whole on a plain plate; a face fills the disc. Either fades in once it is there. */
+.bx-disc img {
+  width: 66%;
+  height: 66%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.28s var(--out);
+}
+.bx-disc[data-pic="person"] img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 8%;
+}
+.bx-disc[data-shown] {
+  background: #fff !important;
+}
+.bx-disc[data-pic="person"][data-shown] {
+  background: #e9e9e9 !important;
+}
+.bx-disc[data-shown] img {
+  opacity: 1;
+}
+/* The sides of a match together. */
+.bx-pairdiscs {
+  display: inline-flex;
+  flex: none;
+}
+.bx-pairdiscs > .bx-disc {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    inset 0 0 0 1px var(--edge);
+}
+.bx-pairdiscs > .bx-disc + .bx-disc {
+  margin-left: -7px;
+}
+.bx-pairdiscs[data-many] {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 2px;
+}
+.bx-pairdiscs[data-many] > .bx-disc {
+  margin: 0;
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
 .bx-disc-plain {
   background: var(--sunk);
   color: var(--ink);
@@ -824,6 +872,77 @@ body {
   color: var(--ink);
   font-weight: 500;
 }
+/*
+ * A match in a list: when, on the left; who, one side to a line, each with its score at the
+ * right edge so that scores stand under each other down the whole list.
+ */
+.bx-mr {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px 0;
+}
+.bx-mr-when {
+  display: grid;
+  gap: 4px;
+  padding-top: 1px;
+  font-size: 11px;
+  color: var(--ink2);
+  white-space: nowrap;
+}
+.bx-mr-when b {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.bx-mr-when [data-live] {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 3px;
+  color: var(--ink);
+  font-weight: 600;
+}
+.bx-mr-body {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.bx-mr-side {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+.bx-mr-side b {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.bx-mr-side i {
+  min-width: 1.5em;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+}
+.bx-mr-side[data-lost] b,
+.bx-mr-side[data-lost] i {
+  color: var(--ink2);
+  font-weight: 500;
+}
+.bx-mr .bx-sub {
+  padding-left: 30px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 /* Two matches that may be on at the same time are joined by a line between their discs. */
 .bx-next[data-overlap]::before {
   content: "";
@@ -1017,6 +1136,13 @@ body {
 }
 .bx-line b {
   font-weight: 600;
+}
+/* A person in a list: their face, then who they are. */
+.bx-who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 .bx-line .bx-sub {
   display: block;
