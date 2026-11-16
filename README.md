@@ -85,3 +85,13 @@ and lacks, and what paid plans would add, is in [docs/DATA-SOURCES.md](docs/DATA
 
 To deploy: `npx convex deploy` for the backend, and build the app with the production values of
 the two `VITE_` variables.
+
+## Licence
+
+The code is under the [GNU Affero General Public License, version 3](LICENSE): use it, change it,
+run it; if you run a changed version as a service, publish your changes under the same licence.
+
+The licence covers the code, not the data. What the app shows comes from Lichess, PandaScore and
+the feed behind lolesports.com, each under its own terms, which are free for non-commercial use
+only; see [docs/DATA-SOURCES.md](docs/DATA-SOURCES.md). The name "Bearing" and its mark are not
+licensed for other products.

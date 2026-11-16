@@ -301,8 +301,8 @@ All **Agreed** in the prototype. Timings are in `docs/BRAND.md`.
   three hours without its source answering.
 - **D7 (Agreed).** Licensing decides what can go public. Every source in use is free only for
   non-commercial use, and team logos are not licensed at all, which is why teams are discs.
-- **D8 (Agreed on 2026-11-16).** The code will be open source ("we can open source this project
-  for sure"), which Liquipedia's free plan requires. The owner would like Bearing to earn money
+- **D8 (Agreed on 2026-11-16).** The code is open source under AGPL-3.0 ("we can open source this
+  project for sure"), which Liquipedia's free plan requires. The owner would like Bearing to earn money
   one day; on that day the free plans end and paid agreements are needed, so earning is a later
   decision with a known cost, and nothing is built for it now.
 
@@ -371,6 +371,8 @@ official streams and recordings; a spoiler-free mode; football.
 | Three.js  | Removed with the earlier directions on 2026-11-16                           | Done     |
 | Backend   | Convex (section 8)                                                          | Agreed   |
 | Accounts  | Clerk (section 8)                                                           | Agreed   |
+| Hosting   | Cloudflare Pages, at `bearing.vincentmay.com` for now                       | Agreed   |
+| Licence   | AGPL-3.0, public at github.com/vincentmay/bearing                           | Agreed   |
 
 Anything not in this table needs the owner's agreement first.
 
@@ -493,23 +495,19 @@ Proposed. Each step ends with the owner seeing it working.
 
 ## 14. Open questions for the owner
 
-1. The licence for the public code. MIT lets anyone do anything, a rival paid product included.
-   AGPL-3.0 keeps anyone who runs a changed Bearing as a service bound to publish their changes,
-   which protects a project that may one day earn money. Recommended: AGPL-3.0.
-2. Hosting the web app. The domain vincentmay.com is on Cloudflare, so Cloudflare Pages is the
-   short way to `bearing.vincentmay.com`: free, and the DNS record is one click in the same
-   account. It is new technology and needs a yes, and a sign-in to Cloudflare by the owner.
-3. Liquipedia: send the application (`docs/LIQUIPEDIA-APPLICATION.md`) once the code is public.
-4. A start.gg token for Rocket League game scores (start.gg, Developer Settings, "Create new
-   token"). Free.
-5. English only, or German as well?
-6. The lasting domain: nothing is bought. Within budget the clean options found were
+1. Liquipedia: send the application (`docs/LIQUIPEDIA-APPLICATION.md`); the code is public.
+2. start.gg for Rocket League game scores, free with a token from the owner's account. The
+   owner asked whether Liquipedia makes it unnecessary. It does if Liquipedia grants access, so
+   start.gg waits for Liquipedia's answer and is the fallback if that is no or slow.
+3. English only, or German as well?
+4. The lasting domain: nothing is bought. Within budget the clean options found were
    bearinglive.com and watchbearing.com. Until then `bearing.vincentmay.com`.
-7. Before any launch that earns money: an EU trade mark check on the name "Bearing", a check of
+5. Before any launch that earns money: an EU trade mark check on the name "Bearing", a check of
    the logo against existing marks, and paid data agreements (D7, D8).
-8. The navigation capsule: opaque (as built, following B4) or translucent with a blur (as in
+6. The navigation capsule: opaque (as built, following B4) or translucent with a blur (as in
    the prototype)? See G1b.
 
 Settled on 2026-11-16 and no longer open: the card layout of round 10 ("Yes it is perfect now"),
-Convex and Clerk, committing on `master`, no paid data plans, open source, and
-`bearing.vincentmay.com` as the address for now.
+Convex and Clerk, committing on `master`, no paid data plans, open source under AGPL-3.0 at
+github.com/vincentmay/bearing, Cloudflare Pages as the host, and `bearing.vincentmay.com` as the
+address for now.
