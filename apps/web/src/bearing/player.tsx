@@ -1,4 +1,5 @@
 import { type Match, type Player, countryName, playerTotals } from "@bearing/domain";
+import { useFidePlayer } from "../lib/fide";
 import { didWin } from "../lib/view";
 import { type Board, useBoard } from "./board";
 import { Back, Go, useVisit } from "./links";
@@ -74,11 +75,89 @@ function runStops(board: Board, player: Player, side: SideView, own: Match[]): L
     });
 }
 
+/**
+ * A chess player who is in no event Bearing has: who they are, from FIDE's list of rated
+ * players. Their games appear here once they sit down at an event Bearing follows.
+ */
+function Listed({ id }: { id: string }) {
+  const { player, waiting } = useFidePlayer(id);
+  if (!player) {
+    return (
+      <>
+        <Back />
+        {waiting ? null : (
+          <Problem title="This player could not be found">
+            It may have been removed, or the link is wrong.
+          </Problem>
+        )}
+      </>
+    );
+  }
+  const facts = [
+    countryName(player.country),
+    player.title,
+    player.born ? `born ${player.born}` : undefined,
+  ].filter(Boolean);
+  return (
+    <>
+      <Back />
+      <header className="bx-entity">
+        <Disc
+          size={72}
+          side={{
+            id: null,
+            name: player.name,
+            label: player.name,
+            short: player.family.slice(0, 2).toUpperCase(),
+            color: "var(--ink)",
+            ink: "var(--ground)",
+            plural: false,
+            image: player.imageLarge ?? player.image,
+            person: true,
+          }}
+        />
+        <div>
+          <h1 className="bx-display">{player.family}</h1>
+          <p className="bx-sub" style={{ margin: "6px 0 0", fontSize: 13 }}>
+            <Flag country={player.country} />
+            {[player.name, ...facts].join(" · ")}
+          </p>
+        </div>
+      </header>
+      {player.ratings.length ? (
+        <dl className="bx-figures">
+          {player.ratings.map((rating) => (
+            <div key={rating.label}>
+              <dd>{rating.value}</dd>
+              <dt className="bx-label">{rating.label}</dt>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+      <div className="bx-page-narrow" style={{ margin: "22px 0 0" }}>
+        <div className="bx-list">
+          <p className="bx-empty">
+            {player.family} is not playing in an event Bearing has at the moment. Their games appear
+            here as soon as they are.
+          </p>
+        </div>
+      </div>
+      <p className="bx-source">
+        <a href={`https://lichess.org/fide/${id.slice(5)}`} target="_blank" rel="noreferrer">
+          FIDE, by way of Lichess
+        </a>
+        {player.credit ? ` · Picture: ${player.credit}` : ""}
+      </p>
+    </>
+  );
+}
+
 export function PlayerPage({ playerId }: { playerId: string }) {
   const board = useBoard(playerId);
   const { atlas, now } = board;
   const player = atlas.player(playerId);
   useVisit("player", playerId, !!player);
+  if (!player && playerId.startsWith("fide-")) return <Listed id={playerId} />;
   if (!player) {
     return (
       <>

@@ -26,7 +26,8 @@ import { type Board, useBoard, useWide } from "./board";
 import { Go } from "./links";
 import { type Dot, type SideView, bestOf, heat, inkOn, plainName, sideOf } from "./model";
 import { type Times, until } from "./time";
-import { Disc, Dots, FollowStar, Ping, Section, Segmented, Tick } from "./ui";
+import { Disc, Dots, Flag, FollowStar, Ping, Section, Segmented, Tick } from "./ui";
+import { useFideSearch } from "../lib/fide";
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -709,6 +710,8 @@ export function Search() {
       .map((h) => target(atlas, h.follow))
       .filter(defined),
   })).filter((g) => g.items.length);
+  // Chess players who are in no event Bearing has, from FIDE's own list.
+  const fide = useFideSearch(query).filter((p) => !atlas.player(p.id));
   const followed = atlas.world.follows.map((f) => target(atlas, f)).filter(defined);
   // Events that are being played or about to be: the top of each game first.
   const tier = { S: 0, A: 1, B: 2 } as const;
@@ -742,7 +745,7 @@ export function Search() {
         </label>
       </div>
       <div aria-live="polite">
-        {q && !groups.length ? (
+        {q && !groups.length && !fide.length ? (
           <div className="bx-list" style={{ marginTop: 20 }}>
             <p className="bx-empty">
               Nothing found for "{query.trim()}". Try a team's short name, such as "VIT", or a
@@ -764,6 +767,48 @@ export function Search() {
               </div>
             </Section>
           ))}
+          {fide.length ? (
+            <Section label="Chess players · not in an event right now">
+              <div className="bx-list">
+                {fide.map((p) => (
+                  <Link
+                    key={p.id}
+                    to="/player/$playerId"
+                    params={{ playerId: p.id }}
+                    className="bx-line"
+                  >
+                    <span className="bx-who">
+                      <Disc
+                        size={30}
+                        side={{
+                          id: null,
+                          name: p.name,
+                          label: p.name,
+                          short: p.family.slice(0, 2).toUpperCase(),
+                          color: "var(--ink)",
+                          ink: "var(--ground)",
+                          plural: false,
+                          image: p.image,
+                          person: true,
+                        }}
+                      />
+                      <span>
+                        <b>{p.name}</b>
+                        <span className="bx-sub">
+                          <Flag country={p.country} />
+                          {[p.title, p.ratings[0] && `${p.ratings[0].value}`]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </span>
+                      </span>
+                    </span>
+                    <span />
+                    <span />
+                  </Link>
+                ))}
+              </div>
+            </Section>
+          ) : null}
           {q || !events.length ? null : (
             <Section label="Events on now and coming">
               <div className="bx-list">

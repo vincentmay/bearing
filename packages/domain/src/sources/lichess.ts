@@ -205,6 +205,14 @@ function names(raw: string): { handle: string; name: string } {
   return { handle: family, name: `${given} ${family}` };
 }
 
+/**
+ * The country of a chess federation. Federations use three letters of their own; the ones
+ * that are countries become the two-letter code, the rest are given back as they are.
+ */
+export function countryOfFederation(fed: string | undefined): string {
+  return (fed && FEDERATIONS[fed]) ?? fed ?? "";
+}
+
 function toPlayer(p: LichessPlayer, id: string): Player {
   const { handle, name } = names(p.name ?? id);
   return {
