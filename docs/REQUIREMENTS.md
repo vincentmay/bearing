@@ -180,6 +180,8 @@ The home screen. Answers questions 1 to 3.
   moves beside it: step, jump, play it through, or pick a move. It stays with a game that is
   still being played. The owner: "for chess i would expect the board in our style with the
   moves so you can view it quickly".
+- **M11 (Agreed on 2026-11-16).** A game of League also shows who led in gold, minute by
+  minute, under its objectives.
 - **M10 (Agreed on 2026-11-16).** A game of League of Legends shows how it was played: lane
   against lane, each player with their champion and their kills, deaths and assists, and what
   each side banned. The owner: "in my dream scenario we could rely on this application for all
@@ -188,6 +190,14 @@ The home screen. Answers questions 1 to 3.
   in the order of their positions (League: top, jungle, mid, bot, support), with substitutes
   and staff in lists of their own. A role is written as its word, then its sign; League's five
   positions use the game's own signs.
+- **G15 (Agreed on 2026-11-16).** The account button opens a menu: who is signed in, the way
+  to their account, the settings, and signing in or out. Without accounts it leads straight
+  to the settings.
+- **G16 (Agreed on 2026-11-16).** One page leaves as the next arrives, and the marker in the
+  navigation travels to its new tab, where the browser can do that. Scrolling stays the
+  device's own; it is not replaced by a scripted one.
+- **G17 (Agreed on 2026-11-16).** A game nothing is known about is not offered. On real data
+  that is Trackmania, which has no source ("If there is nothing we can do...").
 - **G13 (Agreed on 2026-11-16).** Bearing is meant to carry the depth itself, so that nobody
   has to leave for HLTV or Liquipedia, wherever a source for it can be had free or for little.
   The owner turned down the smaller aim ("a dumbed down version").
@@ -251,6 +261,10 @@ The home screen. Answers questions 1 to 3.
   at or picked has its way drawn out and told round by round. Round robin is a table, a
   Trackmania cup is heats. A long round of single games (a chess open) is a list of pairings,
   each with flags, titles and ratings, White first.
+- **TO5 (Agreed on 2026-11-16).** An event that a source splits into parts (a chess event's
+  group stage, semifinals and final as separate broadcasts) shows its parts side by side, each
+  a press away. An event lists who takes part. A League event that is over shows every place
+  and what it paid. Earlier rounds of a running chess event fill in, a few an hour.
 - **TO4.** Brackets follow the dot rule: a decided match shows the winner's dot.
 - **TO5.** Final placements and prize money once known.
 
@@ -325,6 +339,14 @@ All **Agreed** in the prototype. Timings are in `docs/BRAND.md`.
 - **D5d (Agreed on 2026-11-16).** No paid data plans. The owner on PandaScore's prices: "I will
   absolutely NOT pay 1000€ per game per month". What the free plans lack comes from sources that
   cost nothing, or is left out (D5b).
+- **D5g (Agreed on 2026-11-16).** Further sources, all free and without a key: Leaguepedia
+  also for final places and prize money; Valve's public standings repository for the
+  Counter-Strike world ranking; Lichess's list of FIDE players for chess players' pictures
+  (with the photographer named) and for finding a player who is in no event; flags from
+  flagcdn.com; League's position signs and champion pictures from Riot's public files.
+- **D5h (Agreed on 2026-11-16).** A source that can be reached but has not allowed it is not
+  built on. That is BLAST's own API (Rocket League in full) and bo3.gg's (Counter-Strike maps,
+  rounds, player lines): the owner asks each in writing first.
 - **D5f (Agreed on 2026-11-16).** League drafts and player lines come from Leaguepedia
   (lol.fandom.com), a wiki under CC BY-SA 3.0 with an open query interface. It is not
   Liquipedia. It is named as a source, asked a few questions an hour, and carries far more
@@ -566,9 +588,9 @@ Proposed. Each step ends with the owner seeing it working.
    scores. It was the fallback if Liquipedia said no, and Liquipedia has.
 2. Trackmania has no source, and in 2026 no circuit of its own: the World Tour is paused for
    the Esports World Cup. Proposed: leave it out of the public version until there is both.
-3. Counter-Strike maps, rounds and player lines: BALLDONTLIE's Counter-Strike plan at 39.99 US
-   dollars a month has them and allows any use, paid products included. A week's trial needs a
-   card. Yes or no is the owner's.
+3. Counter-Strike maps, rounds and player lines: the owner said no to BALLDONTLIE at 39.99 US
+   dollars a month. What is left is bo3.gg's answer to the owner's email, and for Rocket
+   League BLAST's (D5h).
 4. Convex reports the account above the limits of its free plan (seen on 2026-11-16). The two
    jobs that read most were cut down that day; whether that is enough shows on the dashboard's
    usage page, which only the owner can open.

@@ -814,7 +814,12 @@ export function Search() {
             : atlas.world.rankings
                 .filter((r) => r.entries.some((e) => e.rank))
                 .map((r) => (
-                  <Section key={r.title} label={r.title}>
+                  <Section
+                    key={r.title}
+                    label={r.title.replace(/\d{4}-\d{2}-\d{2}$/, (day) =>
+                      board.times.date(`${day}T12:00:00Z`),
+                    )}
+                  >
                     <div className="bx-list">
                       {r.entries.slice(0, 10).map((e) => {
                         const known = e.competitorId ? atlas.competitor(e.competitorId) : undefined;
@@ -822,7 +827,14 @@ export function Search() {
                           <>
                             <span className="bx-rank-n bx-num">{e.rank}</span>
                             <span className="bx-who">
-                              {known ? <Disc side={sideOf(atlas, known.id)} size={24} /> : null}
+                              {known ? (
+                                <Disc side={sideOf(atlas, known.id)} size={24} />
+                              ) : (
+                                <span
+                                  className="bx-disc bx-disc-plain"
+                                  style={{ "--s": "24px" } as never}
+                                />
+                              )}
                               <b>{known ? plainName(atlas, known.id) : e.name}</b>
                             </span>
                             <span className="bx-sub bx-mono bx-num">

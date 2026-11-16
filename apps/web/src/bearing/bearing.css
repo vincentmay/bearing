@@ -2204,7 +2204,17 @@ body {
 .bx-rank {
   grid-template-columns: 26px minmax(0, 1fr) auto;
 }
+.bx-rank .bx-who {
+  font-family: var(--face);
+  font-size: 13px;
+  color: var(--ink);
+}
+.bx-rank .bx-who b {
+  font-weight: 700;
+}
 .bx-rank-n {
+  font-family: var(--face);
+  color: var(--ink);
   font-weight: 800;
   font-size: 14px;
   letter-spacing: -0.02em;
