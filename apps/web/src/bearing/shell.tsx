@@ -7,7 +7,8 @@ import { CalendarDays, House, Search, Star } from "lucide-react";
 import { type ReactNode, createContext, useContext, useEffect, useRef } from "react";
 import { usePrefs } from "../lib/prefs";
 import { useSamplePlayer } from "./live";
-import { useTrail } from "./trail";
+import { useAtlas } from "../lib/world";
+import { nameOf, useTrail } from "./trail";
 import { AccountLink, Mark, Waiting } from "./ui";
 
 const TABS = [
@@ -53,6 +54,10 @@ function Chrome({
   const { theme } = usePrefs();
   return (
     <div className="bx" data-theme={theme === "system" ? undefined : theme}>
+      {/* For whoever moves by keyboard: past the frame, straight to the page. */}
+      <a href="#main" className="bx-skip">
+        Skip to the page
+      </a>
       <header className="bx-top">
         <Link to="/" className="bx-brand" aria-label="Bearing: today">
           <Mark size={28} />
@@ -127,10 +132,16 @@ export function Shell() {
   }, [found]);
   const active = found >= 0 ? found : last.current;
   const inner = found < 0;
+  // The page says what it is in the browser's own title: in the tab, the history, a bookmark.
+  const atlas = useAtlas();
+  useEffect(() => {
+    const name = nameOf(atlas, path);
+    document.title = name === "Back" ? "Bearing" : `${name} · Bearing`;
+  }, [atlas, path]);
   return (
     <Chrome active={active} inner={inner}>
       <Origin value={TABS[active] ?? TABS[0]}>
-        <main key={path} className={inner ? "bx-page bx-view-in" : "bx-page bx-view"}>
+        <main id="main" key={path} className={inner ? "bx-page bx-view-in" : "bx-page bx-view"}>
           <Outlet />
         </main>
       </Origin>

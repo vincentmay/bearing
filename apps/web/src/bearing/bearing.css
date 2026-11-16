@@ -214,6 +214,22 @@ body {
   height: 100%;
   object-fit: cover;
 }
+/* Seen only when reached by keyboard: the way past the frame. */
+.bx-skip {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 50;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--ground) !important;
+  font-weight: 700;
+  transform: translateY(-200%);
+}
+.bx-skip:focus-visible {
+  transform: none;
+}
 /* The account button and what opens under it. */
 .bx-account {
   position: relative;
