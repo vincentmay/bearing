@@ -39,7 +39,9 @@ vp run -r build              # production build
 node scripts/app-shots.mjs   # every screen, light and dark, phone and wide
 node scripts/app-motion.mjs  # plays the sample forward and checks the live behaviour
 node scripts/app-states.mjs  # waiting, could not load, nothing followed, nothing found
-node scripts/app-backend.mjs # the app against its backend; needs `npx convex dev` running
+node scripts/app-backend.mjs # the app against its backend, while it is on the sample
+node scripts/app-account.mjs # signing in and follows in the account; needs a Clerk test user
+vp run -r test               # also runs the backend's own tests (apps/web/convex/*.test.ts)
 ```
 
 The four scripts need the dev server. The first three keep the app on the browser's own sample,
@@ -62,16 +64,22 @@ device. The variables are described in [apps/web/.env.example](apps/web/.env.exa
 3. Restart the dev server. The app now reads Bearing's store, and Settings offers an account.
 
 A new deployment holds the sample world, played forward on the server while anyone is looking, so
-every open screen sees the same moment. To switch a deployment to real data:
+every open screen sees the same moment. To switch a deployment to real data and back:
 
 ```sh
 npx convex run sample:useLive   # empty the store and let the real sources fill it
 npx convex run sample:reset     # back to the sample
 ```
 
-Real data is, for now, chess from Lichess broadcasts: schedules every hour, rounds in progress
-every thirty seconds. The other four games wait for a source; see
-[docs/DATA-SOURCES.md](docs/DATA-SOURCES.md).
+Real data comes from Lichess broadcasts (chess, no key) and PandaScore (Counter-Strike 2, League
+of Legends, Rocket League), which needs a free token on the deployment:
+
+```sh
+npx convex env set PANDASCORE_TOKEN <token>
+```
+
+Schedules are read every hour; anything live or due every thirty seconds. What each source gives
+and lacks, and what paid plans would add, is in [docs/DATA-SOURCES.md](docs/DATA-SOURCES.md).
 
 To deploy: `npx convex deploy` for the backend, and build the app with the production values of
 the two `VITE_` variables.

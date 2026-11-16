@@ -271,19 +271,28 @@ All **Agreed** in the prototype. Timings are in `docs/BRAND.md`.
 - **D4.** Real data arrives through one adapter per source, each mapping into the model with
   provenance. The screens only ever read Bearing's own store. Candidates and their licence terms
   are in `docs/DATA-SOURCES.md`; several items there are marked "verify".
-- **D5.** First adapters: Lichess broadcasts for chess (open and free), then Liquipedia for the
-  four other games once access and terms are confirmed. The Lichess adapter is built: the
-  mapping is `packages/domain/src/sources/lichess.ts` (tested against a saved real answer), the
-  fetching and storing is `apps/web/convex/lichess.ts`. It follows the eight leading broadcasts
-  of tier 4 and 5.
+- **D5 (Agreed on 2026-11-16).** Real data, from the best source for each game. The owner: "We
+  should make use of all the information we can get and have, the best stuff." Running today:
+  Lichess broadcasts for chess, and PandaScore's free plan for Counter-Strike 2, League of Legends
+  and Rocket League. Trackmania has no source until Liquipedia grants access.
+  `docs/DATA-SOURCES.md` says what each source gives, what it lacks, and what paid plans would
+  add.
 - **D5a (Proposed).** A deployment is on sample data or on real data, never a mixture, because
   the sample lives at a pinned instant and real data in real time. `npx convex run
-  sample:useLive` switches to real data, which for now means chess only.
-- **D5b (Proposed).** The model gained the stage format `rounds`: a stage known only as rounds
-  with their pairings. A Lichess broadcast says nothing reliable about who advances, so it is
-  drawn as that list unless its own description says "round robin".
+  sample:useLive` switches to real data and `sample:reset` back. The owner's deployment is on
+  real data.
+- **D5b (Proposed).** Where a source does not say something, the model leaves it out and the
+  screens draw less: a stage known only as rounds is a list of rounds; a map of which only the
+  winner is known is one row saying who won; a team without a known colour is drawn in ink; a
+  line-up without join dates has no "who played when". Team colours are kept by hand for the
+  well-known teams, because no source has them.
+- **D5c (Proposed).** Which events: Lichess broadcasts of tier 4 and 5, PandaScore tiers S, A and
+  B. What ended more than sixty days ago is removed.
 - **D6.** Freshness: a live match is at most 30 seconds behind its source; schedules at most an
-  hour. If a source is unreachable, the screen says how old its data is.
+  hour. Built: schedules every hour; once a minute a check looks for anything live or due, and
+  only then are the sources asked, now and thirty seconds later. Every match and event shows
+  when its source was last checked. Not built: a warning on the screen when a source has been
+  unreachable for long.
 - **D7 (Agreed).** Licensing decides what can go public. Several sources are free only for
   non-commercial use, and team logos are not licensed at all, which is why teams are discs.
 
@@ -379,17 +388,18 @@ further work only when the owner asks.
 - `apps/web/convex/`: `schema.ts` and `validators.ts` (the canonical model as validators, with a
   compile-time check that they match `packages/domain`), `world.ts` (three live queries),
   `sample.ts` (the sample loaded in batches and played forward on the server while anyone is
-  looking), `lichess.ts` and `crons.ts`, `follows.ts`, `auth.config.ts`.
+  looking), `ingest.ts` (where every real source writes, and the once-a-minute check for live
+  matches), `lichess.ts`, `pandascore.ts`, `retention.ts`, `crons.ts`, `follows.ts`,
+  `auth.config.ts`.
 - Sections 4.1 to 4.10, 5 and 6 are built at phone and wide width with motion.
 - The six earlier directions, their fonts, Three.js and Tailwind are removed. They are in the
   first commit.
-- Verified against a local Convex deployment: the sample in the store, two browsers seeing the
-  same moment, real Lichess data end to end, switching between the two.
-- **Not verified, because it needs the owner's Clerk application:** signing in, follows in the
-  account, carrying device follows over on first sign-in (K4), and the restyling of Clerk's
-  screens (K2). The code is written and type-checks; nobody has seen it run.
-- **Not done:** deployment to the owner's Convex project, Liquipedia (access not confirmed),
-  and Y4 (first-screen speed) has not been measured.
+- Verified in the owner's Convex project and Clerk application: two browsers seeing the same
+  moment, real data from Lichess and PandaScore end to end, signing in, device follows carried
+  into the account (K4), a change reaching a second browser, signing out, and Clerk's dialog in
+  the identity (K2). The backend's functions have their own tests (`apps/web/convex/*.test.ts`).
+- **Not done:** Liquipedia (needs the owner's application), hosting of the web app, a Clerk
+  production instance (needs a domain), and Y4 (first-screen speed) has not been measured.
 - Readings and choices made while building, all **Proposed**:
   - M1 and M4: on Today the lead card carries the line of stops at wide width, as in the
     prototype. On the match page the heading and the stops lie on the page, not in a card.
@@ -424,7 +434,8 @@ vp run -r test                     # domain tests
 node scripts/app-shots.mjs         # every screen, light and dark, phone and wide; needs the dev server
 node scripts/app-motion.mjs        # plays the sample forward and checks the live behaviour
 node scripts/app-states.mjs        # waiting, could not load, nothing followed, nothing found
-node scripts/app-backend.mjs       # the app against its backend; needs `npx convex dev` running
+node scripts/app-backend.mjs       # the app against its backend, on the sample
+node scripts/app-account.mjs       # signing in and follows in the account; needs a Clerk test user
 ```
 
 In development `window.bearing.pause()` and `window.bearing.step(n)` drive the sample by hand, and
@@ -440,28 +451,30 @@ Proposed. Each step ends with the owner seeing it working.
 3. **Design, show, then build** Team, Player and Tournament. Built on 2026-11-16 and accepted by
    the owner the same day ("Yes, looks right i suppose").
 4. **Remove the old directions** and the leftovers listed in section 12. Done on 2026-11-16.
-5. **Backend**: Convex, with the sample world loaded into it first, then the Lichess adapter. Done
-   on 2026-11-16 against a local deployment. Liquipedia waits for access to be confirmed.
-6. **Accounts and sync** with Clerk. The code is written. It cannot run until the owner has
-   created the Convex and Clerk projects and handed over the two values in
-   `apps/web/.env.example`; then it has to be tested signed in.
+5. **Backend**: Convex. Done on 2026-11-16 in the owner's Convex project `bearing`, on real data
+   from Lichess and PandaScore. Liquipedia waits for the owner's application.
+6. **Accounts and sync** with Clerk. Done on 2026-11-16 in the owner's Clerk application
+   `Bearing` (development instance), and checked signed in by `scripts/app-account.mjs`. A
+   production instance needs a domain the owner controls.
 
 ## 14. Open questions for the owner
 
-1. Liquipedia: will you apply for API access as a personal, non-commercial project?
-2. Is round-by-round live state needed from the first real-data version, or are schedules and
-   results enough to start?
+1. Liquipedia: will you apply for data API access? It has to be a person, through
+   liquipedia.net/api or their Discord. It is the only source for Trackmania and would add prize
+   money by place, transfers and map scores. Free access appears to need open-source code; is
+   publishing Bearing's code acceptable?
+2. Round-by-round live state (every Counter-Strike round, League objectives on the clock) is only
+   in PandaScore's Live plan, from 1,000 € per game per month. The app is built to show it when
+   the data is there and to do without it when it is not. Is doing without it acceptable?
 3. English only, or German as well?
 4. The domain: nothing is bought. Within budget the clean options found were bearinglive.com and
-   watchbearing.com.
-5. Before any public launch: an EU trade mark check on the name "Bearing", and a check of the logo
-   against existing marks. Neither has been done.
+   watchbearing.com. A production Clerk instance and a public address both wait for it.
+5. Before any public launch: an EU trade mark check on the name "Bearing", a check of the logo
+   against existing marks, and paid data agreements (the free plans are for non-commercial use).
 6. The navigation capsule: opaque (as built, following B4) or translucent with a blur (as in
    the prototype)? See G1b.
-7. Convex and Clerk: the owner creates both projects (README, "The backend and accounts"). Until
-   then the app runs in the browser on the sample.
-8. Once on real data only chess has a source. Is a chess-only real version useful to the owner
-   now, or should it stay on the sample until Liquipedia is in?
+7. Where should Bearing be hosted? The backend is deployed; the web app itself only runs on the
+   owner's machine so far.
 
 Settled on 2026-11-16 and no longer open: the card layout of round 10 ("Yes it is perfect now"),
 Convex and Clerk, and the first git commit.
