@@ -131,14 +131,14 @@ function light(doc: Doc): Doc {
   };
 }
 
-/** Matches whole, with everything known of the inside of their games. At most eighty at once. */
+/** Matches whole, with everything known of the inside of their games. At most two hundred at once. */
 export const detail = query({
   args: { ids: v.array(v.string()) },
   returns: v.array(match),
   handler: async (ctx, { ids }) => {
     if (!(await usable(ctx))) return [];
     const out: Doc[] = [];
-    for (const id of ids.slice(0, 80)) {
+    for (const id of ids.slice(0, 200)) {
       const row = await ctx.db
         .query("matches")
         .withIndex("by_key", (q) => q.eq("key", id))

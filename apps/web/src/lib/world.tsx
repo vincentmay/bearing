@@ -172,7 +172,7 @@ export const useWorld: () => World = reader ? useStoredWorld : useLocalWorld;
  * they arrive the page stands on what the list has, and nothing waits.
  */
 export function useDetailed(atlas: Atlas, ids: string[]): { atlas: Atlas; loading: boolean } {
-  const wanted = useMemo(() => [...new Set(ids)].sort().slice(0, 80), [ids]);
+  const wanted = useMemo(() => [...new Set(ids)].sort().slice(0, 200), [ids]);
   const on = !!reader && wanted.length > 0;
   const { data, isPending } = useQuery({
     ...convexQuery(api.world.detail, { ids: wanted }),

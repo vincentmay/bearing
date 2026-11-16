@@ -21,12 +21,19 @@ export interface Board {
 export function useBoard(
   subject?: string,
   /** What this page needs whole: one match, or the matches of one team or player. */
-  whole?: { match?: string; side?: string },
+  whole?: { match?: string; side?: string; event?: string },
 ): Board {
   const light = useAtlas();
-  const { match, side } = whole ?? {};
+  const { match, side, event } = whole ?? {};
   const ids = useMemo(() => {
     if (match) return [match];
+    if (event) {
+      // An event's matches from before the weeks a list reaches back are asked for by name.
+      const stages = light.tournament(event)?.stages ?? [];
+      return stages
+        .flatMap((s) => s.rounds.flatMap((r) => r.matchIds))
+        .filter((id) => !light.match(id));
+    }
     if (!side) return [];
     // A player's games are their team's: the lines of both are wanted.
     const team = light.world.stints.find((s) => s.playerId === side && !s.to)?.teamId;
@@ -35,7 +42,7 @@ export function useBoard(
       .filter((m) => m.status === "finished")
       .sort((x, y) => y.scheduledAt.localeCompare(x.scheduledAt))
       .map((m) => m.id);
-  }, [light, match, side]);
+  }, [light, match, side, event]);
   const { atlas, loading } = useDetailed(light, ids);
   const now = useMinute();
   const times = useTimes();

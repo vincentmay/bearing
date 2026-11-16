@@ -21,7 +21,17 @@ import { Bracket, DoubleBracket } from "./bracket";
 import { CrossTable, Heat } from "./stages";
 import { SwissFlow } from "./swiss";
 import { until } from "./time";
-import { Disc, EventMark, Flag, FollowStar, Ping, Problem, Section, Segmented } from "./ui";
+import {
+  Disc,
+  EventMark,
+  Flag,
+  FollowStar,
+  Ping,
+  Problem,
+  Waiting,
+  Section,
+  Segmented,
+} from "./ui";
 
 /** A pairing on one line, for rounds with many games: who played whom, and how it stands. */
 function PairRow({ match, board }: { match: Match; board: Board }) {
@@ -157,6 +167,8 @@ function StageDrawing({
   wide: boolean;
 }) {
   const matches = board.atlas.stageMatches(stage);
+  // The stage's matches may be on their way: an event from weeks back asks for them by name.
+  if (!matches.length && board.loading) return <Waiting />;
   if (!matches.length && stage.format !== "swiss") {
     return (
       <div className="bx-list">
@@ -240,7 +252,7 @@ function partName(part: Tournament, series: string): string {
 }
 
 export function TournamentPage({ tournamentId }: { tournamentId: string }) {
-  const board = useBoard();
+  const board = useBoard(undefined, { event: tournamentId });
   const wide = useWide();
   const { atlas, now, times } = board;
   const t = atlas.tournament(tournamentId);
@@ -264,10 +276,16 @@ export function TournamentPage({ tournamentId }: { tournamentId: string }) {
     .filter((m) => m.status === "scheduled")
     .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))
     .slice(0, 4);
+  // In the order they are played; stages played side by side (groups) by their names.
+  const stages = [...t.stages].sort(
+    (x, y) =>
+      x.start.localeCompare(y.start) ||
+      x.end.localeCompare(y.end) ||
+      x.name.localeCompare(y.name, undefined, { numeric: true }),
+  );
   // The stage to open on is the one still being played.
   const current =
-    t.stages.find((s) => atlas.stageMatches(s).some((m) => m.status !== "finished")) ??
-    t.stages.at(-1);
+    stages.find((s) => atlas.stageMatches(s).some((m) => m.status !== "finished")) ?? stages.at(-1);
   const stage = t.stages.find((s) => s.id === chosen) ?? current;
   const winner = champion(t);
   // The other parts of the same event: its group stage, its semifinals, its final.
@@ -366,7 +384,7 @@ export function TournamentPage({ tournamentId }: { tournamentId: string }) {
           {t.stages.length > 1 && stage ? (
             <div style={{ marginTop: 6 }}>
               <Segmented
-                options={t.stages.map((s) => ({ value: s.id, label: s.name }))}
+                options={stages.map((s) => ({ value: s.id, label: s.name }))}
                 value={stage.id}
                 onChange={setChosen}
                 label="Stage"

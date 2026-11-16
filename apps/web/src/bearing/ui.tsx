@@ -142,7 +142,7 @@ export function Disc({ side, size = 44 }: { side: SideView; size?: number }) {
     >
       {size >= 30 && !picture ? <span>{side.short}</span> : null}
       {/* A small disc of a person without a picture is not left blank: their first letter. */}
-      {size < 30 && size >= 18 && !picture && side.person ? (
+      {size < 30 && size >= 18 && !picture && side.name ? (
         <span data-letter="">{side.name.slice(0, 1)}</span>
       ) : null}
       {picture ? (
