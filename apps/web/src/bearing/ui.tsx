@@ -1,6 +1,18 @@
 import type { Follow, GameEvent } from "@bearing/domain";
 import { Link } from "@tanstack/react-router";
-import { Settings, Star, UserRound } from "lucide-react";
+import {
+  ClipboardList,
+  Crosshair,
+  Eye,
+  Megaphone,
+  Settings,
+  Shield,
+  Star,
+  Target,
+  Trees,
+  UserRound,
+  Zap,
+} from "lucide-react";
 import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
 import { useAccount } from "../lib/account";
 import { useAtlas, useFollow } from "../lib/world";
@@ -65,37 +77,137 @@ function TickEl({ play, text }: { play: boolean; text: string }) {
   return <span className={on ? "bx-tick" : undefined}>{text}</span>;
 }
 
+/** Whether a mark would be lost on a dark ground, or on a light one; worked out once each. */
+const verdicts = new Map<string, { dim: boolean; pale: boolean }>();
+
+function judge(img: HTMLImageElement): { dim: boolean; pale: boolean } {
+  const known = verdicts.get(img.src);
+  if (known) return known;
+  let verdict = { dim: false, pale: false };
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 24;
+    const pen = canvas.getContext("2d", { willReadFrequently: true });
+    if (pen) {
+      pen.drawImage(img, 0, 0, 24, 24);
+      const { data } = pen.getImageData(0, 0, 24, 24);
+      let seen = 0;
+      let dark = 0;
+      let light = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3]! < 96) continue;
+        seen++;
+        const lum = 0.299 * data[i]! + 0.587 * data[i + 1]! + 0.114 * data[i + 2]!;
+        if (lum < 64) dark++;
+        else if (lum > 204) light++;
+      }
+      verdict = { dim: seen > 0 && dark / seen > 0.62, pale: seen > 0 && light / seen > 0.62 };
+    }
+  } catch {
+    // A picture that may not be read is taken to be fine as it is.
+  }
+  verdicts.set(img.src, verdict);
+  return verdict;
+}
+
 /**
- * A team or player as a disc. Where a source has their mark or picture it is shown, on a plain
- * plate so that any mark reads on either ground; until it has arrived, and where there is none,
- * the disc is their colour with a short name.
+ * A team or player. A team's mark stands on its own, with nothing behind it; only a mark that
+ * would be lost on the ground it is shown on (a black one on black) keeps a plain plate. A
+ * player's picture fills a disc. Where there is no picture, or it does not arrive, the disc is
+ * their colour with a short name.
  */
 export function Disc({ side, size = 44 }: { side: SideView; size?: number }) {
   const [state, setState] = useState<"wait" | "shown" | "failed">("wait");
+  const [verdict, setVerdict] = useState<{ dim: boolean; pale: boolean }>();
   const picture = side.image && state !== "failed" ? side.image : undefined;
+  const arrived = (img: HTMLImageElement) => {
+    if (!side.person) setVerdict(judge(img));
+    setState("shown");
+  };
   return (
     <span
       className="bx-disc"
       data-long={side.short.length > 3 ? "" : undefined}
       data-pic={picture ? (side.person ? "person" : "mark") : undefined}
       data-shown={picture && state === "shown" ? "" : undefined}
+      data-dim={verdict?.dim ? "" : undefined}
+      data-pale={verdict?.pale ? "" : undefined}
       style={{ "--s": `${size}px`, background: side.color, color: side.ink } as CSSProperties}
       aria-hidden
     >
-      {size >= 30 && !(picture && state === "shown") ? <span>{side.short}</span> : null}
+      {size >= 30 && !picture ? <span>{side.short}</span> : null}
       {picture ? (
         <img
           src={picture}
           alt=""
           decoding="async"
+          // Marks are looked at, to see whether they read on the ground; that needs the
+          // picture's host to allow it, which it does.
+          crossOrigin={side.person ? undefined : "anonymous"}
           // A picture already in the cache is there before React listens for it.
           ref={(img) => {
-            if (img?.complete && img.naturalWidth > 0) setState("shown");
+            if (img?.complete && img.naturalWidth > 0 && state === "wait") arrived(img);
           }}
-          onLoad={() => setState("shown")}
+          onLoad={(event) => arrived(event.currentTarget)}
           onError={() => setState("failed")}
         />
       ) : null}
+    </span>
+  );
+}
+
+const LANES: Record<string, string[]> = {
+  // A corner of the map for the side lanes, the diagonal for the middle.
+  top: ["M2 2h12l-3.2 3.2H5.2v5.6L2 14z", "M9.5 9.5H14V14H9.5z"],
+  bot: ["M14 14H2l3.2-3.2h5.6V5.2L14 2z", "M2 2h4.5v4.5H2z"],
+  mid: [
+    "M10.6 2H14v3.4L5.4 14H2v-3.4z",
+    "M2 2h6.2L6.4 3.8H3.8v2.6L2 8.2zM14 14H7.8l1.8-1.8h2.6V9.6L14 7.8z",
+  ],
+};
+
+/** What a player does in the team, as a sign with the word beside it. */
+export function Role({ role }: { role: string | undefined }) {
+  if (!role) return <span />;
+  const key = role.toLowerCase();
+  const lane =
+    key === "top"
+      ? "top"
+      : key === "mid"
+        ? "mid"
+        : key === "bot" || key === "adc"
+          ? "bot"
+          : undefined;
+  const Icon = lane
+    ? undefined
+    : key.includes("jungle")
+      ? Trees
+      : key.includes("support")
+        ? Shield
+        : key.includes("awp")
+          ? Crosshair
+          : key.includes("leader") || key === "igl"
+            ? Megaphone
+            : key.includes("entry")
+              ? Zap
+              : key.includes("lurk")
+                ? Eye
+                : key.includes("coach")
+                  ? ClipboardList
+                  : key.includes("rifl")
+                    ? Target
+                    : undefined;
+  return (
+    <span className="bx-role">
+      {lane ? (
+        <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden>
+          <path d={LANES[lane]![0]} fill="currentColor" />
+          <path d={LANES[lane]![1]} fill="currentColor" opacity="0.32" />
+        </svg>
+      ) : Icon ? (
+        <Icon size={13} strokeWidth={2.2} aria-hidden />
+      ) : null}
+      {role}
     </span>
   );
 }

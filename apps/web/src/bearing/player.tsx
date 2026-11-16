@@ -6,7 +6,7 @@ import { ScheduleRow } from "./lists";
 import { type SideView, plainName, sideOf } from "./model";
 import { type LineStop, StopLine } from "./stages";
 import { ResultRow } from "./today";
-import { Disc, FollowStar, Problem, Section } from "./ui";
+import { Disc, FollowStar, Problem, Role, Section } from "./ui";
 
 function age(born: string | undefined, now: number): string | undefined {
   if (!born) return undefined;
@@ -234,7 +234,7 @@ export function PlayerPage({ playerId }: { playerId: string }) {
                         <span className="bx-sub">{mate.name || countryName(mate.country)}</span>
                       </span>
                     </span>
-                    <span>{theirs.role}</span>
+                    <Role role={theirs.role} />
                     <span />
                   </Go>
                 ))}

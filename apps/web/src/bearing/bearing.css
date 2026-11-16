@@ -380,31 +380,94 @@ body {
 .bx-disc[data-long] {
   font-size: calc(var(--s, 44px) * 0.22);
 }
+/* One cell the size of the disc, so that a tall mark is held to it and cannot spill out. */
+.bx-disc {
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+}
 .bx-disc > * {
   grid-area: 1 / 1;
+  min-width: 0;
+  min-height: 0;
 }
-/* A mark sits whole on a plain plate; a face fills the disc. Either fades in once it is there. */
+/*
+ * A mark stands on its own: no plate, no ring, its whole shape. A face fills a disc. Either
+ * fades in once it is there, and nothing is drawn in its place while it is on its way.
+ */
 .bx-disc img {
-  width: 66%;
-  height: 66%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   opacity: 0;
   transition: opacity 0.28s var(--out);
 }
+.bx-disc[data-pic] {
+  background: none !important;
+  box-shadow: none;
+}
+.bx-disc[data-pic="mark"] {
+  overflow: visible;
+  border-radius: 0;
+}
 .bx-disc[data-pic="person"] img {
-  width: 100%;
-  height: 100%;
   object-fit: cover;
   object-position: 50% 8%;
-}
-.bx-disc[data-shown] {
-  background: #fff !important;
 }
 .bx-disc[data-pic="person"][data-shown] {
   background: #e9e9e9 !important;
 }
 .bx-disc[data-shown] img {
   opacity: 1;
+}
+/* A mark that would be lost on the ground it is shown on keeps a plain plate under it. */
+.bx[data-theme="dark"] .bx-disc[data-pic="mark"][data-dim],
+.bx[data-theme="light"] .bx-disc[data-pic="mark"][data-pale] {
+  border-radius: 50%;
+  overflow: hidden;
+}
+.bx[data-theme="dark"] .bx-disc[data-pic="mark"][data-dim] {
+  background: #fff !important;
+}
+.bx[data-theme="light"] .bx-disc[data-pic="mark"][data-pale] {
+  background: #000 !important;
+}
+.bx[data-theme="dark"] .bx-disc[data-pic="mark"][data-dim] img,
+.bx[data-theme="light"] .bx-disc[data-pic="mark"][data-pale] img {
+  width: 68%;
+  height: 68%;
+}
+@media (prefers-color-scheme: dark) {
+  .bx:not([data-theme="light"]) .bx-disc[data-pic="mark"][data-dim] {
+    border-radius: 50%;
+    overflow: hidden;
+    background: #fff !important;
+  }
+  .bx:not([data-theme="light"]) .bx-disc[data-pic="mark"][data-dim] img {
+    width: 68%;
+    height: 68%;
+  }
+}
+@media (prefers-color-scheme: light) {
+  .bx:not([data-theme="dark"]) .bx-disc[data-pic="mark"][data-pale] {
+    border-radius: 50%;
+    overflow: hidden;
+    background: #000 !important;
+  }
+  .bx:not([data-theme="dark"]) .bx-disc[data-pic="mark"][data-pale] img {
+    width: 68%;
+    height: 68%;
+  }
+}
+/* What a player does in the team: a sign and the word. */
+.bx-role {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  white-space: nowrap;
+}
+.bx-role svg {
+  flex: none;
+  color: var(--ink);
 }
 /* The sides of a match together. */
 .bx-pairdiscs {
@@ -1561,10 +1624,11 @@ body {
   width: 44px !important;
 }
 .bx-flow-node[data-end="through"] {
-  background: var(--ink);
+  box-shadow: 0 0 0 1.5px var(--ink);
 }
 .bx-flow-node[data-end="through"] > b {
-  color: var(--ground);
+  color: var(--ink);
+  font-weight: 700;
 }
 .bx-flow-node[data-end="out"] > b {
   color: var(--ink3);
@@ -1587,9 +1651,6 @@ body {
 .bx-flow-node button:not([data-dim]):hover,
 .bx-flow-node button[aria-pressed="true"] {
   transform: scale(1.18);
-}
-.bx-flow-node[data-end="through"] .bx-disc {
-  box-shadow: none;
 }
 /* What the drawing says about the team being pointed at, in words. */
 .bx-flow-story {

@@ -7,7 +7,7 @@ import { ScheduleRow } from "./lists";
 import { type Dot, type SideView, sideOf } from "./model";
 import { type LineStop, StopLine } from "./stages";
 import { ResultRow } from "./today";
-import { Disc, Dots, FollowStar, Problem, Section } from "./ui";
+import { Disc, Dots, FollowStar, Problem, Role, Section } from "./ui";
 
 /** A team's matches as dots: filled for a win, open for a loss, the open ring for one being played. */
 function resultDots(matches: Match[], id: string): Dot[] {
@@ -335,7 +335,7 @@ export function TeamPage({ teamId }: { teamId: string }) {
                         <span className="bx-sub">{player.name || countryName(player.country)}</span>
                       </span>
                     </span>
-                    <span>{stint.role}</span>
+                    <Role role={stint.role} />
                     <span>{stint.from?.slice(0, 4) ?? ""}</span>
                   </Go>
                 ))}
