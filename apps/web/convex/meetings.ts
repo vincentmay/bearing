@@ -74,12 +74,14 @@ export const wanted = internalQuery({
       .withIndex("by_live_and_at", (q) =>
         q
           .eq("live", false)
-          .gte("at", now - 2 * DAY)
-          .lte("at", now + 4 * DAY),
+          .gte("at", now - 7 * DAY)
+          .lte("at", now + 7 * DAY),
       )
       .take(600);
     const out: { a: string; b: string }[] = [];
     const seen = new Set<string>();
+    // What is on now first, then what is nearest to now, before or after.
+    near.sort((x, y) => Math.abs(x.at - now) - Math.abs(y.at - now));
     for (const row of [...live, ...near]) {
       const [x, y] = row.doc.sides.map((s) => s.competitorId);
       if (row.doc.sides.length !== 2 || !x || !y) continue;

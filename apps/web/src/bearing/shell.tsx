@@ -94,6 +94,17 @@ export function ShellWaiting() {
   );
 }
 
+/** The frame around something that went wrong or is not there, with the ways on intact. */
+export function ShellProblem({ children }: { children: ReactNode }) {
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const found = tabOf(path);
+  return (
+    <Chrome active={Math.max(found, 0)} inner={found < 0}>
+      <main className="bx-page">{children}</main>
+    </Chrome>
+  );
+}
+
 export function Shell() {
   useSamplePlayer();
   useTrail();

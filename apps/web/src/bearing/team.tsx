@@ -268,7 +268,7 @@ const POSITION_ORDER = ["top", "jungle", "mid", "bot", "support"];
  * those who wait behind them; and those who do not play at all. Where two hold one position,
  * the one with more games on record plays and the other waits.
  */
-function lineupOf(roster: Person[], matches: Match[]) {
+export function lineupOf(roster: Person[], matches: Match[]) {
   const staff = roster.filter((r) => /coach|manager|analyst/i.test(r.stint.role));
   const players = roster.filter((r) => !staff.includes(r));
   const games = new Map<string, number>();

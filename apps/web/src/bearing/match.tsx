@@ -2,9 +2,10 @@ import { type GameResult, type Provenance, form, playerTotals } from "@bearing/d
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, Play } from "lucide-react";
-import { useMeetings } from "../lib/meetings";
+import { useHistory, useMeetings } from "../lib/meetings";
 import { type Board, useBoard, useWide } from "./board";
 import { Back, Go } from "./links";
+import { lineupOf } from "./team";
 import { ChessLanes, CupPlaces, CupStandings, GameRow, Stops } from "./forms";
 import { type Dot, type MatchView, type SideView, placeOf, sideOf, stopsOf } from "./model";
 import { type Times, until } from "./time";
@@ -189,41 +190,51 @@ function Form({ view, board }: { view: MatchView; board: Board }) {
   return (
     <Section label="Last five">
       <div className="bx-list">
-        {known.map((side) => {
-          const results = form(board.atlas, side.id);
-          const dots: Dot[] = results.map((r) =>
-            r === "W"
-              ? { k: "won", side: 0, label: "Won" }
-              : r === "D"
-                ? { k: "shared", label: "Draw" }
-                : { k: "open" },
-          );
-          return (
-            <Go key={side.id} to={target(board, side.id)} className="bx-result">
-              <span className="bx-row" style={{ gap: 10 }}>
-                <Disc side={side} size={26} />
-                <span style={{ minWidth: 0 }}>
-                  <b>{side.name}</b>
-                  <span className="bx-sub">
-                    {results.length > 1
-                      ? `Won ${results.filter((r) => r === "W").length} of the last ${results.length}`
-                      : results.length
-                        ? `${results[0] === "W" ? "Won" : results[0] === "D" ? "Drew" : "Lost"} the one match on record`
-                        : "No results on record"}
-                  </span>
-                </span>
-              </span>
-              <Dots
-                dots={dots}
-                sides={[side, { ...side, color: "var(--surface)" }]}
-                size={11}
-                fix
-              />
-            </Go>
-          );
-        })}
+        {known.map((side) => (
+          <FormRow key={side.id} side={side} board={board} />
+        ))}
       </div>
     </Section>
+  );
+}
+
+/**
+ * One side's last five, the latest at the right. For a team the count reaches back past the
+ * weeks Bearing keeps as matches, to its earlier series, where those have been looked up.
+ */
+function FormRow({ side, board }: { side: SideView & { id: string }; board: Board }) {
+  const past = useHistory(side.id);
+  const own = form(board.atlas, side.id);
+  // The history has the same series the store has, and the ones before them.
+  const earlier = past
+    .filter((p) => !board.atlas.match(p.id) && p.won !== undefined)
+    .slice(0, Math.max(0, 5 - own.length))
+    .map((p): "W" | "L" => (p.won ? "W" : "L"));
+  const results = [...own, ...earlier].reverse();
+  const dots: Dot[] = results.map((r) =>
+    r === "W"
+      ? { k: "won", side: 0, label: "Won" }
+      : r === "D"
+        ? { k: "shared", label: "Draw" }
+        : { k: "open" },
+  );
+  return (
+    <Go to={target(board, side.id)} className="bx-result">
+      <span className="bx-row" style={{ gap: 10 }}>
+        <Disc side={side} size={26} />
+        <span style={{ minWidth: 0 }}>
+          <b>{side.name}</b>
+          <span className="bx-sub">
+            {results.length > 1
+              ? `Won ${results.filter((r) => r === "W").length} of the last ${results.length}`
+              : results.length
+                ? `${results[0] === "W" ? "Won" : results[0] === "D" ? "Drew" : "Lost"} the one match on record`
+                : "No results on record"}
+          </span>
+        </span>
+      </span>
+      <Dots dots={dots} sides={[side, { ...side, color: "var(--surface)" }]} size={11} fix />
+    </Go>
   );
 }
 
@@ -235,7 +246,13 @@ function Lineups({ view, board }: { view: MatchView; board: Board }) {
     <>
       {view.sides.map((side) => {
         if (!side.id) return null;
-        const roster = board.atlas.roster(side.id).filter((r) => r.stint.role !== "Coach");
+        // In the order of their positions, those who wait behind the five after them.
+        const { playing, bench } = lineupOf(
+          board.atlas.roster(side.id),
+          board.atlas.matchesFor(side.id),
+        );
+        const waiting = new Set(bench.map((r) => r.player.id));
+        const roster = [...playing, ...bench];
         if (!roster.length) return null;
         const lines = roster.map((r) => ({
           ...r,
@@ -254,7 +271,11 @@ function Lineups({ view, board }: { view: MatchView; board: Board }) {
                     <Disc side={sideOf(board.atlas, player.id)} size={30} />
                     <span>
                       <b>{player.handle}</b>
-                      <span className="bx-sub">{stint.role}</span>
+                      <span className="bx-sub">
+                        {[stint.role, waiting.has(player.id) ? "substitute" : ""]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
                     </span>
                   </span>
                   {totals ? (

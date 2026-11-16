@@ -1655,17 +1655,10 @@ body {
 .bx-bracket-frame::-webkit-scrollbar {
   display: none;
 }
+/* More to the right: the edge fades, so that it is seen to go on. */
 .bx-bracket-frame[data-wider] {
-  margin: 0 -16px;
-  padding: 0 16px;
-  -webkit-mask-image: linear-gradient(
-    90deg,
-    transparent,
-    #000 16px,
-    #000 calc(100% - 28px),
-    transparent
-  );
-  mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 28px), transparent);
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
 }
 .bx-bracket {
   position: relative;

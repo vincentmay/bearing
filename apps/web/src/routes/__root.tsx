@@ -2,19 +2,10 @@ import "@fontsource-variable/gabarito";
 import "../bearing/bearing.css";
 
 import type { QueryClient } from "@tanstack/react-query";
-import { Outlet, createRootRouteWithContext, useRouter } from "@tanstack/react-router";
-import { ShellWaiting } from "../bearing/shell";
+import { Link, Outlet, createRootRouteWithContext, useRouter } from "@tanstack/react-router";
+import { ShellProblem, ShellWaiting } from "../bearing/shell";
 import { Problem } from "../bearing/ui";
 import { loadWorld } from "../lib/world";
-
-/** A bare page in the Bearing frame, for when the app itself has nothing to show yet. */
-function Frame({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="bx">
-      <main className="bx-page">{children}</main>
-    </div>
-  );
-}
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   loader: ({ context }) => loadWorld(context.queryClient),
@@ -28,21 +19,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: function RootError() {
     const router = useRouter();
     return (
-      <Frame>
+      <ShellProblem>
         <Problem title="Bearing could not load" onRetry={() => void router.invalidate()}>
           The schedule did not arrive. Nothing is wrong on your side that we know of.
         </Problem>
-      </Frame>
+      </ShellProblem>
     );
   },
   component: () => <Outlet />,
   notFoundComponent: () => (
-    <Frame>
+    <ShellProblem>
       <Problem title="There is nothing at this address">
-        <a href="/" style={{ textDecoration: "underline" }}>
-          Back to today
-        </a>
+        The address may be mistyped, or what it led to is no longer kept.{" "}
+        <Link to="/" style={{ textDecoration: "underline" }}>
+          Today
+        </Link>{" "}
+        shows what is on, and{" "}
+        <Link to="/search" style={{ textDecoration: "underline" }}>
+          Search
+        </Link>{" "}
+        finds a team, a player or an event.
       </Problem>
-    </Frame>
+    </ShellProblem>
   ),
 });
