@@ -6,6 +6,7 @@ import {
   championKeys,
   findGames,
   gamesUrl,
+  isTeam,
   playersUrl,
   readGame,
   rowsOf,
@@ -109,6 +110,14 @@ describe("Leaguepedia", () => {
     // Known whatever the case of the name; a player Bearing does not have keeps the name alone.
     expect(four?.lines?.find((l) => l.handle === "Knight")?.playerId).toBe("lol-knight");
     expect(four?.lines?.find((l) => l.handle === "Ruler")).toMatchObject({ playerId: "", side: 1 });
+  });
+
+  test("a team is known under the wiki's spelling of it", () => {
+    expect(isTeam("LØS", { name: "LOS", short: "LOS" })).toBe(true);
+    expect(isTeam("Berlin International Gaming", { name: "BIG", short: "BIG" })).toBe(true);
+    expect(isTeam("Gen.G", { name: "Gen.G", short: "GEN" })).toBe(true);
+    expect(isTeam("Gen.G", { name: "T1", short: "T1" })).toBe(false);
+    expect(isTeam("Bilibili Gaming", { name: "BIG", short: "BIG" })).toBe(false);
   });
 
   test("a game of other teams is not read", () => {

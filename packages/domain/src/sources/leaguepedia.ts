@@ -140,6 +140,30 @@ export function rowsOf<T>(body: unknown): T[] {
   return Array.isArray(rows) ? rows.flatMap((r) => (r.title ? [r.title] : [])) : [];
 }
 
+/** Letters as they are typed without their marks: "LØS" is "LOS". */
+const folded = (text: string) =>
+  text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[øØ]/g, "o")
+    .replace(/[æÆ]/g, "ae")
+    .replace(/ß/g, "ss");
+
+/**
+ * Whether a team as the wiki writes it is the team Bearing knows: the same name, give or take
+ * marks on letters, or a name written out where Bearing has its initials ("BIG").
+ */
+export function isTeam(theirs: string, ours: { name: string; short: string }): boolean {
+  const name = folded(theirs);
+  if (sameTeam({ name, code: "" }, { name: folded(ours.name), short: ours.short })) return true;
+  const initials = name
+    .split(/[^A-Za-z0-9]+/)
+    .map((word) => word[0] ?? "")
+    .join("")
+    .toLowerCase();
+  return initials.length > 1 && initials === folded(ours.name).toLowerCase();
+}
+
 const instant = (at: string) => Date.parse(`${at.replace(" ", "T")}Z`);
 
 /**
@@ -154,10 +178,8 @@ export function findGames(
   const [a, b] = sides;
   if (!a || !b) return [];
   const at = Date.parse(scheduledAt);
-  const is = (name: string, ours: { name: string; short: string }) =>
-    sameTeam({ name, code: "" }, ours);
   const theirs = games.filter(
-    (g) => (is(g.team1, a) && is(g.team2, b)) || (is(g.team1, b) && is(g.team2, a)),
+    (g) => (isTeam(g.team1, a) && isTeam(g.team2, b)) || (isTeam(g.team1, b) && isTeam(g.team2, a)),
   );
   const bySeries = new Map<string, LpGame[]>();
   for (const g of theirs) bySeries.set(g.series, [...(bySeries.get(g.series) ?? []), g]);
@@ -219,7 +241,7 @@ export function readGame(
   GameResult,
   "firstSide" | "draft" | "lines" | "scores" | "objectives" | "clock" | "winner"
 > | null {
-  const blue = sides.findIndex((s) => sameTeam({ name: game.team1, code: "" }, s));
+  const blue = sides.findIndex((s) => isTeam(game.team1, s));
   if (blue < 0 || sides.length !== 2) return null;
   const keys = art?.keys ?? new Map<string, string>();
   const by = <T>(first: T, second: T): T[] => (blue === 0 ? [first, second] : [second, first]);
