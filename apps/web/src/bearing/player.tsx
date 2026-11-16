@@ -123,6 +123,7 @@ function Listed({ id }: { id: string }) {
             {[player.name, ...facts].join(" · ")}
           </p>
         </div>
+        <FollowStar follow={{ kind: "player", id }} name={player.name} />
       </header>
       {player.ratings.length ? (
         <dl className="bx-figures">

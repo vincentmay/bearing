@@ -17,6 +17,7 @@ import { Route as AppSearchRouteImport } from './routes/_app.search'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppMatchMatchIdRouteImport } from './routes/_app.match.$matchId'
 import { Route as AppPlayerPlayerIdRouteImport } from './routes/_app.player.$playerId'
+import { Route as AppRankingDisciplineRouteImport } from './routes/_app.ranking.$discipline'
 import { Route as AppTeamTeamIdRouteImport } from './routes/_app.team.$teamId'
 import { Route as AppTournamentTournamentIdRouteImport } from './routes/_app.tournament.$tournamentId'
 
@@ -59,6 +60,11 @@ const AppPlayerPlayerIdRoute = AppPlayerPlayerIdRouteImport.update({
   path: '/player/$playerId',
   getParentRoute: () => AppRoute,
 } as any)
+const AppRankingDisciplineRoute = AppRankingDisciplineRouteImport.update({
+  id: '/ranking/$discipline',
+  path: '/ranking/$discipline',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppTeamTeamIdRoute = AppTeamTeamIdRouteImport.update({
   id: '/team/$teamId',
   path: '/team/$teamId',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AppSettingsRoute
   '/match/$matchId': typeof AppMatchMatchIdRoute
   '/player/$playerId': typeof AppPlayerPlayerIdRoute
+  '/ranking/$discipline': typeof AppRankingDisciplineRoute
   '/team/$teamId': typeof AppTeamTeamIdRoute
   '/tournament/$tournamentId': typeof AppTournamentTournamentIdRoute
 }
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/match/$matchId': typeof AppMatchMatchIdRoute
   '/player/$playerId': typeof AppPlayerPlayerIdRoute
+  '/ranking/$discipline': typeof AppRankingDisciplineRoute
   '/team/$teamId': typeof AppTeamTeamIdRoute
   '/tournament/$tournamentId': typeof AppTournamentTournamentIdRoute
 }
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/_app/': typeof AppIndexRoute
   '/_app/match/$matchId': typeof AppMatchMatchIdRoute
   '/_app/player/$playerId': typeof AppPlayerPlayerIdRoute
+  '/_app/ranking/$discipline': typeof AppRankingDisciplineRoute
   '/_app/team/$teamId': typeof AppTeamTeamIdRoute
   '/_app/tournament/$tournamentId': typeof AppTournamentTournamentIdRoute
 }
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/match/$matchId'
     | '/player/$playerId'
+    | '/ranking/$discipline'
     | '/team/$teamId'
     | '/tournament/$tournamentId'
   fileRoutesByTo: FileRoutesByTo
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/'
     | '/match/$matchId'
     | '/player/$playerId'
+    | '/ranking/$discipline'
     | '/team/$teamId'
     | '/tournament/$tournamentId'
   id:
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/_app/'
     | '/_app/match/$matchId'
     | '/_app/player/$playerId'
+    | '/_app/ranking/$discipline'
     | '/_app/team/$teamId'
     | '/_app/tournament/$tournamentId'
   fileRoutesById: FileRoutesById
@@ -205,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPlayerPlayerIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/ranking/$discipline': {
+      id: '/_app/ranking/$discipline'
+      path: '/ranking/$discipline'
+      fullPath: '/ranking/$discipline'
+      preLoaderRoute: typeof AppRankingDisciplineRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/team/$teamId': {
       id: '/_app/team/$teamId'
       path: '/team/$teamId'
@@ -230,6 +249,7 @@ interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
   AppMatchMatchIdRoute: typeof AppMatchMatchIdRoute
   AppPlayerPlayerIdRoute: typeof AppPlayerPlayerIdRoute
+  AppRankingDisciplineRoute: typeof AppRankingDisciplineRoute
   AppTeamTeamIdRoute: typeof AppTeamTeamIdRoute
   AppTournamentTournamentIdRoute: typeof AppTournamentTournamentIdRoute
 }
@@ -242,6 +262,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
   AppMatchMatchIdRoute: AppMatchMatchIdRoute,
   AppPlayerPlayerIdRoute: AppPlayerPlayerIdRoute,
+  AppRankingDisciplineRoute: AppRankingDisciplineRoute,
   AppTeamTeamIdRoute: AppTeamTeamIdRoute,
   AppTournamentTournamentIdRoute: AppTournamentTournamentIdRoute,
 }

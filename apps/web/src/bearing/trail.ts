@@ -64,6 +64,7 @@ export function nameOf(atlas: Atlas, path: string): string {
   const id = raw ? decodeURIComponent(raw) : "";
   if (kind === "team" || kind === "player") return plainName(atlas, id) || "Back";
   if (kind === "tournament") return atlas.tournament(id)?.name ?? "Back";
+  if (kind === "ranking") return "World ranking";
   if (kind === "match") {
     const match = atlas.match(id);
     if (!match) return "Back";

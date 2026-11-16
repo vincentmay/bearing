@@ -27,7 +27,8 @@ import { Go } from "./links";
 import { type Dot, type SideView, bestOf, heat, inkOn, plainName, sideOf } from "./model";
 import { type Times, until } from "./time";
 import { Disc, Dots, Flag, FollowStar, Ping, Section, Segmented, Tick } from "./ui";
-import { useFideSearch } from "../lib/fide";
+import { useFidePlayer, useFideSearch } from "../lib/fide";
+import { RankingRows, rankingTitle } from "./ranking";
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -578,6 +579,40 @@ function defined<T>(value: T | undefined): value is T {
 // ---------------------------------------------------------------------------------------------
 // Following
 
+/** A followed chess player who is in no event Bearing has: who they are, and the star. */
+function ListedRow({ id }: { id: string }) {
+  const { player } = useFidePlayer(id);
+  const name = player?.name ?? "Chess player";
+  return (
+    <div className="bx-result">
+      <Link to="/player/$playerId" params={{ playerId: id }} className="bx-row" style={{ gap: 10 }}>
+        <Disc
+          size={26}
+          side={{
+            id: null,
+            name,
+            label: name,
+            short: "",
+            color: "var(--ink)",
+            ink: "var(--ground)",
+            plural: false,
+            image: player?.image,
+            person: true,
+          }}
+        />
+        <span style={{ minWidth: 0 }}>
+          <b>{name}</b>
+          <span className="bx-sub">
+            <Flag country={player?.country} />
+            {[player?.title, player?.ratings[0]?.value].filter(Boolean).join(" · ")}
+          </span>
+        </span>
+      </Link>
+      <FollowStar follow={{ kind: "player", id }} name={name} />
+    </div>
+  );
+}
+
 export function Following() {
   const board = useBoard();
   const { atlas } = board;
@@ -594,7 +629,10 @@ export function Following() {
       .filter(defined);
   const events = of("tournament");
   const wider = [...of("organization"), ...of("discipline")];
-  const nothing = !competitors.length && !events.length && !wider.length;
+  const listed = follows.filter(
+    (f) => f.kind === "player" && f.id.startsWith("fide-") && !atlas.player(f.id),
+  );
+  const nothing = !competitors.length && !events.length && !wider.length && !listed.length;
 
   return (
     <>
@@ -621,6 +659,15 @@ export function Following() {
           </Section>
         ) : null}
         <div>
+          {listed.length ? (
+            <Section label="Not playing at the moment">
+              <div className="bx-list">
+                {listed.map((f) => (
+                  <ListedRow key={f.id} id={f.id} />
+                ))}
+              </div>
+            </Section>
+          ) : null}
           {events.length ? (
             <Section label="Events">
               <div className="bx-list">
@@ -812,56 +859,20 @@ export function Search() {
           {q
             ? null
             : atlas.world.rankings
-                .filter((r) => r.entries.some((e) => e.rank))
+                .filter((r) => r.entries.length)
                 .map((r) => (
-                  <Section
-                    key={r.title}
-                    label={r.title.replace(/\d{4}-\d{2}-\d{2}$/, (day) =>
-                      board.times.date(`${day}T12:00:00Z`),
-                    )}
-                  >
-                    <div className="bx-list">
-                      {r.entries.slice(0, 10).map((e) => {
-                        const known = e.competitorId ? atlas.competitor(e.competitorId) : undefined;
-                        const body = (
-                          <>
-                            <span className="bx-rank-n bx-num">{e.rank}</span>
-                            <span className="bx-who">
-                              {known ? (
-                                <Disc side={sideOf(atlas, known.id)} size={24} />
-                              ) : (
-                                <span
-                                  className="bx-disc bx-disc-plain"
-                                  style={{ "--s": "24px" } as never}
-                                />
-                              )}
-                              <b>{known ? plainName(atlas, known.id) : e.name}</b>
-                            </span>
-                            <span className="bx-sub bx-mono bx-num">
-                              {e.change > 0
-                                ? `▲${e.change}  `
-                                : e.change < 0
-                                  ? `▼${-e.change}  `
-                                  : ""}
-                              {e.points}
-                            </span>
-                          </>
-                        );
-                        return known ? (
-                          <Go
-                            key={e.rank}
-                            to={{ kind: "team", id: known.id }}
-                            className="bx-line bx-rank"
-                          >
-                            {body}
-                          </Go>
-                        ) : (
-                          <div key={e.rank} className="bx-line bx-rank">
-                            {body}
-                          </div>
-                        );
-                      })}
-                    </div>
+                  <Section key={r.title} label={rankingTitle(r, board)}>
+                    <RankingRows ranking={r} board={board} limit={10} />
+                    {r.entries.length > 10 ? (
+                      <Link
+                        to="/ranking/$discipline"
+                        params={{ discipline: r.discipline }}
+                        className="bx-more"
+                      >
+                        All {r.entries.length}
+                        <ChevronRight size={14} strokeWidth={2.4} aria-hidden />
+                      </Link>
+                    ) : null}
                   </Section>
                 ))}
           {q || !events.length ? null : (
