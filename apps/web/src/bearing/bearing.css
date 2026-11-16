@@ -468,6 +468,7 @@ body {
 .bx-role svg {
   flex: none;
   color: var(--ink);
+  opacity: 0.85;
 }
 /* The sides of a match together. */
 .bx-pairdiscs {

@@ -6,10 +6,8 @@ import {
   Eye,
   Megaphone,
   Settings,
-  Shield,
   Star,
   Target,
-  Trees,
   UserRound,
   Zap,
 } from "lucide-react";
@@ -156,58 +154,74 @@ export function Disc({ side, size = 44 }: { side: SideView; size?: number }) {
   );
 }
 
-const LANES: Record<string, string[]> = {
-  // A corner of the map for the side lanes, the diagonal for the middle.
-  top: ["M2 2h12l-3.2 3.2H5.2v5.6L2 14z", "M9.5 9.5H14V14H9.5z"],
-  bot: ["M14 14H2l3.2-3.2h5.6V5.2L14 2z", "M2 2h4.5v4.5H2z"],
-  mid: [
-    "M10.6 2H14v3.4L5.4 14H2v-3.4z",
-    "M2 2h6.2L6.4 3.8H3.8v2.6L2 8.2zM14 14H7.8l1.8-1.8h2.6V9.6L14 7.8z",
-  ],
+/**
+ * The five positions of League of Legends, as the game itself draws them: the part of the map
+ * a position plays on in full, the rest of it faint.
+ */
+const POSITIONS: Record<string, { full: string; faint?: string }> = {
+  top: {
+    full: "M4 4L4.003 28.045L9 23L9 9L23 9L28.045 4.003z",
+    faint: "M21,14H14v7h7V14Zm5-3V26L11.014,26l-4,4H30V7.016Z",
+  },
+  jungle: {
+    full: "M25,3c-2.128,3.3-5.147,6.851-6.966,11.469A42.373,42.373,0,0,1,20,20a27.7,27.7,0,0,1,1-3C21,12.023,22.856,8.277,25,3ZM13,20c-1.488-4.487-4.76-6.966-9-9,3.868,3.136,4.422,7.52,5,12l3.743,3.312C14.215,27.917,16.527,30.451,17,31c4.555-9.445-3.366-20.8-8-28C11.67,9.573,13.717,13.342,13,20Zm8,5a15.271,15.271,0,0,1,0,2l4-4c0.578-4.48,1.132-8.864,5-12C24.712,13.537,22.134,18.854,21,25Z",
+  },
+  mid: {
+    full: "M25 4L4 25L4 30L9 30L30 9L30 4z",
+    faint: "M30,12.968l-4.008,4L26,26H17l-4,4H30ZM16.979,8L21,4H4V20.977L8,17,8,8h8.981Z",
+  },
+  bot: {
+    full: "M29.997 5.955L25 11L25 25L11 25L5.955 29.997L30 30z",
+    faint: "M13,20h7V13H13v7ZM4,4V26.984l3.955-4L8,8,22.986,8l4-4H4Z",
+  },
+  support: {
+    full: "M26,13c3.535,0,8-4,8-4H23l-3,3,2,7,5-2-3-4h2ZM22,5L20.827,3H13.062L12,5l5,6Zm-5,9-1-1L13,28l4,3,4-3L18,13ZM11,9H0s4.465,4,8,4h2L7,17l5,2,2-7Z",
+  },
 };
 
-/** What a player does in the team, as a sign with the word beside it. */
+/** The position a role names, if it is one of League's five. */
+export function positionOf(role: string | undefined): string | undefined {
+  const key = (role ?? "").toLowerCase();
+  if (key === "top") return "top";
+  if (key.startsWith("jun")) return "jungle";
+  if (key === "mid" || key === "middle") return "mid";
+  if (key === "bot" || key === "adc" || key === "bottom") return "bot";
+  if (key.startsWith("sup")) return "support";
+  return undefined;
+}
+
+/** What a player does in the team: the word, then its sign. */
 export function Role({ role, bare }: { role: string | undefined; bare?: boolean }) {
   if (!role) return <span />;
   const key = role.toLowerCase();
-  const lane =
-    key === "top"
-      ? "top"
-      : key === "mid"
-        ? "mid"
-        : key === "bot" || key === "adc"
-          ? "bot"
-          : undefined;
-  const Icon = lane
+  const position = positionOf(role);
+  const Icon = position
     ? undefined
-    : key.includes("jungle")
-      ? Trees
-      : key.includes("support")
-        ? Shield
-        : key.includes("awp")
-          ? Crosshair
-          : key.includes("leader") || key === "igl"
-            ? Megaphone
-            : key.includes("entry")
-              ? Zap
-              : key.includes("lurk")
-                ? Eye
-                : key.includes("coach")
-                  ? ClipboardList
-                  : key.includes("rifl")
-                    ? Target
-                    : undefined;
+    : key.includes("awp")
+      ? Crosshair
+      : key.includes("leader") || key === "igl"
+        ? Megaphone
+        : key.includes("entry")
+          ? Zap
+          : key.includes("lurk")
+            ? Eye
+            : key.includes("coach")
+              ? ClipboardList
+              : key.includes("rifl")
+                ? Target
+                : undefined;
+  const sign = position ? POSITIONS[position] : undefined;
   return (
     <span className="bx-role" title={bare ? role : undefined}>
-      {lane ? (
-        <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden>
-          <path d={LANES[lane]![0]} fill="currentColor" />
-          <path d={LANES[lane]![1]} fill="currentColor" opacity="0.32" />
+      {bare ? null : role}
+      {sign ? (
+        <svg width="15" height="15" viewBox="0 0 34 34" aria-hidden>
+          {sign.faint ? <path d={sign.faint} fill="currentColor" opacity="0.3" /> : null}
+          <path d={sign.full} fill="currentColor" fillRule="evenodd" />
         </svg>
       ) : Icon ? (
         <Icon size={13} strokeWidth={2.2} aria-hidden />
       ) : null}
-      {bare ? null : role}
     </span>
   );
 }

@@ -1,4 +1,12 @@
-import { type Atlas, type Match, type Team, countryName, tournamentStatus } from "@bearing/domain";
+import {
+  type Atlas,
+  type Match,
+  type Player,
+  type Stint,
+  type Team,
+  countryName,
+  tournamentStatus,
+} from "@bearing/domain";
 import type { CSSProperties } from "react";
 import { achievements, didWin } from "../lib/view";
 import { type Board, useBoard } from "./board";
@@ -7,7 +15,7 @@ import { ScheduleRow } from "./lists";
 import { type Dot, type SideView, sideOf } from "./model";
 import { type LineStop, StopLine } from "./stages";
 import { ResultRow } from "./today";
-import { Disc, Dots, FollowStar, Problem, Role, Section } from "./ui";
+import { Disc, Dots, FollowStar, Problem, Role, Section, positionOf } from "./ui";
 
 /** A team's matches as dots: filled for a win, open for a loss, the open ring for one being played. */
 function resultDots(matches: Match[], id: string): Dot[] {
@@ -180,6 +188,38 @@ function Maps({ all, team, side }: { all: Match[]; team: Team; side: SideView })
   );
 }
 
+type Person = { stint: Stint; player: Player };
+const POSITION_ORDER = ["top", "jungle", "mid", "bot", "support"];
+
+/**
+ * A team's people as they take the field: those who play, in the order of their positions;
+ * those who wait behind them; and those who do not play at all. Where two hold one position,
+ * the one with more games on record plays and the other waits.
+ */
+function lineupOf(roster: Person[], matches: Match[]) {
+  const staff = roster.filter((r) => /coach|manager|analyst/i.test(r.stint.role));
+  const players = roster.filter((r) => !staff.includes(r));
+  const games = new Map<string, number>();
+  for (const m of matches)
+    for (const g of m.games)
+      for (const line of g.lines ?? [])
+        if (line.playerId) games.set(line.playerId, (games.get(line.playerId) ?? 0) + 1);
+  const at = (r: Person) => POSITION_ORDER.indexOf(positionOf(r.stint.role) ?? "");
+  if (!players.some((r) => at(r) >= 0)) return { playing: players, bench: [], staff };
+  const playing: Person[] = [];
+  const bench: Person[] = [];
+  for (const [index] of POSITION_ORDER.entries()) {
+    const here = players
+      .filter((r) => at(r) === index)
+      .sort((x, y) => (games.get(y.player.id) ?? 0) - (games.get(x.player.id) ?? 0));
+    playing.push(...here.slice(0, 1));
+    bench.push(...here.slice(1));
+  }
+  // Someone whose position is not said is taken to play.
+  playing.push(...players.filter((r) => at(r) < 0));
+  return { playing, bench, staff };
+}
+
 export function TeamPage({ teamId }: { teamId: string }) {
   const board = useBoard();
   const { atlas, now } = board;
@@ -206,6 +246,7 @@ export function TeamPage({ teamId }: { teamId: string }) {
       c.kind === "team" && !!team.orgId && c.orgId === team.orgId && c.id !== team.id,
   );
   const roster = atlas.roster(team.id);
+  const lineup = lineupOf(roster, all);
   const year = yearStops(board, team, side, all);
   const won = done.filter((m) => didWin(m, team.id) === true).length;
   // Maps or games won and lost, across every finished match.
@@ -323,25 +364,35 @@ export function TeamPage({ teamId }: { teamId: string }) {
           {team.discipline === "cs2" ? <Maps all={all} team={team} side={side} /> : null}
         </div>
         <div>
-          {roster.length ? (
-            <Section label="Line-up">
-              <div className="bx-list">
-                {roster.map(({ player, stint }) => (
-                  <Go key={player.id} to={{ kind: "player", id: player.id }} className="bx-line">
-                    <span className="bx-who">
-                      <Disc side={sideOf(atlas, player.id)} size={30} />
-                      <span>
-                        <b>{player.handle}</b>
-                        <span className="bx-sub">{player.name || countryName(player.country)}</span>
+          {(
+            [
+              ["Line-up", lineup.playing],
+              ["Substitutes", lineup.bench],
+              ["Staff", lineup.staff],
+            ] as const
+          ).map(([label, people]) =>
+            people.length ? (
+              <Section key={label} label={label}>
+                <div className="bx-list">
+                  {people.map(({ player, stint }) => (
+                    <Go key={player.id} to={{ kind: "player", id: player.id }} className="bx-line">
+                      <span className="bx-who">
+                        <Disc side={sideOf(atlas, player.id)} size={30} />
+                        <span>
+                          <b>{player.handle}</b>
+                          <span className="bx-sub">
+                            {player.name || countryName(player.country)}
+                          </span>
+                        </span>
                       </span>
-                    </span>
-                    <Role role={stint.role} />
-                    <span>{stint.from?.slice(0, 4) ?? ""}</span>
-                  </Go>
-                ))}
-              </div>
-            </Section>
-          ) : null}
+                      <Role role={stint.role} />
+                      <span>{stint.from?.slice(0, 4) ?? ""}</span>
+                    </Go>
+                  ))}
+                </div>
+              </Section>
+            ) : null,
+          )}
           <History atlas={atlas} team={team} side={side} now={now} />
         </div>
       </div>

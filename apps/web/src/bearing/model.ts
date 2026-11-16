@@ -485,11 +485,18 @@ export function stopsOf(atlas: Atlas, view: MatchView, times: Times): Stop[] {
 
   const ahead = match.next?.winner ? atlas.match(match.next.winner) : undefined;
   if (ahead) {
-    stops.push({
-      kind: "end",
-      label: atlas.roundOf(ahead)?.name ?? "Next",
-      sub: `${times.weekday(ahead.scheduledAt)} ${times.clock(ahead.scheduledAt)}`,
-    });
+    // Once the match is over the line ends in who went on, not in a time that has passed.
+    const won = over ? winnerOf(match) : undefined;
+    const through = typeof won === "number" ? sides[won] : undefined;
+    if (!over || through)
+      stops.push({
+        kind: "end",
+        label: atlas.roundOf(ahead)?.name ?? "Next",
+        sub: through
+          ? `${through.label} went on`
+          : `${times.weekday(ahead.scheduledAt)} ${times.clock(ahead.scheduledAt)}`,
+        winner: typeof won === "number" ? won : undefined,
+      });
   }
   return stops;
 }
