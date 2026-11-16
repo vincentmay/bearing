@@ -12,6 +12,14 @@ import type { GameResult, Match, Player, Stage, StageFormat, Tournament } from "
 
 /** FIDE's federation codes for the federations met most often, as two-letter country codes. */
 const FEDERATIONS: Record<string, string> = {
+  OMA: "OM",
+  PLE: "PS",
+  NEP: "NP",
+  LBN: "LB",
+  SYR: "SY",
+  HKG: "HK",
+  BRN: "BH",
+  PAK: "PK",
   ALB: "AL",
   ALG: "DZ",
   ARG: "AR",
