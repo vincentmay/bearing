@@ -1,0 +1,176 @@
+import {
+  type LichessBroadcast,
+  type LichessGame,
+  type LichessRound,
+  type LichessTour,
+  mapBroadcast,
+  roundsToFetch,
+} from "@bearing/domain/lichess";
+import { v } from "convex/values";
+import { internal } from "./_generated/api";
+import { internalAction, internalMutation, internalQuery } from "./_generated/server";
+import { competitor, match, tournament } from "./validators";
+
+/**
+ * The first real source: chess broadcasts from Lichess, which are open and free to use.
+ *
+ * It runs only when the deployment has been switched to live data (`sample:useLive`). Schedules
+ * are refreshed every hour by a cron job. While a round is being played, the rounds in progress
+ * are fetched again every thirty seconds, and that loop ends by itself when nothing is live.
+ * Requests go out one at a time, and a "too many requests" answer stops the run until the next
+ * hour, as Lichess asks of its API's users.
+ */
+
+const BASE = "https://lichess.org/api/broadcast";
+/** How many broadcasts are followed at once: the top of the game, not every club night. */
+const TOURS = 8;
+const LIVE_EVERY = 30_000;
+
+async function get<T>(path: string): Promise<T | null> {
+  const response = await fetch(`${BASE}${path}`, {
+    headers: { Accept: "application/json", "User-Agent": "Bearing (esports schedule viewer)" },
+  });
+  if (response.status === 429) throw new Error("Lichess asked for a pause (429).");
+  if (!response.ok) return null;
+  return (await response.json()) as T;
+}
+
+interface Top {
+  active?: { tour: LichessTour }[];
+  upcoming?: { tour: LichessTour }[];
+}
+
+async function fetchBroadcast(tourId: string): Promise<LichessBroadcast | null> {
+  const detail = await get<{ tour: LichessTour; rounds: LichessRound[] }>(`/${tourId}`);
+  if (!detail) return null;
+  const wanted = roundsToFetch(detail.rounds);
+  const games: Record<string, LichessGame[]> = {};
+  for (const round of wanted) {
+    const answer = await get<{ games?: LichessGame[] }>(`/-/-/${round.id}`);
+    if (answer?.games) games[round.id] = answer.games;
+  }
+  return { tour: detail.tour, rounds: detail.rounds, games };
+}
+
+/** Every hour: the leading broadcasts, their rounds and the games of the rounds that matter now. */
+export const sync = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    if (!(await ctx.runQuery(internal.lichess.enabled, {}))) return;
+    const top = await get<Top>("/top?page=1");
+    const tours = [...(top?.active ?? []), ...(top?.upcoming ?? [])]
+      .map((entry) => entry.tour)
+      .filter((tour) => (tour.tier ?? 0) >= 4)
+      .slice(0, TOURS);
+    let live = false;
+    for (const tour of tours) {
+      const broadcast = await fetchBroadcast(tour.id);
+      if (!broadcast) continue;
+      live ||= broadcast.rounds.some((r) => r.ongoing);
+      await ctx.runMutation(internal.lichess.store, plain(mapBroadcast(broadcast, Date.now())));
+    }
+    if (live) await ctx.scheduler.runAfter(LIVE_EVERY, internal.lichess.refresh, {});
+  },
+});
+
+/** Every thirty seconds while something is being played: only the rounds in progress. */
+export const refresh = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    if (!(await ctx.runQuery(internal.lichess.enabled, {}))) return;
+    const liveTours = await ctx.runQuery(internal.lichess.liveTours, {});
+    let live = false;
+    for (const tourId of liveTours) {
+      const broadcast = await fetchBroadcast(tourId);
+      if (!broadcast) continue;
+      live ||= broadcast.rounds.some((r) => r.ongoing);
+      await ctx.runMutation(internal.lichess.store, plain(mapBroadcast(broadcast, Date.now())));
+    }
+    if (live) await ctx.scheduler.runAfter(LIVE_EVERY, internal.lichess.refresh, {});
+  },
+});
+
+export const enabled = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const source = await ctx.db.query("source").first();
+    return source?.kind === "live" && !source.loading;
+  },
+});
+
+/** The Lichess broadcasts that have a game in progress, by their Lichess id. */
+export const liveTours = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db
+      .query("matches")
+      .withIndex("by_live", (q) => q.eq("live", true))
+      .collect();
+    const ids = new Set(
+      rows
+        .map((r) => r.doc.tournamentId)
+        .filter((id) => id.startsWith("lichess-"))
+        .map((id) => id.slice("lichess-".length)),
+    );
+    return [...ids];
+  },
+});
+
+/** Drop `undefined` fields, which the database has no word for. */
+function plain<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
+const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
+/** Write one mapped broadcast into the store. */
+export const store = internalMutation({
+  args: {
+    tournament,
+    competitors: v.array(competitor),
+    matches: v.array(match),
+  },
+  handler: async (ctx, args) => {
+    // Rewriting a row that has not changed would wake every screen for nothing.
+    for (const doc of args.competitors) {
+      const row = await ctx.db
+        .query("competitors")
+        .withIndex("by_key", (q) => q.eq("key", doc.id))
+        .first();
+      if (!row) await ctx.db.insert("competitors", { key: doc.id, doc });
+      else if (!same(row.doc, doc)) await ctx.db.patch(row._id, { doc });
+    }
+    // Pairings of rounds fetched earlier are kept: this run may have fetched other rounds.
+    const before = await ctx.db
+      .query("tournaments")
+      .withIndex("by_key", (q) => q.eq("key", args.tournament.id))
+      .first();
+    const known = new Map(
+      (before?.doc.stages[0]?.rounds ?? []).map((r) => [r.id, r.matchIds] as const),
+    );
+    const doc = {
+      ...args.tournament,
+      participantIds: [
+        ...new Set([...(before?.doc.participantIds ?? []), ...args.tournament.participantIds]),
+      ],
+      stages: args.tournament.stages.map((stage) => ({
+        ...stage,
+        rounds: stage.rounds.map((r) =>
+          r.matchIds.length ? r : { ...r, matchIds: known.get(r.id) ?? [] },
+        ),
+      })),
+    };
+    if (!before) await ctx.db.insert("tournaments", { key: doc.id, doc });
+    else if (!same(before.doc, doc)) await ctx.db.patch(before._id, { doc });
+
+    for (const m of args.matches) {
+      const row = await ctx.db
+        .query("matches")
+        .withIndex("by_key", (q) => q.eq("key", m.id))
+        .first();
+      const live = m.status === "live";
+      if (!row) await ctx.db.insert("matches", { key: m.id, live, doc: m });
+      else if (!same(row.doc, m)) await ctx.db.patch(row._id, { live, doc: m });
+    }
+  },
+});

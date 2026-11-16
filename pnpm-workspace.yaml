@@ -6,27 +6,22 @@ packages:
 catalogMode: prefer
 
 catalog:
-  "@fontsource-variable/archivo": ^5.3.0
-  "@fontsource-variable/fraunces": ^5.3.0
+  "@clerk/clerk-react": ^5.61.3
+  "@convex-dev/react-query": ^0.1.0
   "@fontsource-variable/gabarito": ^5.3.0
-  "@fontsource-variable/geist": ^5.3.0
   "@fontsource-variable/geist-mono": ^5.3.0
-  "@fontsource-variable/inter-tight": ^5.3.0
   "@playwright/test": ^1.65.1
-  "@tailwindcss/vite": ^4.3.5
   "@tanstack/react-query": ^5.107.1
   "@tanstack/react-router": ^1.170.46
   "@tanstack/router-plugin": ^1.169.0
   "@types/node": ^24
   "@types/react": ^19.3.0
   "@types/react-dom": ^19.3.0
-  "@types/three": ^0.187.0
   "@vitejs/plugin-react": ^6.3.0
+  convex: ^1.50.0
   lucide-react: ^1.73.0
   react: ^19.3.1
   react-dom: ^19.3.1
-  tailwindcss: ^4.3.5
-  three: ^0.187.0
   typescript: ^7.0.2
   vite: npm:@voidzero-dev/vite-plus-core@1.4.0
   vite-plus: 1.4.0
@@ -37,3 +32,6 @@ peerDependencyRules:
     - vite
   allowedVersions:
     vite: "*"
+allowBuilds:
+  "@clerk/shared": false
+  esbuild: false

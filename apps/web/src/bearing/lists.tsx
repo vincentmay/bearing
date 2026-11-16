@@ -1,191 +1,565 @@
-import { type Competitor, type Follow, clock, dayKey, form } from "@bearing/domain";
+import { type Atlas, type Follow, type Match, form, winnerOf } from "@bearing/domain";
 import { Link } from "@tanstack/react-router";
-import { Search as SearchIcon, Star } from "lucide-react";
-import { useState } from "react";
-import { scoreLine } from "../lib/view";
-import { useAtlas, useFollow, useMinute } from "../lib/world";
-import { type SideView, inkOn, summarize } from "./model";
-import { Disc, Dots, Duo, Section } from "./ui";
+import { Gamepad2, Search as SearchIcon, Trophy } from "lucide-react";
+import { type ReactNode, useState } from "react";
+import { scoreLine, upcomingForYou } from "../lib/view";
+import { estimatedMinutes } from "../lib/world";
+import { useRecents } from "../lib/recents";
+import { type Board, useBoard, useWide } from "./board";
+import { Go } from "./links";
+import { type Dot, type SideView, heat, inkOn, lineOf, plainName, sideOf, titleOf } from "./model";
+import { type Times, until } from "./time";
+import { Disc, Dots, Duo, FollowStar, Ping, Section, Segmented, Tick } from "./ui";
 
 const DAY = 24 * 60 * 60 * 1000;
+const SIX_HOURS = 6 * 60 * 60 * 1000;
 
-/** Five days from today; the selected one is a filled circle, the only shape on the screen besides the navigation. */
+// ---------------------------------------------------------------------------------------------
+// Schedule
+
+const SCOPES = [
+  { value: "all", label: "Everything" },
+  { value: "mine", label: "What I follow" },
+] as const;
+
+/** A row of days; under it, everything on the selected day in time order, across all games. */
 export function Schedule() {
-  const atlas = useAtlas();
-  const now = useMinute();
-  const days = Array.from({ length: 5 }, (_, i) => now + i * DAY);
-  const [selected, setSelected] = useState(0);
-  const key = dayKey(days[selected] ?? now);
+  const board = useBoard();
+  const { atlas, now, times } = board;
+  const wide = useWide();
+  const [scope, setScope] = useState<(typeof SCOPES)[number]["value"]>("all");
+  const [offset, setOffset] = useState(0);
+  const offsets = wide ? [-3, -2, -1, 0, 1, 2, 3, 4, 5, 6] : [-2, -1, 0, 1, 2, 3, 4];
+  const day = now + offset * DAY;
+  const key = times.dayKey(day);
+
+  // What the viewer follows includes matches a followed team only reaches by winning first.
+  const maybe = new Set(upcomingForYou(atlas).map((u) => u.match.id));
+  const mine = (m: Match) => atlas.isFollowed(m) || maybe.has(m.id);
   const matches = atlas.world.matches
-    .filter((m) => dayKey(m.scheduledAt) === key)
+    .filter((m) => times.dayKey(m.scheduledAt) === key && (scope === "all" || mine(m)))
     .sort((x, y) => x.scheduledAt.localeCompare(y.scheduledAt));
-  const month = new Intl.DateTimeFormat(undefined, { month: "long" }).format(days[selected] ?? now);
+
+  // Two matches may overlap when one starts before the other is expected to be over.
+  let busyUntil = -Infinity;
+  const rows = matches.map((m) => {
+    const start = Date.parse(m.scheduledAt);
+    const length = estimatedMinutes(m, atlas.tournamentOf(m).discipline) * 60_000;
+    const overlap = start < busyUntil;
+    // A match that is over cannot overlap with anything that has yet to start.
+    const end = m.status === "finished" ? Math.min(start + length, now) : start + length;
+    busyUntil = Math.max(busyUntil, end);
+    return { m, overlap };
+  });
+  const overlaps = rows.some((r) => r.overlap);
 
   return (
     <>
       <header className="bx-head">
         <h1 className="bx-title">Schedule</h1>
-        <span className="bx-mono bx-sub" style={{ textTransform: "uppercase" }}>
-          {month}
-        </span>
+        <span className="bx-date">{times.month(day)}</span>
       </header>
-      <div className="bx-days">
-        {days.map((day, i) => (
-          <button
-            key={day}
-            type="button"
-            className={i === selected ? "bx-on" : undefined}
-            aria-pressed={i === selected}
-            onClick={() => setSelected(i)}
-          >
-            {new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(day)}
-            <b>{new Date(day).getDate()}</b>
-          </button>
-        ))}
+      <div className="bx-days" role="group" aria-label="Day">
+        {offsets.map((i) => {
+          const d = now + i * DAY;
+          return (
+            <button
+              key={i}
+              type="button"
+              aria-pressed={i === offset}
+              aria-label={times.date(d)}
+              data-today={i === 0 ? "" : undefined}
+              onClick={() => setOffset(i)}
+            >
+              {i === 0 ? "Today" : times.weekday(d)}
+              <b>{times.dayOfMonth(d)}</b>
+            </button>
+          );
+        })}
       </div>
-      <Section label={`${matches.length} ${matches.length === 1 ? "match" : "matches"}`}>
-        <div className="bx-list">
-          {matches.map((m) => {
-            const view = summarize(atlas, m, now);
-            return (
-              <Link key={m.id} to="/match/$matchId" params={{ matchId: m.id }} className="bx-next">
-                <Duo sides={view.sides} progress={m.status === "scheduled" ? 0 : 1} />
-                <span className="bx-mono bx-num">{clock(m.scheduledAt, true)}</span>
-                <span>
-                  <b>{view.solo ? view.event : view.sides.map((s) => s.name).join(" v ")}</b>
-                  <span className="bx-sub">
-                    {view.discipline.short} · {view.solo ? view.where : view.event}
-                  </span>
-                </span>
-                <span className="bx-sub bx-mono">
-                  {m.status === "live"
-                    ? "LIVE"
-                    : m.status === "finished" && !view.solo
-                      ? scoreLine(m)
-                      : ""}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
-        {matches.length ? null : <p className="bx-empty">Nothing on this day.</p>}
-      </Section>
+      <div className={wide ? "bx-page-narrow" : undefined} style={wide ? { margin: 0 } : undefined}>
+        <Segmented options={SCOPES} value={scope} onChange={setScope} label="Which matches" />
+        <Section
+          label={`${times.day(day, now)} · ${matches.length} ${matches.length === 1 ? "match" : "matches"}`}
+        >
+          <div className="bx-list">
+            {rows.map(({ m, overlap }) => (
+              <ScheduleRow key={m.id} match={m} board={board} overlap={overlap} />
+            ))}
+            {matches.length ? null : (
+              <p className="bx-empty">
+                {scope === "mine"
+                  ? "Nothing you follow is on this day."
+                  : "Nothing is on this day."}
+              </p>
+            )}
+          </div>
+          {overlaps ? (
+            <p className="bx-note">
+              A line joins matches that may be on at the same time. Times are in your time zone
+              {times.zone ? ` (${times.zone})` : ""}.
+            </p>
+          ) : null}
+        </Section>
+      </div>
     </>
   );
 }
 
-function FollowStar({ follow, name }: { follow: Follow; name: string }) {
-  const atlas = useAtlas();
-  const [direct, toggle] = useFollow(follow);
-  // Followed through something wider, such as the organisation: shown as followed, changed there.
-  const inherited = !direct && atlas.followsCompetitor(follow.id);
-  const on = direct || inherited;
+export function ScheduleRow({
+  match,
+  board,
+  overlap,
+  day = false,
+}: {
+  match: Match;
+  board: Board;
+  overlap: boolean;
+  /** Say which day it is on, for lists that span several. */
+  day?: boolean;
+}) {
+  const view = board.view(match);
+  const { now, times } = board;
+  const wait = Date.parse(match.scheduledAt) - now;
+  const known = view.sides.filter((s) => s.id);
+  const title =
+    !view.solo && known.length === 1 ? `${view.where} v ${known[0]!.name}` : titleOf(view);
+  const score = view.headline.length === 2 ? view.headline.join("–") : undefined;
   return (
-    <button
-      type="button"
-      className="bx-star"
-      aria-pressed={on}
-      aria-label={on ? `Stop following ${name}` : `Follow ${name}`}
-      title={inherited ? "Followed through its organisation" : undefined}
-      disabled={inherited}
-      onClick={toggle}
+    <Link
+      to="/match/$matchId"
+      params={{ matchId: match.id }}
+      className="bx-next"
+      data-overlap={overlap ? "" : undefined}
     >
-      <Star size={17} />
-    </button>
+      <Duo sides={view.sides} progress={match.status === "scheduled" ? 1 - wait / SIX_HOURS : 1} />
+      <span className="bx-time">
+        {times.clock(match.scheduledAt)}
+        {day && times.dayKey(match.scheduledAt) !== times.dayKey(now) ? (
+          <span className="bx-sub" style={{ display: "block", fontFamily: "var(--face)" }}>
+            {times.weekday(match.scheduledAt)} {times.dayOfMonth(match.scheduledAt)}
+          </span>
+        ) : null}
+      </span>
+      <span style={{ minWidth: 0 }}>
+        <b>{title}</b>
+        <span className="bx-sub">
+          {view.solo ? lineOf(view) : `${lineOf(view)} · ${view.where}`}
+          {overlap ? <span className="bx-only"> · may overlap with the match above</span> : null}
+        </span>
+      </span>
+      {match.status === "live" ? (
+        <span className="bx-right" data-live="">
+          <Ping />
+          {score ? <Tick>{score}</Tick> : "live"}
+        </span>
+      ) : (
+        <span className="bx-right">
+          {match.status === "finished"
+            ? view.solo
+              ? `${view.standings[0]?.side.name ?? ""} won`
+              : scoreLine(match)
+            : until(match.scheduledAt, now).replace("in ", "")}
+        </span>
+      )}
+    </Link>
   );
 }
 
-function CompetitorRow({ competitor }: { competitor: Competitor }) {
-  const atlas = useAtlas();
-  const name = atlas.name(competitor.id);
-  const color =
-    competitor.discipline === "chess" ? "var(--ink)" : atlas.colors(competitor.id).primary;
-  const side: SideView = { id: competitor.id, name, short: "", color, ink: inkOn(color) };
-  // Last five: a filled dot is a win, an open one a loss, a shared one a draw.
-  const last = form(atlas, competitor.id).map((r) =>
-    r === "W"
-      ? ({ k: "won", side: 0, label: "Won" } as const)
-      : r === "D"
-        ? ({ k: "shared", label: "Draw" } as const)
-        : ({ k: "open" } as const),
+// ---------------------------------------------------------------------------------------------
+// Things that can be followed: a team, a player, an event, a whole game, an organisation
+
+interface Target {
+  follow: Follow;
+  name: string;
+  /** What kind of thing it is, in words. */
+  kind: string;
+  /** The game's short name, for a team or player: two teams of one organisation share a name. */
+  game?: string;
+  /** Its disc: a colour for teams, players and organisations; an icon for the rest. */
+  disc: ReactNode;
+  side?: SideView;
+}
+
+function target(atlas: Atlas, follow: Follow): Target | undefined {
+  const plain = (icon: ReactNode) => (
+    <span className="bx-disc bx-disc-plain" style={{ "--s": "26px" } as never} aria-hidden>
+      {icon}
+    </span>
   );
+  switch (follow.kind) {
+    case "team":
+    case "player": {
+      const c = atlas.competitor(follow.id);
+      if (!c) return undefined;
+      const side = { ...sideOf(atlas, follow.id), short: "" };
+      const game = atlas.discipline(c.discipline).name;
+      return {
+        follow,
+        name: side.name,
+        kind: `${c.kind === "team" ? "Team" : "Player"} · ${game}`,
+        game: atlas.discipline(c.discipline).short,
+        disc: <Disc side={side} size={26} />,
+        side,
+      };
+    }
+    case "organization": {
+      const o = atlas.world.organizations.find((x) => x.id === follow.id);
+      if (!o) return undefined;
+      const games = atlas.world.competitors
+        .filter((c) => c.kind === "team" && c.orgId === o.id)
+        .map((c) => atlas.discipline(c.discipline).short);
+      const side: SideView = {
+        id: null,
+        name: o.name,
+        label: o.name,
+        short: "",
+        color: o.colors.primary,
+        ink: inkOn(o.colors.primary),
+        plural: true,
+      };
+      return {
+        follow,
+        name: o.name,
+        kind: `Organisation · ${games.join(", ")}`,
+        disc: <Disc side={side} size={26} />,
+      };
+    }
+    case "tournament": {
+      const t = atlas.tournament(follow.id);
+      if (!t) return undefined;
+      return {
+        follow,
+        name: t.name,
+        kind: `Event · ${atlas.discipline(t.discipline).name}`,
+        disc: plain(<Trophy size={13} />),
+      };
+    }
+    case "discipline": {
+      const d = atlas.world.disciplines.find((x) => x.id === follow.id);
+      if (!d) return undefined;
+      return { follow, name: d.name, kind: "Game", disc: plain(<Gamepad2 size={14} />) };
+    }
+  }
+}
+
+function when(times: Times, at: string, now: number): string {
+  const day = times.day(at, now);
+  return `${/^(Today|Tomorrow)/.test(day) ? day.toLowerCase() : day} at ${times.clock(at)}`;
+}
+
+/** One plain sentence on what is next for a followed thing, or that nothing is. */
+function standing(board: Board, follow: Follow): string {
+  const { atlas, now, times } = board;
+  const relevant = atlas.world.matches.filter((m) => atlas.touches(m, follow));
+  const live = relevant.filter((m) => m.status === "live");
+  const next = relevant
+    .filter((m) => m.status === "scheduled")
+    .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))[0];
+  const single = follow.kind === "team" || follow.kind === "player";
+  // What a match is called depends on what is being followed: the opponent for a team, the
+  // round for an event, the game and the opponent for an organisation.
+  const against = (m: Match) => {
+    const t = atlas.tournamentOf(m);
+    const names = m.sides.flatMap((s) => (s.competitorId ? [s.competitorId] : []));
+    if (follow.kind === "tournament") return heat(atlas, m).toLowerCase();
+    if (m.sides.length !== 2) return `${t.short}, ${heat(atlas, m).toLowerCase()}`;
+    if (follow.kind === "discipline")
+      return names.map((id) => plainName(atlas, id)).join(" v ") || t.short;
+    const own = (id: string) =>
+      id === follow.id ||
+      (follow.kind === "organization" && atlas.team(id)?.orgId === follow.id) ||
+      atlas.roster(id).some((r) => r.player.id === follow.id);
+    const other = names.filter((id) => !own(id));
+    const versus = other.length === 1 ? `v ${plainName(atlas, other[0])}` : t.short;
+    return follow.kind === "organization"
+      ? `${atlas.discipline(t.discipline).short} ${versus}`
+      : versus;
+  };
+  if (live.length) {
+    return single || live.length === 1
+      ? `Live now: ${against(live[0]!)}`
+      : `${live.length} matches live now`;
+  }
+  if (next) return `Next: ${against(next)}, ${when(times, next.scheduledAt, now)}`;
+  if (follow.kind === "tournament") {
+    const t = atlas.tournament(follow.id);
+    if (t && relevant.length && relevant.every((m) => m.status === "finished")) return "Finished.";
+    return t ? `Starts ${times.date(`${t.start}T12:00:00Z`)}. No matches are scheduled yet.` : "";
+  }
+  const last = relevant
+    .filter((m) => m.status === "finished")
+    .sort((a, b) => b.scheduledAt.localeCompare(a.scheduledAt))[0];
+  if (single && last) {
+    const stage = atlas.stageOf(last);
+    const w = winnerOf(last);
+    const lost = typeof w === "number" && last.sides[w]?.competitorId !== follow.id;
+    if (lost && (stage.format === "single-elim" || stage.format === "cup")) {
+      const team = atlas.competitor(follow.id)?.kind === "team";
+      return `${plainName(atlas, follow.id)} ${team ? "are" : "is"} out of the ${atlas.tournamentOf(last).short}. Nothing else is scheduled.`;
+    }
+  }
+  return "Nothing is scheduled.";
+}
+
+/** Last five, newest first: a filled dot is a win, an open one a loss, a shared one a draw. */
+function LastFive({ atlas, side }: { atlas: Atlas; side: SideView & { id: string } }) {
+  const dots: Dot[] = form(atlas, side.id).map((r) =>
+    r === "W"
+      ? { k: "won", side: 0, label: "Won" }
+      : r === "D"
+        ? { k: "shared", label: "Draw" }
+        : { k: "open" },
+  );
+  return <Dots dots={dots} sides={[side, { ...side, color: "var(--surface)" }]} size={9} fix />;
+}
+
+function TargetRow({ item, board, line }: { item: Target; board: Board; line?: boolean }) {
+  const side = item.side;
   return (
     <div className="bx-result">
-      <span className="bx-row" style={{ gap: 10, minWidth: 0 }}>
-        <Disc side={side} size={26} />
+      <Go to={item.follow} className="bx-row bx-press" style={{ gap: 10, minWidth: 0 }}>
+        {item.disc}
         <span style={{ minWidth: 0 }}>
-          <b>{name}</b>
-          <span className="bx-sub">{atlas.discipline(competitor.discipline).name}</span>
+          <b>{item.name}</b>
+          <span className="bx-sub">
+            {line
+              ? `${item.game ? `${item.game} · ` : ""}${standing(board, item.follow)}`
+              : item.kind}
+          </span>
         </span>
-      </span>
+      </Go>
       <span className="bx-row" style={{ gap: 8 }}>
-        <Dots rows={[last]} sides={[side, { ...side, color: "var(--surface)" }]} size={9} />
-        <FollowStar follow={{ kind: competitor.kind, id: competitor.id }} name={name} />
+        {side?.id ? <LastFive atlas={board.atlas} side={{ ...side, id: side.id }} /> : null}
+        <FollowStar follow={item.follow} name={item.name} />
       </span>
     </div>
   );
 }
 
+function defined<T>(value: T | undefined): value is T {
+  return value !== undefined;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Following
+
 export function Following() {
-  const atlas = useAtlas();
-  const followed = atlas.world.competitors.filter((c) => atlas.followsCompetitor(c.id));
+  const board = useBoard();
+  const { atlas } = board;
+  const follows = atlas.world.follows;
+  // Teams reached through an organisation count as followed, and are listed as such.
+  const competitors = atlas.world.competitors
+    .filter((c) => atlas.followsCompetitor(c.id))
+    .map((c) => target(atlas, { kind: c.kind, id: c.id }))
+    .filter(defined);
+  const of = (kind: Follow["kind"]) =>
+    follows
+      .filter((f) => f.kind === kind)
+      .map((f) => target(atlas, f))
+      .filter(defined);
+  const events = of("tournament");
+  const wider = [...of("organization"), ...of("discipline")];
+  const nothing = !competitors.length && !events.length && !wider.length;
+
   return (
     <>
       <header className="bx-head">
         <h1 className="bx-title">Following</h1>
-        <span className="bx-mono bx-sub">LAST FIVE</span>
+        <span className="bx-date">Last five</span>
       </header>
-      <Section label={`${followed.length} teams and players`}>
-        <div className="bx-list">
-          {followed.map((c) => (
-            <CompetitorRow key={c.id} competitor={c} />
-          ))}
-        </div>
-        {followed.length ? null : (
+      {nothing ? (
+        <div className="bx-list" style={{ marginTop: 16 }}>
           <p className="bx-empty">
-            You are not following anyone yet. Use search to find a team or player.
+            You are not following anything yet. <Link to="/search">Search</Link> for a team, a
+            player or an event, and tap its star.
           </p>
-        )}
-      </Section>
+        </div>
+      ) : null}
+      <div className="bx-cols">
+        {competitors.length ? (
+          <Section label="Teams and players">
+            <div className="bx-list">
+              {competitors.map((item) => (
+                <TargetRow key={item.follow.id} item={item} board={board} line />
+              ))}
+            </div>
+            <p className="bx-note">
+              A filled dot is a win, an open one a loss, newest first. Tap a star to stop following.
+            </p>
+          </Section>
+        ) : null}
+        <div>
+          {events.length ? (
+            <Section label="Events">
+              <div className="bx-list">
+                {events.map((item) => (
+                  <TargetRow key={item.follow.id} item={item} board={board} line />
+                ))}
+              </div>
+            </Section>
+          ) : null}
+          {wider.length ? (
+            <Section label="Organisations and games">
+              <div className="bx-list">
+                {wider.map((item) => (
+                  <TargetRow key={item.follow.id} item={item} board={board} line />
+                ))}
+              </div>
+              <p className="bx-note">Following an organisation follows its teams in every game.</p>
+            </Section>
+          ) : null}
+        </div>
+      </div>
     </>
   );
 }
 
+// ---------------------------------------------------------------------------------------------
+// Search
+
+/** Everything that can be found, with the words it answers to. */
+function everything(atlas: Atlas): { follow: Follow; words: string; group: string }[] {
+  const { world } = atlas;
+  return [
+    ...world.competitors.map((c) => ({
+      follow: { kind: c.kind, id: c.id } satisfies Follow,
+      words:
+        c.kind === "team"
+          ? `${c.name} ${c.short} ${atlas.discipline(c.discipline).name}`
+          : `${c.handle} ${c.name ?? ""}`,
+      group: c.kind === "team" ? "Teams" : "Players",
+    })),
+    ...world.tournaments.map((t) => ({
+      follow: { kind: "tournament", id: t.id } satisfies Follow,
+      words: `${t.name} ${t.short} ${t.series ?? ""} ${atlas.discipline(t.discipline).name}`,
+      group: "Events",
+    })),
+    ...world.organizations.map((o) => ({
+      follow: { kind: "organization", id: o.id } satisfies Follow,
+      words: o.name,
+      group: "Organisations and games",
+    })),
+    ...world.disciplines.map((d) => ({
+      follow: { kind: "discipline", id: d.id } satisfies Follow,
+      words: `${d.name} ${d.short}`,
+      group: "Organisations and games",
+    })),
+  ];
+}
+
+const GROUPS = ["Teams", "Players", "Events", "Organisations and games"];
+
 export function Search() {
-  const atlas = useAtlas();
+  const board = useBoard();
+  const { atlas } = board;
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
-  const hits = atlas.world.competitors
-    .filter((c) => {
-      if (!q) return atlas.followsCompetitor(c.id);
-      const text = `${atlas.name(c.id)} ${atlas.discipline(c.discipline).name}`.toLowerCase();
-      return text.includes(q);
-    })
-    .slice(0, 8);
+  // A name that starts with what was typed comes before one that only contains it.
+  const hits = q
+    ? everything(atlas)
+        .map((x) => {
+          const words = x.words.toLowerCase();
+          const rank = words.startsWith(q)
+            ? 0
+            : words.includes(` ${q}`)
+              ? 1
+              : words.includes(q)
+                ? 2
+                : 3;
+          return { ...x, rank };
+        })
+        .filter((x) => x.rank < 3)
+        .sort((a, b) => a.rank - b.rank)
+    : [];
+  const groups = GROUPS.map((group) => ({
+    group,
+    items: hits
+      .filter((h) => h.group === group)
+      .slice(0, 6)
+      .map((h) => target(atlas, h.follow))
+      .filter(defined),
+  })).filter((g) => g.items.length);
+  const followed = atlas.world.follows.map((f) => target(atlas, f)).filter(defined);
+  const recent = useRecents()
+    .map((f) => target(atlas, f))
+    .filter(defined);
+
   return (
     <>
       <header className="bx-head">
         <h1 className="bx-title">Search</h1>
       </header>
-      <label className="bx-field">
-        <SearchIcon size={16} />
-        <input
-          type="text"
-          placeholder="Team or player"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-      </label>
-      <Section
-        label={q ? `${hits.length} ${hits.length === 1 ? "result" : "results"}` : "Following"}
-      >
-        <div className="bx-list">
-          {hits.map((c) => (
-            <CompetitorRow key={c.id} competitor={c} />
+      <div className="bx-page-narrow" style={{ margin: 0 }}>
+        <label className="bx-field">
+          <SearchIcon size={16} aria-hidden />
+          <span className="bx-only">Search for a team, player or event</span>
+          <input
+            type="search"
+            placeholder="Team, player or event"
+            value={query}
+            autoComplete="off"
+            spellCheck={false}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
+      </div>
+      <div aria-live="polite">
+        {q && !groups.length ? (
+          <div className="bx-list" style={{ marginTop: 20 }}>
+            <p className="bx-empty">
+              Nothing found for "{query.trim()}". Try a team's short name, such as "VIT", or a
+              player's handle.
+            </p>
+          </div>
+        ) : null}
+        <div className="bx-cols">
+          {groups.map(({ group, items }) => (
+            <Section key={group} label={`${group} · ${items.length}`}>
+              <div className="bx-list">
+                {items.map((item) => (
+                  <TargetRow
+                    key={`${item.follow.kind}${item.follow.id}`}
+                    item={item}
+                    board={board}
+                  />
+                ))}
+              </div>
+            </Section>
           ))}
+          {q || !recent.length ? null : (
+            <Section label="Recently looked at">
+              <div className="bx-list">
+                {recent.map((item) => (
+                  <TargetRow
+                    key={`${item.follow.kind}${item.follow.id}`}
+                    item={item}
+                    board={board}
+                  />
+                ))}
+              </div>
+            </Section>
+          )}
+          {q ? null : (
+            <Section label="Following">
+              <div className="bx-list">
+                {followed.map((item) => (
+                  <TargetRow
+                    key={`${item.follow.kind}${item.follow.id}`}
+                    item={item}
+                    board={board}
+                  />
+                ))}
+                {followed.length ? null : (
+                  <p className="bx-empty">
+                    Nothing yet. Type a name above and tap the star next to it.
+                  </p>
+                )}
+              </div>
+            </Section>
+          )}
         </div>
-        {hits.length ? null : <p className="bx-empty">Nothing found for "{query}".</p>}
-      </Section>
+      </div>
     </>
   );
 }

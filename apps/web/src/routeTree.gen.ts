@@ -9,63 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as DirRouteRouteImport } from './routes/$dir/route'
 import { Route as AppRouteImport } from './routes/_app'
-import { Route as BrandRouteImport } from './routes/brand'
-import { Route as OldRouteImport } from './routes/old'
-import { Route as DirIndexRouteImport } from './routes/$dir/index'
-import { Route as DirEventsRouteImport } from './routes/$dir/events'
-import { Route as DirFollowingRouteImport } from './routes/$dir/following'
-import { Route as DirScheduleRouteImport } from './routes/$dir/schedule'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppFollowingRouteImport } from './routes/_app.following'
 import { Route as AppScheduleRouteImport } from './routes/_app.schedule'
 import { Route as AppSearchRouteImport } from './routes/_app.search'
-import { Route as DirEventEventIdRouteImport } from './routes/$dir/event.$eventId'
-import { Route as DirGameGameIdRouteImport } from './routes/$dir/game.$gameId'
-import { Route as DirMatchMatchIdRouteImport } from './routes/$dir/match.$matchId'
-import { Route as DirPlayerPlayerIdRouteImport } from './routes/$dir/player.$playerId'
-import { Route as DirTeamTeamIdRouteImport } from './routes/$dir/team.$teamId'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as AppMatchMatchIdRouteImport } from './routes/_app.match.$matchId'
+import { Route as AppPlayerPlayerIdRouteImport } from './routes/_app.player.$playerId'
+import { Route as AppTeamTeamIdRouteImport } from './routes/_app.team.$teamId'
+import { Route as AppTournamentTournamentIdRouteImport } from './routes/_app.tournament.$tournamentId'
 
-const DirRouteRoute = DirRouteRouteImport.update({
-  id: '/$dir',
-  path: '/$dir',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
-} as any)
-const BrandRoute = BrandRouteImport.update({
-  id: '/brand',
-  path: '/brand',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OldRoute = OldRouteImport.update({
-  id: '/old',
-  path: '/old',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DirIndexRoute = DirIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => DirRouteRoute,
-} as any)
-const DirEventsRoute = DirEventsRouteImport.update({
-  id: '/events',
-  path: '/events',
-  getParentRoute: () => DirRouteRoute,
-} as any)
-const DirFollowingRoute = DirFollowingRouteImport.update({
-  id: '/following',
-  path: '/following',
-  getParentRoute: () => DirRouteRoute,
-} as any)
-const DirScheduleRoute = DirScheduleRouteImport.update({
-  id: '/schedule',
-  path: '/schedule',
-  getParentRoute: () => DirRouteRoute,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
@@ -87,219 +44,117 @@ const AppSearchRoute = AppSearchRouteImport.update({
   path: '/search',
   getParentRoute: () => AppRoute,
 } as any)
-const DirEventEventIdRoute = DirEventEventIdRouteImport.update({
-  id: '/event/$eventId',
-  path: '/event/$eventId',
-  getParentRoute: () => DirRouteRoute,
-} as any)
-const DirGameGameIdRoute = DirGameGameIdRouteImport.update({
-  id: '/game/$gameId',
-  path: '/game/$gameId',
-  getParentRoute: () => DirRouteRoute,
-} as any)
-const DirMatchMatchIdRoute = DirMatchMatchIdRouteImport.update({
-  id: '/match/$matchId',
-  path: '/match/$matchId',
-  getParentRoute: () => DirRouteRoute,
-} as any)
-const DirPlayerPlayerIdRoute = DirPlayerPlayerIdRouteImport.update({
-  id: '/player/$playerId',
-  path: '/player/$playerId',
-  getParentRoute: () => DirRouteRoute,
-} as any)
-const DirTeamTeamIdRoute = DirTeamTeamIdRouteImport.update({
-  id: '/team/$teamId',
-  path: '/team/$teamId',
-  getParentRoute: () => DirRouteRoute,
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppMatchMatchIdRoute = AppMatchMatchIdRouteImport.update({
   id: '/match/$matchId',
   path: '/match/$matchId',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPlayerPlayerIdRoute = AppPlayerPlayerIdRouteImport.update({
+  id: '/player/$playerId',
+  path: '/player/$playerId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTeamTeamIdRoute = AppTeamTeamIdRouteImport.update({
+  id: '/team/$teamId',
+  path: '/team/$teamId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTournamentTournamentIdRoute =
+  AppTournamentTournamentIdRouteImport.update({
+    id: '/tournament/$tournamentId',
+    path: '/tournament/$tournamentId',
+    getParentRoute: () => AppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/$dir': typeof DirRouteRouteWithChildren
   '/': typeof AppIndexRoute
-  '/brand': typeof BrandRoute
-  '/old': typeof OldRoute
-  '/$dir/events': typeof DirEventsRoute
-  '/$dir/following': typeof DirFollowingRoute
-  '/$dir/schedule': typeof DirScheduleRoute
   '/following': typeof AppFollowingRoute
   '/schedule': typeof AppScheduleRoute
   '/search': typeof AppSearchRoute
-  '/$dir/': typeof DirIndexRoute
-  '/$dir/event/$eventId': typeof DirEventEventIdRoute
-  '/$dir/game/$gameId': typeof DirGameGameIdRoute
-  '/$dir/match/$matchId': typeof DirMatchMatchIdRoute
-  '/$dir/player/$playerId': typeof DirPlayerPlayerIdRoute
-  '/$dir/team/$teamId': typeof DirTeamTeamIdRoute
+  '/settings': typeof AppSettingsRoute
   '/match/$matchId': typeof AppMatchMatchIdRoute
+  '/player/$playerId': typeof AppPlayerPlayerIdRoute
+  '/team/$teamId': typeof AppTeamTeamIdRoute
+  '/tournament/$tournamentId': typeof AppTournamentTournamentIdRoute
 }
 export interface FileRoutesByTo {
-  '/brand': typeof BrandRoute
-  '/old': typeof OldRoute
-  '/$dir/events': typeof DirEventsRoute
-  '/$dir/following': typeof DirFollowingRoute
-  '/$dir/schedule': typeof DirScheduleRoute
   '/following': typeof AppFollowingRoute
   '/schedule': typeof AppScheduleRoute
   '/search': typeof AppSearchRoute
-  '/$dir': typeof DirIndexRoute
+  '/settings': typeof AppSettingsRoute
   '/': typeof AppIndexRoute
-  '/$dir/event/$eventId': typeof DirEventEventIdRoute
-  '/$dir/game/$gameId': typeof DirGameGameIdRoute
-  '/$dir/match/$matchId': typeof DirMatchMatchIdRoute
-  '/$dir/player/$playerId': typeof DirPlayerPlayerIdRoute
-  '/$dir/team/$teamId': typeof DirTeamTeamIdRoute
   '/match/$matchId': typeof AppMatchMatchIdRoute
+  '/player/$playerId': typeof AppPlayerPlayerIdRoute
+  '/team/$teamId': typeof AppTeamTeamIdRoute
+  '/tournament/$tournamentId': typeof AppTournamentTournamentIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/$dir': typeof DirRouteRouteWithChildren
   '/_app': typeof AppRouteWithChildren
-  '/brand': typeof BrandRoute
-  '/old': typeof OldRoute
-  '/$dir/events': typeof DirEventsRoute
-  '/$dir/following': typeof DirFollowingRoute
-  '/$dir/schedule': typeof DirScheduleRoute
   '/_app/following': typeof AppFollowingRoute
   '/_app/schedule': typeof AppScheduleRoute
   '/_app/search': typeof AppSearchRoute
-  '/$dir/': typeof DirIndexRoute
+  '/_app/settings': typeof AppSettingsRoute
   '/_app/': typeof AppIndexRoute
-  '/$dir/event/$eventId': typeof DirEventEventIdRoute
-  '/$dir/game/$gameId': typeof DirGameGameIdRoute
-  '/$dir/match/$matchId': typeof DirMatchMatchIdRoute
-  '/$dir/player/$playerId': typeof DirPlayerPlayerIdRoute
-  '/$dir/team/$teamId': typeof DirTeamTeamIdRoute
   '/_app/match/$matchId': typeof AppMatchMatchIdRoute
+  '/_app/player/$playerId': typeof AppPlayerPlayerIdRoute
+  '/_app/team/$teamId': typeof AppTeamTeamIdRoute
+  '/_app/tournament/$tournamentId': typeof AppTournamentTournamentIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/$dir'
     | '/'
-    | '/brand'
-    | '/old'
-    | '/$dir/events'
-    | '/$dir/following'
-    | '/$dir/schedule'
     | '/following'
     | '/schedule'
     | '/search'
-    | '/$dir/'
-    | '/$dir/event/$eventId'
-    | '/$dir/game/$gameId'
-    | '/$dir/match/$matchId'
-    | '/$dir/player/$playerId'
-    | '/$dir/team/$teamId'
+    | '/settings'
     | '/match/$matchId'
+    | '/player/$playerId'
+    | '/team/$teamId'
+    | '/tournament/$tournamentId'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/brand'
-    | '/old'
-    | '/$dir/events'
-    | '/$dir/following'
-    | '/$dir/schedule'
     | '/following'
     | '/schedule'
     | '/search'
-    | '/$dir'
+    | '/settings'
     | '/'
-    | '/$dir/event/$eventId'
-    | '/$dir/game/$gameId'
-    | '/$dir/match/$matchId'
-    | '/$dir/player/$playerId'
-    | '/$dir/team/$teamId'
     | '/match/$matchId'
+    | '/player/$playerId'
+    | '/team/$teamId'
+    | '/tournament/$tournamentId'
   id:
     | '__root__'
-    | '/$dir'
     | '/_app'
-    | '/brand'
-    | '/old'
-    | '/$dir/events'
-    | '/$dir/following'
-    | '/$dir/schedule'
     | '/_app/following'
     | '/_app/schedule'
     | '/_app/search'
-    | '/$dir/'
+    | '/_app/settings'
     | '/_app/'
-    | '/$dir/event/$eventId'
-    | '/$dir/game/$gameId'
-    | '/$dir/match/$matchId'
-    | '/$dir/player/$playerId'
-    | '/$dir/team/$teamId'
     | '/_app/match/$matchId'
+    | '/_app/player/$playerId'
+    | '/_app/team/$teamId'
+    | '/_app/tournament/$tournamentId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  DirRouteRoute: typeof DirRouteRouteWithChildren
   AppRoute: typeof AppRouteWithChildren
-  BrandRoute: typeof BrandRoute
-  OldRoute: typeof OldRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/$dir': {
-      id: '/$dir'
-      path: '/$dir'
-      fullPath: '/$dir'
-      preLoaderRoute: typeof DirRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_app': {
       id: '/_app'
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/brand': {
-      id: '/brand'
-      path: '/brand'
-      fullPath: '/brand'
-      preLoaderRoute: typeof BrandRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/old': {
-      id: '/old'
-      path: '/old'
-      fullPath: '/old'
-      preLoaderRoute: typeof OldRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/$dir/': {
-      id: '/$dir/'
-      path: '/'
-      fullPath: '/$dir/'
-      preLoaderRoute: typeof DirIndexRouteImport
-      parentRoute: typeof DirRouteRoute
-    }
-    '/$dir/events': {
-      id: '/$dir/events'
-      path: '/events'
-      fullPath: '/$dir/events'
-      preLoaderRoute: typeof DirEventsRouteImport
-      parentRoute: typeof DirRouteRoute
-    }
-    '/$dir/following': {
-      id: '/$dir/following'
-      path: '/following'
-      fullPath: '/$dir/following'
-      preLoaderRoute: typeof DirFollowingRouteImport
-      parentRoute: typeof DirRouteRoute
-    }
-    '/$dir/schedule': {
-      id: '/$dir/schedule'
-      path: '/schedule'
-      fullPath: '/$dir/schedule'
-      preLoaderRoute: typeof DirScheduleRouteImport
-      parentRoute: typeof DirRouteRoute
     }
     '/_app/': {
       id: '/_app/'
@@ -329,40 +184,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSearchRouteImport
       parentRoute: typeof AppRoute
     }
-    '/$dir/event/$eventId': {
-      id: '/$dir/event/$eventId'
-      path: '/event/$eventId'
-      fullPath: '/$dir/event/$eventId'
-      preLoaderRoute: typeof DirEventEventIdRouteImport
-      parentRoute: typeof DirRouteRoute
-    }
-    '/$dir/game/$gameId': {
-      id: '/$dir/game/$gameId'
-      path: '/game/$gameId'
-      fullPath: '/$dir/game/$gameId'
-      preLoaderRoute: typeof DirGameGameIdRouteImport
-      parentRoute: typeof DirRouteRoute
-    }
-    '/$dir/match/$matchId': {
-      id: '/$dir/match/$matchId'
-      path: '/match/$matchId'
-      fullPath: '/$dir/match/$matchId'
-      preLoaderRoute: typeof DirMatchMatchIdRouteImport
-      parentRoute: typeof DirRouteRoute
-    }
-    '/$dir/player/$playerId': {
-      id: '/$dir/player/$playerId'
-      path: '/player/$playerId'
-      fullPath: '/$dir/player/$playerId'
-      preLoaderRoute: typeof DirPlayerPlayerIdRouteImport
-      parentRoute: typeof DirRouteRoute
-    }
-    '/$dir/team/$teamId': {
-      id: '/$dir/team/$teamId'
-      path: '/team/$teamId'
-      fullPath: '/$dir/team/$teamId'
-      preLoaderRoute: typeof DirTeamTeamIdRouteImport
-      parentRoute: typeof DirRouteRoute
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/match/$matchId': {
       id: '/_app/match/$matchId'
@@ -371,60 +198,58 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMatchMatchIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/player/$playerId': {
+      id: '/_app/player/$playerId'
+      path: '/player/$playerId'
+      fullPath: '/player/$playerId'
+      preLoaderRoute: typeof AppPlayerPlayerIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/team/$teamId': {
+      id: '/_app/team/$teamId'
+      path: '/team/$teamId'
+      fullPath: '/team/$teamId'
+      preLoaderRoute: typeof AppTeamTeamIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/tournament/$tournamentId': {
+      id: '/_app/tournament/$tournamentId'
+      path: '/tournament/$tournamentId'
+      fullPath: '/tournament/$tournamentId'
+      preLoaderRoute: typeof AppTournamentTournamentIdRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
-
-interface DirRouteRouteChildren {
-  DirEventsRoute: typeof DirEventsRoute
-  DirFollowingRoute: typeof DirFollowingRoute
-  DirScheduleRoute: typeof DirScheduleRoute
-  DirIndexRoute: typeof DirIndexRoute
-  DirEventEventIdRoute: typeof DirEventEventIdRoute
-  DirGameGameIdRoute: typeof DirGameGameIdRoute
-  DirMatchMatchIdRoute: typeof DirMatchMatchIdRoute
-  DirPlayerPlayerIdRoute: typeof DirPlayerPlayerIdRoute
-  DirTeamTeamIdRoute: typeof DirTeamTeamIdRoute
-}
-
-const DirRouteRouteChildren: DirRouteRouteChildren = {
-  DirEventsRoute: DirEventsRoute,
-  DirFollowingRoute: DirFollowingRoute,
-  DirScheduleRoute: DirScheduleRoute,
-  DirIndexRoute: DirIndexRoute,
-  DirEventEventIdRoute: DirEventEventIdRoute,
-  DirGameGameIdRoute: DirGameGameIdRoute,
-  DirMatchMatchIdRoute: DirMatchMatchIdRoute,
-  DirPlayerPlayerIdRoute: DirPlayerPlayerIdRoute,
-  DirTeamTeamIdRoute: DirTeamTeamIdRoute,
-}
-
-const DirRouteRouteWithChildren = DirRouteRoute._addFileChildren(
-  DirRouteRouteChildren,
-)
 
 interface AppRouteChildren {
   AppFollowingRoute: typeof AppFollowingRoute
   AppScheduleRoute: typeof AppScheduleRoute
   AppSearchRoute: typeof AppSearchRoute
+  AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
   AppMatchMatchIdRoute: typeof AppMatchMatchIdRoute
+  AppPlayerPlayerIdRoute: typeof AppPlayerPlayerIdRoute
+  AppTeamTeamIdRoute: typeof AppTeamTeamIdRoute
+  AppTournamentTournamentIdRoute: typeof AppTournamentTournamentIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppFollowingRoute: AppFollowingRoute,
   AppScheduleRoute: AppScheduleRoute,
   AppSearchRoute: AppSearchRoute,
+  AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
   AppMatchMatchIdRoute: AppMatchMatchIdRoute,
+  AppPlayerPlayerIdRoute: AppPlayerPlayerIdRoute,
+  AppTeamTeamIdRoute: AppTeamTeamIdRoute,
+  AppTournamentTournamentIdRoute: AppTournamentTournamentIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  DirRouteRoute: DirRouteRouteWithChildren,
   AppRoute: AppRouteWithChildren,
-  BrandRoute: BrandRoute,
-  OldRoute: OldRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

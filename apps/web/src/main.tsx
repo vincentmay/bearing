@@ -1,18 +1,29 @@
-import "@fontsource-variable/archivo/wdth.css";
-import "@fontsource-variable/fraunces/full.css";
-import "@fontsource-variable/fraunces/full-italic.css";
-import "@fontsource-variable/geist";
+import "@fontsource-variable/gabarito";
 import "@fontsource-variable/geist-mono";
-import "@fontsource-variable/inter-tight";
-import "./styles.css";
+import "./bearing/bearing.css";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { Backend } from "./lib/account";
+import { convexQueryClient } from "./lib/backend";
 import { routeTree } from "./routeTree.gen";
 
-const queryClient = new QueryClient();
+// With a backend, queries are subscriptions: Convex pushes every new result into the cache.
+const queryClient = new QueryClient(
+  convexQueryClient
+    ? {
+        defaultOptions: {
+          queries: {
+            queryKeyHashFn: convexQueryClient.hashFn(),
+            queryFn: convexQueryClient.queryFn(),
+          },
+        },
+      }
+    : undefined,
+);
+convexQueryClient?.connect(queryClient);
 
 const router = createRouter({
   routeTree,
@@ -29,8 +40,10 @@ declare module "@tanstack/react-router" {
 
 createRoot(document.getElementById("app")!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
+    <Backend>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </Backend>
   </StrictMode>,
 );

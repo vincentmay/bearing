@@ -2,8 +2,8 @@ import type { Follow } from "@bearing/domain";
 import { useSyncExternalStore } from "react";
 
 /**
- * What the viewer follows. Starts from the sample's follows and remembers changes in this
- * browser only (a per-viewer convenience until accounts exist).
+ * What the viewer follows on this device, for anyone who is not signed in. It starts from the
+ * defaults it is given and remembers changes in this browser only.
  */
 const KEY = "bearing.follows.v1";
 const listeners = new Set<() => void>();
@@ -27,6 +27,17 @@ function save(list: Follow[]) {
     localStorage.setItem(KEY, JSON.stringify(list));
   } catch {
     // Not remembered; still works for this session.
+  }
+}
+
+/** What this device has stored, or null when the viewer has never changed anything here. */
+export function storedFollows(): Follow[] | null {
+  try {
+    const raw = localStorage.getItem(KEY);
+    const parsed = raw ? (JSON.parse(raw) as unknown) : null;
+    return Array.isArray(parsed) ? (parsed as Follow[]) : null;
+  } catch {
+    return null;
   }
 }
 

@@ -1,7 +1,9 @@
 /*
  * Bearing identity, version 2. The rules are in docs/BRAND.md.
- * Black and white, one level of cards, flat discs and dots. Everything is scoped to .bx so the
- * six earlier directions, which still live in this app, are not affected.
+ * Black and white, one level of cards, flat discs and dots. Everything is scoped to .bx.
+ *
+ * Where a CSS gradient appears below it has hard stops only: it draws a flat split disc or a
+ * progress ring, never a fade.
  */
 .bx {
   --ground: #fff;
@@ -17,6 +19,8 @@
   --nav: rgb(255 255 255 / 0.8);
   --face: "Gabarito Variable", system-ui, sans-serif;
   --mono: "Geist Mono Variable", ui-monospace, monospace;
+  --out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --spring: cubic-bezier(0.2, 1.5, 0.4, 1);
   min-height: 100dvh;
   background: var(--ground);
   color: var(--ink);
@@ -24,9 +28,11 @@
   font-size: 13px;
   line-height: 1.35;
   color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
 }
 @media (prefers-color-scheme: dark) {
-  .bx {
+  .bx:not([data-theme="light"]) {
     --ground: #000;
     --surface: #111;
     --sunk: #1e1e1e;
@@ -41,10 +47,49 @@
     color-scheme: dark;
   }
 }
+.bx[data-theme="dark"] {
+  --ground: #000;
+  --surface: #111;
+  --sunk: #1e1e1e;
+  --ink: #fff;
+  --ink2: #a6a6a6;
+  --ink3: #6b6b6b;
+  --hair: rgb(255 255 255 / 0.13);
+  --edge: rgb(255 255 255 / 0.2);
+  --rest: rgb(255 255 255 / 0.3);
+  --sh: 0 12px 28px -14px #000;
+  --nav: rgb(30 30 30 / 0.8);
+  color-scheme: dark;
+}
+/* The page behind the app, for overscroll. */
+html:has(.bx) {
+  background: #fff;
+}
+html:has(.bx[data-theme="dark"]) {
+  background: #000;
+}
+@media (prefers-color-scheme: dark) {
+  html:has(.bx:not([data-theme="light"])) {
+    background: #000;
+  }
+}
+body {
+  margin: 0;
+}
 .bx *,
 .bx *::before,
 .bx *::after {
   box-sizing: border-box;
+}
+/* A plain starting point, without weight, so that any class below can set its own. */
+:where(.bx) :where(h1, h2, h3, p, dl, dd, dt) {
+  margin: 0;
+}
+:where(.bx) :where(svg) {
+  display: block;
+}
+:where(.bx) :where(i) {
+  font-style: normal;
 }
 .bx a {
   color: inherit;
@@ -57,11 +102,26 @@
   border: 0;
   padding: 0;
   cursor: pointer;
+  text-align: inherit;
+}
+.bx :focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: 8px;
 }
 .bx-page {
   max-width: 560px;
   margin: 0 auto;
   padding: 26px 20px 110px;
+}
+.bx-only {
+  position: absolute;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* Type */
@@ -92,7 +152,7 @@
   font: 500 9.5px var(--mono);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ink);
+  color: var(--ink2);
 }
 .bx-row {
   display: flex;
@@ -106,21 +166,55 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  min-height: 30px;
 }
 .bx-head > span:first-child {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+.bx-head > span:last-child {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bx-date {
+  font: 500 10.5px var(--mono);
+  color: var(--ink2);
+  text-transform: uppercase;
+}
+.bx-iconbtn {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--ink2);
+  transition: transform 0.15s;
+}
+.bx-iconbtn:active {
+  transform: scale(0.86);
+}
+.bx-note {
+  margin: 12px 8px 0;
+  color: var(--ink2);
+  font-size: 11px;
+  line-height: 1.45;
+}
+.bx-note a {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 
-/* A section starts with a black rule; rows are separated by hairlines. */
 /* A section is a small label on the page and, under it, one card. */
 .bx-section {
   margin-top: 20px;
+  min-width: 0;
 }
 .bx-section > .bx-label {
   margin: 0 8px 8px;
-  color: var(--ink2);
 }
 /* A list is one card; inside it, rows are separated by hairlines. Boxes never nest. */
 .bx-list {
@@ -140,8 +234,93 @@
   border-top: 0;
 }
 .bx-empty {
-  margin: 10px 0 0;
+  margin: 0;
+  padding: 12px 0;
   color: var(--ink2);
+}
+
+/* Motion. Timings are in docs/BRAND.md. */
+@keyframes bx-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+@keyframes bx-pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+@keyframes bx-land {
+  0% {
+    transform: scale(0);
+  }
+}
+@keyframes bx-tick {
+  0% {
+    transform: translateY(0.3em);
+    opacity: 0;
+  }
+}
+@keyframes bx-step {
+  0% {
+    transform: translateY(-22px) scale(0.94);
+    opacity: 0.3;
+  }
+}
+@keyframes bx-enter {
+  0% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+}
+@keyframes bx-slide {
+  0% {
+    transform: translateX(36px);
+    opacity: 0;
+  }
+}
+@keyframes bx-pop {
+  50% {
+    transform: scale(1.35);
+  }
+}
+@keyframes bx-wait {
+  50% {
+    opacity: 0.45;
+  }
+}
+.bx-land {
+  animation: bx-land 0.34s var(--spring) both;
+}
+.bx-tick {
+  display: inline-block;
+  animation: bx-tick 0.26s var(--out);
+}
+.bx-step {
+  animation: bx-step 0.5s var(--out);
+}
+.bx-view {
+  animation: bx-enter 0.3s var(--out);
+}
+.bx-view-in {
+  animation: bx-slide 0.4s var(--out);
+}
+.bx-press {
+  transition: transform 0.15s;
+}
+.bx-press:active {
+  transform: scale(0.975);
+}
+.bx-list > a {
+  transition: transform 0.15s;
+}
+.bx-list > a:active {
+  transform: scale(0.985);
 }
 
 /* Live: a dot that sends out a ring. */
@@ -162,24 +341,6 @@
   border: 1.5px solid currentColor;
   animation: bx-ping 1.8s ease-out infinite;
 }
-.bx-ping-off::after {
-  display: none;
-}
-@keyframes bx-ping {
-  0% {
-    transform: scale(1);
-    opacity: 0.9;
-  }
-  100% {
-    transform: scale(3);
-    opacity: 0;
-  }
-}
-@keyframes bx-pulse {
-  50% {
-    opacity: 0.25;
-  }
-}
 
 /* Discs */
 .bx-disc {
@@ -194,6 +355,16 @@
   letter-spacing: -0.02em;
   line-height: 1;
   box-shadow: inset 0 0 0 1px var(--edge);
+  overflow: hidden;
+  white-space: nowrap;
+}
+.bx-disc[data-long] {
+  font-size: calc(var(--s, 44px) * 0.22);
+}
+.bx-disc-plain {
+  background: var(--sunk);
+  color: var(--ink);
+  box-shadow: none;
 }
 .bx-duo {
   width: 34px;
@@ -210,17 +381,35 @@
   border-radius: 50%;
   border: 2px solid var(--surface);
 }
+.bx-duo-s {
+  width: 14px;
+  height: 14px;
+  background: none;
+}
+.bx-duo-s i {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
 
-/* Dots */
+/* Dots: flat, on a line. */
 .bx-dots {
   display: flex;
   align-items: center;
-  gap: calc(var(--ds, 13px) * 0.35);
-  margin-top: 5px;
+  gap: var(--dg, calc(var(--ds, 13px) * 0.35));
+  min-width: 0;
   min-height: var(--ds, 13px);
 }
 .bx-dots.bx-center {
   justify-content: center;
+}
+.bx-dots.bx-wrap {
+  flex-wrap: wrap;
+  row-gap: 5px;
+}
+.bx-dots + .bx-dots {
+  margin-top: 5px;
 }
 .bx-dots i {
   flex: 0 1 var(--ds, 13px);
@@ -228,6 +417,14 @@
   border-radius: 50%;
   min-width: 0;
   box-shadow: inset 0 0 0 1px var(--edge);
+  transition: scale 0.15s;
+}
+.bx-dots i:hover {
+  scale: 1.45;
+}
+.bx-dots.bx-fix i {
+  flex: none;
+  width: var(--ds, 13px);
 }
 .bx-dots .bx-dot-open {
   box-shadow: inset 0 0 0 1.5px var(--rest);
@@ -236,8 +433,29 @@
   box-shadow: inset 0 0 0 2px var(--ink);
   animation: bx-pulse 1.6s ease-in-out infinite;
 }
+.bx-dots .bx-dot-half {
+  scale: 0.55;
+}
+.bx-dots .bx-dot-none {
+  box-shadow: none;
+}
+.bx-dots .bx-dot-gap {
+  flex: 0 1 var(--dh, 8px);
+  aspect-ratio: auto;
+  box-shadow: none;
+}
+.bx-dots .bx-dot-num {
+  display: grid;
+  place-items: center;
+  font: 700 9px var(--face);
+  font-style: normal;
+  color: #000;
+}
+.bx-dots .bx-dot-num.bx-dot-open {
+  color: var(--ink);
+}
 
-/* The one box on a screen: whatever is live. */
+/* The larger card: the match to look at first. */
 .bx-card {
   display: block;
   margin-top: 16px;
@@ -246,10 +464,7 @@
   background: var(--surface);
   border: 1px solid var(--hair);
   box-shadow: var(--sh);
-  transition: transform 0.15s;
-}
-a.bx-card:active {
-  transform: scale(0.985);
+  container-type: inline-size;
 }
 .bx-meta {
   font-size: 11px;
@@ -260,6 +475,8 @@ a.bx-card:active {
   display: flex;
   align-items: center;
   gap: 7px;
+  min-width: 0;
+  white-space: nowrap;
 }
 .bx-meta > span:last-child {
   color: var(--ink2);
@@ -285,11 +502,13 @@ a.bx-card:active {
 }
 .bx-versus .bx-name {
   font-size: 18px;
-  text-wrap: balance;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 2px 0;
 }
-.bx-versus > span:last-child .bx-name {
-  text-align: right;
+.bx-versus .bx-name[data-long] {
+  font-size: 14px;
 }
 .bx-score {
   font-size: 22px;
@@ -297,7 +516,7 @@ a.bx-card:active {
   line-height: 1;
   white-space: nowrap;
 }
-.bx-score i {
+.bx-dash {
   display: inline-block;
   width: 0.5em;
   height: 0.075em;
@@ -307,22 +526,229 @@ a.bx-card:active {
   margin: 0 0.2em;
 }
 .bx-subs {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   gap: 8px;
   font-size: 11px;
   font-weight: 600;
   color: var(--ink2);
-  margin-bottom: 8px;
+  margin-bottom: 11px;
+  white-space: nowrap;
+}
+.bx-subs > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-subs > :last-child {
+  text-align: right;
+}
+
+/* The same card when there is room: names large, and the series as a line of stops. */
+.bx-card.bx-wide {
+  padding: 20px 24px 22px;
+}
+.bx-wide .bx-versus {
+  gap: 12px;
+  margin: 22px 0 28px;
+}
+.bx-wide .bx-versus > span,
+.bx-hero .bx-versus > span {
+  gap: clamp(8px, 2cqw, 14px);
+}
+.bx-wide .bx-versus .bx-name,
+.bx-hero .bx-versus .bx-name {
+  font-size: clamp(20px, 5.4cqw, 44px);
+}
+.bx-wide .bx-versus .bx-name[data-long],
+.bx-hero .bx-versus .bx-name[data-long] {
+  font-size: clamp(16px, 3.8cqw, 32px);
+}
+.bx-wide .bx-score,
+.bx-hero .bx-score {
+  font-size: clamp(22px, 6cqw, 50px);
+}
+.bx-wide .bx-disc,
+.bx-hero .bx-versus .bx-disc {
+  --s: clamp(30px, 6.4cqw, 52px) !important;
+}
+.bx-stops {
+  display: grid;
+  position: relative;
+}
+.bx-stop {
+  position: relative;
+  padding: 38px 8px 0 0;
+  font-size: clamp(10px, 1.5cqw, 13px);
+  line-height: 1.3;
+  min-width: 0;
+}
+.bx-stop::before {
+  content: "";
+  position: absolute;
+  top: 9px;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: var(--ink);
+}
+.bx-stop::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 6px solid var(--ink);
+}
+.bx-hero .bx-stop::after {
+  background: var(--ground);
+}
+.bx-stop-done::after,
+.bx-hero .bx-stop-done::after {
+  background: var(--sf, var(--ink));
+}
+.bx-stop-now::before {
+  display: none;
+}
+.bx-stop-now::after,
+.bx-hero .bx-stop-now::after {
+  width: 30px;
+  height: 30px;
+  top: -2px;
+  left: -3px;
+  border-width: 5px;
+  background: var(--sf, var(--surface));
+}
+.bx-stop-now .bx-dots {
+  position: absolute;
+  top: 1px;
+  left: 36px;
+  right: 10px;
+  height: 24px;
+  --ds: 13px;
+  --dg: clamp(1px, 0.4cqw, 4px);
+  --dh: clamp(4px, 1.2cqw, 12px);
+}
+.bx-stop-now .bx-tl {
+  position: absolute;
+  top: -10px;
+  left: 40px;
+  right: 16px;
+}
+.bx-stop-now.bx-stop-tight::before {
+  display: block;
+  background: var(--rest);
+}
+.bx-stop-next::before,
+.bx-stop-later::before {
+  background: var(--rest);
+}
+.bx-stop-next::after,
+.bx-stop-later::after,
+.bx-stop-end::after {
+  border-color: var(--rest);
+}
+.bx-stop-end::before {
+  background: repeating-linear-gradient(90deg, var(--rest) 0 8px, transparent 8px 14px);
+  right: 20px;
+}
+.bx-stop-last::before,
+.bx-stop-now.bx-stop-tight.bx-stop-last::before {
+  display: none;
+}
+.bx-stop b {
+  display: block;
+  font-weight: 800;
+  font-size: 1.12em;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-stop-sub {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink2);
+}
+.bx-stop-now .bx-stop-sub {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* Events on a clock */
+.bx-tl {
+  position: relative;
+  height: 46px;
+}
+.bx-tl::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 22px;
+  height: 2px;
+  background: var(--rest);
+}
+.bx-tl-el {
+  position: absolute;
+  left: 0;
+  top: 22px;
+  height: 2px;
+  background: var(--ink);
+  transition: width 0.6s linear;
+}
+.bx-tl-d {
+  position: absolute;
+  width: var(--z, 12px);
+  height: var(--z, 12px);
+  margin-left: calc(var(--z, 12px) / -2);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--edge);
+  top: calc(23px - var(--z, 12px) / 2);
+}
+.bx-tl-two .bx-tl-up {
+  top: calc(19px - var(--z, 12px));
+}
+.bx-tl-two .bx-tl-dn {
+  top: 27px;
+}
+.bx-tl-now {
+  background: var(--surface);
+  box-shadow: inset 0 0 0 2px var(--ink);
+  top: 18px;
+  --z: 10px;
+  transition: left 0.6s linear;
+  animation: bx-pulse 1.6s ease-in-out infinite;
+}
+.bx-tl span {
+  position: absolute;
+  top: 36px;
+  font: 500 8px var(--mono);
+  color: var(--ink2);
+  transform: translateX(-50%);
+}
+.bx-tl span:first-of-type {
+  transform: none;
+}
+.bx-tl span[data-end] {
+  transform: translateX(-100%);
+}
+.bx-tl-labelled {
+  margin-bottom: 4px;
 }
 
 /* Rows */
 .bx-next {
   display: grid;
-  grid-template-columns: 36px 42px minmax(0, 1fr) auto;
+  grid-template-columns: 36px minmax(42px, auto) minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
   padding: 9px 0;
+  position: relative;
 }
 .bx-next b,
 .bx-result b {
@@ -332,6 +758,42 @@ a.bx-card:active {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.bx-next .bx-sub,
+.bx-result .bx-sub {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-time {
+  font: 500 13px var(--mono);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.bx-right {
+  font: 400 11px var(--mono);
+  color: var(--ink2);
+  white-space: nowrap;
+  text-align: right;
+}
+.bx-right[data-live] {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+  font-weight: 500;
+}
+/* Two matches that may be on at the same time are joined by a line between their discs. */
+.bx-next[data-overlap]::before {
+  content: "";
+  position: absolute;
+  left: 17px;
+  top: -10px;
+  height: 20px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ink);
+}
 .bx-result {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -340,20 +802,42 @@ a.bx-card:active {
   padding: 9px 0;
   min-height: 40px;
 }
-.bx-result .bx-dots {
-  margin: 0;
-}
-.bx-result .bx-dots i {
-  flex: none;
-  width: var(--ds, 13px);
+.bx-result > span:first-child {
+  min-width: 0;
 }
 .bx-lane {
   display: grid;
-  grid-template-columns: minmax(70px, auto) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(70px, 30%) minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+.bx-lane > :first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-lane > :last-child {
+  font: 500 12px var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.bx-half {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
-  padding: 7px 0;
-  font-weight: 600;
+  margin-top: 7px;
+}
+.bx-half > span {
+  font: 500 10px var(--mono);
+  color: var(--ink2);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Match page */
@@ -365,20 +849,35 @@ a.bx-card:active {
   font-weight: 600;
   margin-left: -4px;
 }
+.bx-hero {
+  container-type: inline-size;
+}
 .bx-matchhead {
   display: flex;
   justify-content: space-between;
   gap: 10px;
   margin-top: 16px;
 }
+.bx-matchhead > a,
 .bx-matchhead > span {
   display: flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
 }
+.bx-matchhead > :last-child:not(:first-child) {
+  text-align: right;
+}
+.bx-matchhead .bx-sub {
+  display: block;
+}
 .bx-matchhead .bx-name {
   font-size: 22px;
+  display: block;
+  padding: 2px 0;
+}
+.bx-matchhead .bx-name[data-long] {
+  font-size: 16px;
 }
 .bx-big {
   text-align: center;
@@ -386,10 +885,13 @@ a.bx-card:active {
   letter-spacing: -0.04em;
   line-height: 1;
   margin: 10px 0 0;
+  white-space: nowrap;
 }
 .bx-big.bx-solo {
   font-size: 34px;
   font-weight: 800;
+  white-space: normal;
+  text-wrap: balance;
 }
 .bx-state {
   display: flex;
@@ -399,6 +901,10 @@ a.bx-card:active {
   font-size: 11px;
   font-weight: 600;
   margin-top: 8px;
+  text-align: center;
+}
+.bx-hero .bx-stops {
+  margin-top: 30px;
 }
 .bx-game {
   padding: 13px 0 12px;
@@ -412,6 +918,18 @@ a.bx-card:active {
 .bx-gamehead b {
   font-weight: 800;
   letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.bx-gamehead .bx-sub {
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.bx-game > .bx-sub {
+  display: block;
+  margin-top: 6px;
+}
+.bx-game > .bx-dots {
+  margin-top: 9px;
 }
 .bx-plot {
   display: grid;
@@ -438,6 +956,339 @@ a.bx-card:active {
   border-radius: 0;
   margin: 0;
 }
+.bx-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 14px;
+  align-items: center;
+  padding: 9px 0;
+}
+.bx-line b {
+  font-weight: 600;
+}
+.bx-line .bx-sub {
+  display: block;
+}
+.bx-line > :not(:first-child) {
+  font: 400 11px var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink2);
+  text-align: right;
+  min-width: 34px;
+}
+.bx-source {
+  margin: 22px 8px 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--ink2);
+}
+
+/* Team, player and event pages */
+.bx-entity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+}
+.bx-entity > div {
+  flex: 1;
+  min-width: 0;
+}
+.bx-display {
+  margin: 0;
+  font-size: clamp(30px, 8vw, 50px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.bx-entity .bx-label {
+  margin-bottom: 8px;
+}
+.bx-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 14px 20px;
+  margin: 22px 0 4px;
+}
+.bx-facts dd {
+  margin: 4px 0 0;
+  font-weight: 600;
+}
+.bx-figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 34px;
+  margin: 26px 0 0;
+}
+.bx-figures dd {
+  margin: 0 0 6px;
+  font-size: 40px;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.bx-explain {
+  margin: 0 8px 12px;
+  max-width: 68ch;
+  line-height: 1.5;
+  color: var(--ink2);
+}
+.bx-list.bx-pad {
+  padding: 14px 16px;
+}
+.bx-stops-wrap a:active b {
+  opacity: 0.6;
+}
+/* On a phone a long name takes a second line instead of being cut. */
+.bx-stops-wrap .bx-stop b {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.15;
+  margin-bottom: 2px;
+}
+/* After the dots of the stop in progress, the line runs on, pale, to whatever comes next. */
+.bx-stops-wrap .bx-stop-now .bx-dots {
+  right: 0;
+}
+.bx-stops-wrap .bx-stop-now:not(.bx-stop-last) .bx-dots::after {
+  content: "";
+  flex: 1;
+  height: 8px;
+  margin-left: 6px;
+  background: var(--rest);
+}
+.bx-bracket {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  row-gap: 10px;
+}
+.bx-bracket > .bx-label {
+  grid-row: 1;
+}
+.bx-round {
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 14px;
+  min-width: 0;
+}
+.bx-joins {
+  grid-row: 2;
+  width: 100%;
+  height: 100%;
+}
+.bx-joins path {
+  fill: none;
+  stroke: var(--rest);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+.bx-joins path[data-done] {
+  stroke: var(--ink);
+}
+/* The space above a match equals the line of dots below it, so the joining lines meet the
+   middle of its two rows. */
+.bx-tie {
+  display: block;
+  min-width: 0;
+  padding: 14px 10px 0 0;
+}
+.bx-tie-side {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  min-width: 0;
+}
+.bx-tie-side b {
+  flex: 1;
+  min-width: 0;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-tie-side[data-lost] b {
+  font-weight: 500;
+  color: var(--ink2);
+}
+.bx-tie-side[data-open] b {
+  font-weight: 500;
+  color: var(--ink3);
+}
+.bx-tie-foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 14px;
+  padding-left: 22px;
+  font: 400 10px var(--mono);
+  color: var(--ink2);
+  white-space: nowrap;
+}
+.bx-swiss {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 28px 56px;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+}
+.bx-swiss b,
+.bx-place b,
+.bx-cross-name b,
+.bx-stint b {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-dots .bx-dot-lost {
+  box-shadow: inset 0 0 0 1.5px var(--rest);
+}
+.bx-cross {
+  display: grid;
+  align-items: stretch;
+}
+.bx-cross > * {
+  border-top: 1px solid var(--hair);
+}
+.bx-cross > :nth-child(-n + 10),
+.bx-cross > .bx-cross-head {
+  border-top: 0;
+}
+.bx-cross-head {
+  font: 500 8px var(--mono);
+  color: var(--ink2);
+  text-align: center;
+  padding-bottom: 7px;
+  overflow: hidden;
+}
+.bx-cross-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 6px 8px 0;
+  min-width: 0;
+}
+.bx-cross-pts {
+  display: grid;
+  place-items: center end;
+  font-size: 12px;
+}
+.bx-cell {
+  display: grid;
+  place-items: center;
+}
+.bx-cell i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.bx-cell-win {
+  background: var(--ink);
+}
+.bx-cell-draw {
+  background: var(--ink);
+  scale: 0.5;
+}
+.bx-cell-loss {
+  box-shadow: inset 0 0 0 1.5px var(--rest);
+}
+.bx-cell-self {
+  width: 3px !important;
+  height: 3px !important;
+  background: var(--rest);
+}
+.bx-heat {
+  display: block;
+  padding: 12px 0;
+}
+.bx-heat .bx-gamehead {
+  display: flex;
+}
+.bx-heat .bx-lane {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 30px;
+}
+.bx-heat .bx-lane > :last-child {
+  text-align: right;
+}
+.bx-lane[data-open] {
+  color: var(--ink3);
+  font-weight: 500;
+}
+.bx-place {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+  padding: 10px 0;
+  font-size: 12px;
+}
+.bx-place > span:nth-child(2) {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.bx-place .bx-row {
+  gap: 7px;
+  min-width: 0;
+}
+.bx-place > .bx-mono {
+  color: var(--ink2);
+  font-size: 11px;
+  line-height: 16px;
+}
+.bx-stint {
+  display: grid;
+  grid-template-columns: minmax(64px, 26%) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  height: 26px;
+  font-size: 12px;
+}
+.bx-stint > span:first-child {
+  min-width: 0;
+  display: flex;
+}
+.bx-track {
+  position: relative;
+  height: 14px;
+  margin-right: 6px;
+}
+.bx-track i {
+  position: absolute;
+  font-style: normal;
+}
+.bx-track-line {
+  top: 6px;
+  height: 2px;
+  background: var(--ink);
+}
+.bx-track-dot {
+  top: 2px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
+.bx-track-end {
+  background: var(--surface);
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+.bx-stint-axis {
+  height: 18px;
+}
+.bx-stint-axis .bx-track i {
+  top: 0;
+  font: 500 8px var(--mono);
+  color: var(--ink2);
+}
 
 /* Controls keep their shape. */
 .bx-days {
@@ -451,6 +1302,7 @@ a.bx-card:active {
   font-size: 11px;
   font-weight: 600;
   color: var(--ink2);
+  min-width: 0;
 }
 .bx-days b {
   display: grid;
@@ -461,13 +1313,61 @@ a.bx-card:active {
   border-radius: 50%;
   font-size: 15px;
   font-weight: 800;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    transform 0.15s;
 }
-.bx-days .bx-on {
+.bx-days button:active b {
+  transform: scale(0.9);
+}
+.bx-days [aria-pressed="true"] {
   color: var(--ink);
 }
-.bx-days .bx-on b {
+.bx-days [aria-pressed="true"] b {
   background: var(--ink);
   color: var(--surface);
+}
+.bx-days [data-today] b {
+  box-shadow: inset 0 0 0 1.5px var(--rest);
+}
+.bx-days [aria-pressed="true"][data-today] b {
+  box-shadow: none;
+}
+.bx-seg {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  height: 36px;
+  padding: 4px;
+  margin-top: 14px;
+  border-radius: 999px;
+  background: var(--sunk);
+}
+.bx-seg i {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / var(--n, 2));
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--hair);
+  transition: transform 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.15);
+}
+.bx-seg button {
+  position: relative;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink2);
+  border-radius: 999px;
+  transition: color 0.2s;
+  white-space: nowrap;
+}
+.bx-seg [aria-pressed="true"] {
+  color: var(--ink);
 }
 .bx-field {
   display: flex;
@@ -480,12 +1380,23 @@ a.bx-card:active {
   background: var(--sunk);
   color: var(--ink2);
 }
+.bx-field:focus-within {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
 .bx-field input {
   all: unset;
   flex: 1;
   min-width: 0;
   font: 500 14px var(--face);
   color: var(--ink);
+}
+.bx-field input:focus-visible,
+.bx-field select:focus-visible {
+  outline: none;
+}
+.bx-field input::placeholder {
+  color: var(--ink3);
 }
 .bx-star {
   width: 32px;
@@ -494,6 +1405,7 @@ a.bx-card:active {
   place-items: center;
   border-radius: 50%;
   color: var(--ink3);
+  flex: none;
 }
 .bx-star[aria-pressed="true"] {
   color: var(--ink);
@@ -501,12 +1413,83 @@ a.bx-card:active {
 .bx-star[aria-pressed="true"] svg {
   fill: currentColor;
 }
+.bx-star[data-pop] svg {
+  animation: bx-pop 0.3s var(--spring);
+}
+.bx-star:disabled {
+  cursor: default;
+}
+.bx-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--surface) !important;
+  font-weight: 600;
+  transition: transform 0.15s;
+}
+.bx-button:active {
+  transform: scale(0.96);
+}
+.bx-button-quiet {
+  background: var(--sunk);
+  color: var(--ink) !important;
+}
+
+/* Waiting for data: the shape of the page, quietly. Could not load: said in words. */
+.bx-wait {
+  animation: bx-wait 1.6s ease-in-out infinite;
+}
+.bx-bone {
+  display: block;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--sunk);
+}
+.bx-bone-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px 0;
+}
+.bx-bone-row > i {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--sunk);
+}
+.bx-bone-row > span {
+  display: grid;
+  gap: 7px;
+}
+.bx-problem {
+  margin-top: 16px;
+  padding: 18px 16px;
+  border-radius: 24px;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  box-shadow: var(--sh);
+}
+.bx-problem b {
+  display: block;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.bx-problem p {
+  margin: 4px 0 14px;
+  color: var(--ink2);
+}
 
 /* Navigation: a small floating capsule, icons only. */
 .bx-nav {
   position: fixed;
   left: 50%;
-  bottom: 16px;
+  bottom: max(16px, env(safe-area-inset-bottom));
   transform: translateX(-50%);
   width: 208px;
   height: 52px;
@@ -536,6 +1519,7 @@ a.bx-card:active {
   display: grid;
   place-items: center;
   color: var(--ink3);
+  border-radius: 999px;
   transition: color 0.2s;
 }
 .bx-nav a[data-on] {
@@ -548,8 +1532,120 @@ a.bx-card:active {
   transition: transform 0.15s;
 }
 
+/* The top of the page when there is room: the mark and its name, and the way to settings. */
+.bx-top {
+  display: none;
+}
+.bx-nav a > span {
+  display: none;
+}
+
+/* Wide: the same content with more room, and lists side by side. */
+.bx-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 900px) {
+  .bx-page {
+    max-width: 1040px;
+    padding: 30px 32px 80px;
+  }
+  .bx-phone {
+    display: none !important;
+  }
+  .bx-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1040px;
+    height: 74px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+  .bx-brand {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .bx-brand span {
+    padding-bottom: 2px;
+  }
+  /* The same capsule, at the top, with its labels. */
+  .bx-nav {
+    top: 14px;
+    bottom: auto;
+    width: 468px;
+    height: 46px;
+    padding: 4px;
+  }
+  .bx-nav i {
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc((100% - 8px) / 4);
+  }
+  .bx-nav a {
+    grid-auto-flow: column;
+    justify-content: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .bx-nav a > span {
+    display: inline;
+  }
+  .bx-nav svg {
+    width: 16px;
+    height: 16px;
+  }
+  .bx-page-narrow {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .bx-cols {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 24px;
+    align-items: start;
+  }
+  .bx-cols-main {
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  }
+  .bx-title {
+    font-size: 32px;
+  }
+  .bx-big {
+    font-size: 72px;
+  }
+  .bx-days {
+    max-width: 640px;
+  }
+  .bx-stops-wrap .bx-stop b {
+    font-size: 1.2em;
+  }
+  .bx-entity {
+    gap: 22px;
+    margin-top: 26px;
+  }
+  .bx-entity > .bx-disc {
+    --s: 96px !important;
+  }
+  .bx-heats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 32px;
+  }
+  .bx-heats > :nth-child(2) {
+    border-top: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .bx *,
+  .bx *::before,
   .bx *::after {
     animation: none !important;
     transition: none !important;
