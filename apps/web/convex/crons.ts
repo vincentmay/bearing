@@ -22,6 +22,9 @@ crons.interval("live", { minutes: 1 }, internal.ingest.tick, {});
 // League events that are over get their final places and what each paid, once each.
 crons.interval("league places", { hours: 24 }, internal.leaguepedia.places, {});
 
+// How two teams about to meet have done against each other before.
+crons.interval("head to head", { hours: 3 }, internal.meetings.sync, {});
+
 // Counter-Strike's world ranking, which Valve publishes about once a month.
 crons.interval("valve ranking", { hours: 24 }, internal.valve.sync, {});
 

@@ -14,6 +14,7 @@ import type * as ingest from "../ingest.js";
 import type * as leaguepedia from "../leaguepedia.js";
 import type * as lichess from "../lichess.js";
 import type * as lolesports from "../lolesports.js";
+import type * as meetings from "../meetings.js";
 import type * as pandascore from "../pandascore.js";
 import type * as retention from "../retention.js";
 import type * as sample from "../sample.js";
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   leaguepedia: typeof leaguepedia;
   lichess: typeof lichess;
   lolesports: typeof lolesports;
+  meetings: typeof meetings;
   pandascore: typeof pandascore;
   retention: typeof retention;
   sample: typeof sample;

@@ -1,5 +1,7 @@
 import { type GameResult, type Provenance, form, playerTotals } from "@bearing/domain";
 import type { ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
+import { useMeetings } from "../lib/meetings";
 import { type Board, useBoard, useWide } from "./board";
 import { Back, Go } from "./links";
 import { ChessLanes, CupPlaces, CupStandings, GameRow, Stops } from "./forms";
@@ -277,6 +279,79 @@ function Lineups({ view, board }: { view: MatchView; board: Board }) {
   );
 }
 
+/**
+ * How the two sides have done against each other before: the count of who won, and their
+ * latest meetings. For teams it reaches back years; for players, as far as Bearing's own
+ * matches do.
+ */
+function Meetings({ view, board }: { view: MatchView; board: Board }) {
+  const [a, b] = view.sides;
+  const list = useMeetings(board.atlas, a?.id ?? null, b?.id ?? null, view.match.id);
+  if (view.sides.length !== 2 || !a || !b || !list.length) return null;
+  const wins = [0, 1].map((i) => list.filter((m) => m.winner === i).length) as [number, number];
+  const draws = list.length - wins[0] - wins[1];
+  const year = String(new Date(board.now).getFullYear());
+  const when = (at: string) =>
+    at.startsWith(year) ? board.times.date(at) : `${board.times.date(at)} ${at.slice(0, 4)}`;
+  const since = list.at(-1)!.at.slice(0, 4);
+  return (
+    <Section
+      label={`Head to head · ${list.length} ${list.length === 1 ? "meeting" : "meetings"}${
+        since === year ? "" : ` since ${since}`
+      }`}
+    >
+      <div className="bx-list">
+        <div className="bx-h2h">
+          <Disc side={a} size={26} />
+          <b className="bx-num">{wins[0]}</b>
+          <span className="bx-h2h-bar" aria-hidden>
+            <i style={{ flexGrow: wins[0], background: a.color }} />
+            <i style={{ flexGrow: draws, background: "var(--rest)" }} />
+            <i
+              style={{
+                flexGrow: wins[1],
+                // Two sides drawn in the same ink are told apart by the second one stepping back.
+                background: b.color === a.color ? "var(--ink2)" : b.color,
+              }}
+            />
+          </span>
+          <b className="bx-num">{wins[1]}</b>
+          <Disc side={b} size={26} />
+        </div>
+        {list.slice(0, 6).map((m) => {
+          const body = (
+            <>
+              <span style={{ minWidth: 0 }}>
+                <b>{m.event || "Meeting"}</b>
+                <span className="bx-sub">{when(m.at)}</span>
+              </span>
+              <span className="bx-h2h-score bx-num">
+                <b data-won={m.winner === 0 ? "" : undefined}>{m.score[0]}</b>
+                <i className="bx-dash" />
+                <b data-won={m.winner === 1 ? "" : undefined}>{m.score[1]}</b>
+              </span>
+            </>
+          );
+          return m.matchId ? (
+            <Link
+              key={m.at}
+              to="/match/$matchId"
+              params={{ matchId: m.matchId }}
+              className="bx-line bx-h2h-row"
+            >
+              {body}
+            </Link>
+          ) : (
+            <div key={m.at} className="bx-line bx-h2h-row">
+              {body}
+            </div>
+          );
+        })}
+      </div>
+    </Section>
+  );
+}
+
 export function MatchPage({ matchId }: { matchId: string }) {
   const board = useBoard();
   const wide = useWide();
@@ -354,6 +429,7 @@ export function MatchPage({ matchId }: { matchId: string }) {
               </p>
             </div>
           </Section>
+          <Meetings view={view} board={board} />
           <Lineups view={view} board={board} />
         </div>
       </div>

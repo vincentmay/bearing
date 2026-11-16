@@ -2200,6 +2200,54 @@ body {
     grid-template-columns: minmax(0, 1fr) 76px minmax(0, 1fr);
   }
 }
+/* Two sides against each other over the years: who won how often, then their meetings. */
+.bx-h2h {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0 12px;
+}
+.bx-h2h > b {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.bx-h2h-bar {
+  display: flex;
+  gap: 2px;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.bx-h2h-bar i {
+  flex: 0 0 0;
+  min-width: 0;
+}
+.bx-h2h-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.bx-h2h-row b {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bx-h2h-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--face);
+  font-size: 14px;
+  color: var(--ink2);
+}
+.bx-h2h-score b {
+  font-weight: 500;
+}
+.bx-h2h-score b[data-won] {
+  font-weight: 800;
+  color: var(--ink);
+}
 /* A place in a ranking: the number, who, and their points. */
 .bx-rank {
   grid-template-columns: 26px minmax(0, 1fr) auto;

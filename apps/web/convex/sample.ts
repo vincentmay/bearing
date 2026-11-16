@@ -49,6 +49,7 @@ const TABLES = [
   "tournaments",
   "matches",
   "digests",
+  "meetings",
 ] as const;
 
 const kind = v.union(v.literal("sample"), v.literal("live"));

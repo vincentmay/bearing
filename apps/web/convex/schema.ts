@@ -58,6 +58,24 @@ export default defineSchema({
    * changed since is not handed over again, so nothing is read to find that out.
    */
   digests: defineTable({ key: v.string(), hash: v.string() }).index("by_key", ["key"]),
+  /**
+   * Every series two teams have played against each other, as far back as a source has them.
+   * Kept apart from the matches: it is asked for by pair, and reaches back years.
+   */
+  meetings: defineTable({
+    /** The two competitors' ids in a fixed order, joined by a bar. */
+    key: v.string(),
+    checkedAt: v.number(),
+    games: v.array(
+      v.object({
+        id: v.string(),
+        at: v.string(),
+        event: v.string(),
+        score: v.array(v.number()),
+        winner: v.optional(v.number()),
+      }),
+    ),
+  }).index("by_key", ["key"]),
   /** What a signed-in viewer follows. An account holds this and nothing else. */
   follows: defineTable({
     /** The identity's token identifier, as issued by the sign-in provider. */
