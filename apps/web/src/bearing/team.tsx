@@ -13,7 +13,7 @@ import { achievements, didWin } from "../lib/view";
 import { type Board, useBoard } from "./board";
 import { Back, Go, useVisit } from "./links";
 import { ScheduleRow } from "./lists";
-import { type Dot, type SideView, sideOf } from "./model";
+import { type Dot, type SideView, sideOf, standIn } from "./model";
 import { type LineStop, StopLine } from "./stages";
 import { ResultRow } from "./today";
 import { Disc, Dots, Flag, FollowStar, Problem, Role, Section, positionOf } from "./ui";
@@ -218,17 +218,12 @@ function Earlier({ team, board }: { team: Team; board: Board }) {
                   side={
                     known
                       ? sideOf(atlas, known.id)
-                      : {
-                          id: null,
+                      : standIn({
                           name: p.opponent,
-                          label: p.opponent,
                           short: p.opponent.slice(0, 2).toUpperCase(),
-                          color: "var(--ink)",
-                          ink: "var(--ground)",
-                          plural: true,
                           image: p.image,
                           person: false,
-                        }
+                        })
                   }
                 />
                 <span>

@@ -154,6 +154,31 @@ export function sideOf(atlas: Atlas, id: string): SideView {
   };
 }
 
+/**
+ * A side for someone or something Bearing has no record of: only a name, and perhaps a
+ * picture. An earlier opponent, a chess player in no event, an event's own mark. Drawn in
+ * ink like every side without a colour; `bare` leaves the ground out, for a mark alone.
+ */
+export function standIn(of: {
+  name: string;
+  short?: string;
+  image: string | undefined;
+  person: boolean;
+  bare?: boolean;
+}): SideView {
+  return {
+    id: null,
+    name: of.name,
+    label: of.name,
+    short: of.short ?? "",
+    color: of.bare ? "transparent" : "var(--ink)",
+    ink: of.bare ? "var(--ink)" : "var(--ground)",
+    plural: !of.person,
+    image: of.image,
+    person: of.person,
+  };
+}
+
 function sidesOf(atlas: Atlas, match: Match, subject?: string): SideView[] {
   // Two sides with no colours of their own, as chess players always are and a team can be:
   // one takes ink, the other the surface colour. Ink goes to the one the page is about, else

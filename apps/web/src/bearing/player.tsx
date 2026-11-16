@@ -5,7 +5,7 @@ import { didWin } from "../lib/view";
 import { type Board, useBoard } from "./board";
 import { Back, Go, useVisit } from "./links";
 import { ScheduleRow } from "./lists";
-import { type SideView, plainName, sideOf } from "./model";
+import { type SideView, plainName, sideOf, standIn } from "./model";
 import { type LineStop, StopLine } from "./stages";
 import { ResultRow } from "./today";
 import { Champ, Disc, Flag, FollowStar, Problem, Role, Section, positionOf } from "./ui";
@@ -159,17 +159,12 @@ function Listed({ id }: { id: string }) {
       <header className="bx-entity">
         <Disc
           size={72}
-          side={{
-            id: null,
+          side={standIn({
             name: player.name,
-            label: player.name,
             short: player.family.slice(0, 2).toUpperCase(),
-            color: "var(--ink)",
-            ink: "var(--ground)",
-            plural: false,
             image: player.imageLarge ?? player.image,
             person: true,
-          }}
+          })}
         />
         <div>
           <h1 className="bx-display">{player.family}</h1>

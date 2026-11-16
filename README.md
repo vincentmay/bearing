@@ -41,6 +41,15 @@ node scripts/app-motion.mjs  # plays the sample forward and checks the live beha
 node scripts/app-states.mjs  # waiting, could not load, nothing followed, nothing found
 node scripts/app-backend.mjs # the app against its backend, while it is on the sample
 node scripts/app-account.mjs # signing in and follows in the account; needs a Clerk test user
+```
+
+Against the public site (or any address given as the first argument):
+
+```sh
+node scripts/site-sweep.mjs     # every kind of page, both themes, both sizes; follows every link
+node scripts/site-features.mjs  # every feature used as a person would, each with a check
+node scripts/site-load.mjs      # what a first and a second visit cost, and when things appear
+node scripts/site-tabs.mjs      # what moving between tabs shows and transfers
 vp run -r test               # also runs the backend's own tests (apps/web/convex/*.test.ts)
 ```
 

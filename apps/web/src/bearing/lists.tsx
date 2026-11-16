@@ -24,7 +24,7 @@ import { bundle, scoreLine, upcomingForYou } from "../lib/view";
 import { useRecents } from "../lib/recents";
 import { type Board, useBoard, useWide } from "./board";
 import { Go } from "./links";
-import { type Dot, type SideView, bestOf, heat, inkOn, plainName, sideOf } from "./model";
+import { type Dot, type SideView, bestOf, heat, inkOn, plainName, sideOf, standIn } from "./model";
 import { type Times, until } from "./time";
 import { Disc, Dots, EventMark, Flag, FollowStar, Ping, Section, Segmented, Tick } from "./ui";
 import { useFidePlayer, useFideSearch } from "../lib/fide";
@@ -835,17 +835,12 @@ export function Search() {
                     <span className="bx-who">
                       <Disc
                         size={30}
-                        side={{
-                          id: null,
+                        side={standIn({
                           name: p.name,
-                          label: p.name,
                           short: p.family.slice(0, 2).toUpperCase(),
-                          color: "var(--ink)",
-                          ink: "var(--ground)",
-                          plural: false,
                           image: p.image,
                           person: true,
-                        }}
+                        })}
                       />
                       <span>
                         <b>{p.name}</b>
