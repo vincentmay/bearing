@@ -79,7 +79,7 @@ async function fetchBroadcast(
   // Besides the rounds that matter now, a few earlier ones the store has not seen yet: a round
   // that is over never changes, so each is read once and the event fills in backwards.
   const earlier = have
-    ? detail.rounds.filter((r) => r.finished && !have[`round:${r.id}`]).slice(-EARLIER_PER_RUN)
+    ? detail.rounds.filter((r) => r.finished && !have[`round2:${r.id}`]).slice(-EARLIER_PER_RUN)
     : [];
   const wanted = whole
     ? detail.rounds.slice(0, 24)
@@ -155,7 +155,7 @@ export const sync = internalAction({
       .slice(0, TOURS);
     const parts = new Map<string, string>();
     const have: Record<string, string> = await ctx.runQuery(internal.ingest.digests, {
-      scope: "round",
+      scope: "round2",
     });
     for (const tour of tours) {
       const broadcast = await fetchBroadcast(tour.id, false, have);
@@ -302,7 +302,13 @@ export const store = internalMutation({
         games: m.games.map((game, i) => {
           const old = row.doc.games[i];
           if (game.moves || !old?.moves) return game;
-          return { ...game, moves: old.moves, detail: game.detail ?? old.detail };
+          return {
+            ...game,
+            moves: old.moves,
+            evals: old.evals,
+            clocks: old.clocks,
+            detail: game.detail ?? old.detail,
+          };
         }),
       };
       if (!same(row.doc, doc)) await ctx.db.patch("matches", row._id, { live, at, doc });
@@ -352,7 +358,7 @@ export const noteRounds = internalMutation({
   returns: v.null(),
   handler: async (ctx, { ids }) => {
     for (const id of ids) {
-      const key = `round:${id}`;
+      const key = `round2:${id}`;
       const row = await ctx.db
         .query("digests")
         .withIndex("by_key", (q) => q.eq("key", key))

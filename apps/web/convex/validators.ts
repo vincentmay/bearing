@@ -205,6 +205,8 @@ export const game = v.object({
     }),
   ),
   moves: v.optional(v.array(text)),
+  evals: v.optional(v.array(v.number())),
+  clocks: v.optional(v.array(v.number())),
   cup: v.optional(
     v.object({
       limit: v.number(),

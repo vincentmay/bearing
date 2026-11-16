@@ -108,7 +108,17 @@ type Doc = Infer<typeof match>;
  * (rounds, the players' lines, the draft, the moves) is most of a match's weight and is wanted
  * by one page at a time, so it is left out here and asked for with `detail`.
  */
-const INSIDE = ["rounds", "lines", "events", "draft", "lead", "moves", "objectives"] as const;
+const INSIDE = [
+  "rounds",
+  "lines",
+  "events",
+  "draft",
+  "lead",
+  "moves",
+  "evals",
+  "clocks",
+  "objectives",
+] as const;
 
 function light(doc: Doc): Doc {
   return {

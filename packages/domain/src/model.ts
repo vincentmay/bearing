@@ -194,6 +194,14 @@ export interface GameResult {
   /** Chess: the moves played so far, as they are written down ("e4", "Nf3", "O-O"). */
   moves?: string[];
   /**
+   * Chess: how an engine judged the position after each move, in pawns from White's side; a
+   * forced mate is a thousand less the moves to it. As long as `moves` where the source has
+   * it, shorter or absent where it has not.
+   */
+  evals?: number[];
+  /** Chess: the seconds the player who moved had left after each move; -1 where not said. */
+  clocks?: number[];
+  /**
    * Trackmania cup: the point limit, the round being raced, who has reached the limit, and the
    * finishing order of every round raced so far (side indices, first place first).
    */

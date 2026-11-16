@@ -189,3 +189,50 @@ export function movesOfPgn(pgn: string): string[] {
     .map((word) => word.replace(/^\d+\.+/, ""))
     .filter((word) => word && !/^(\$\d+|1-0|0-1|1\/2-1\/2|\*|\d+\.*)$/.test(word));
 }
+
+/** A written game with what is noted beside its moves. */
+export interface Annotated {
+  moves: string[];
+  /** One for each move while the game has them; see `GameResult.evals`. */
+  evals: number[];
+  /** One for each move; -1 where the game does not say. */
+  clocks: number[];
+}
+
+/** A mate is kept as a thousand less the moves to it, so that it sorts beyond any count of pawns. */
+export const MATE = 1000;
+
+/**
+ * The moves of a written game together with the notes that follow them: the engine's judgement
+ * (`[%eval 0.17]`, `[%eval #-3]`) and the mover's clock (`[%clk 1:30:10]`). Side lines are left
+ * out, as in `movesOfPgn`.
+ */
+export function annotatedPgn(pgn: string): Annotated {
+  let text = pgn.replace(/^\s*\[[^\n]*\]\s*$/gm, " ").replace(/;[^\n]*/g, " ");
+  for (let before = ""; before !== text;) {
+    before = text;
+    text = text.replace(/\([^()]*\)/g, " ");
+  }
+  const out: Annotated = { moves: [], evals: [], clocks: [] };
+  let judged = true;
+  for (const [, note, word] of text.matchAll(/\{([^}]*)\}|(\S+)/g)) {
+    if (word !== undefined) {
+      const san = word.replace(/^\d+\.+/, "");
+      if (!san || /^(\$\d+|1-0|0-1|1\/2-1\/2|\*|\d+\.*)$/.test(san)) continue;
+      out.moves.push(san);
+      out.clocks.push(-1);
+      continue;
+    }
+    const at = out.moves.length - 1;
+    if (at < 0 || note === undefined) continue;
+    const clock = /%clk\s+(\d+):(\d+):(\d+)/.exec(note);
+    if (clock) out.clocks[at] = Number(clock[1]) * 3600 + Number(clock[2]) * 60 + Number(clock[3]);
+    const judgement = /%eval\s+(#?)(-?\d+(?:\.\d+)?)/.exec(note);
+    // Judgements are kept only while every move has one: a list with holes says nothing.
+    if (judgement && judged && out.evals.length === at) {
+      const value = Number(judgement[2]);
+      out.evals.push(judgement[1] ? Math.sign(value || 1) * (MATE - Math.abs(value)) : value);
+    } else if (out.evals.length <= at) judged = false;
+  }
+  return out;
+}

@@ -1,6 +1,6 @@
 import type { GameResult, PlayerLine } from "@bearing/domain";
 import { formatPoints, seriesScore } from "@bearing/domain";
-import { ChessGame } from "./chessboard";
+import { ChessGame, type Seat } from "./chessboard";
 import { type CSSProperties, useId } from "react";
 import {
   type Dot,
@@ -293,6 +293,7 @@ export function GameRow({
   index: number;
   view: MatchView;
 }) {
+  const atlas = useAtlas();
   const { sides, discipline } = view;
   const d = discipline.id;
   const live = game.status === "live";
@@ -442,6 +443,15 @@ export function GameRow({
     const opening = parts.length > 1 ? parts[0] : undefined;
     const length = done ? parts.at(-1) : undefined;
     const result = game.winner === "draw" ? "draw" : `${winner ?? ""} won`;
+    const seat = (side: SideView | undefined): Seat => {
+      const player = side?.id ? atlas.player(side.id) : undefined;
+      return {
+        side: side ?? sides[0]!,
+        title: player?.title,
+        rating: player?.rating?.value,
+        country: player?.country,
+      };
+    };
     return (
       <div className="bx-game">
         <div className="bx-gamehead">
@@ -450,16 +460,19 @@ export function GameRow({
             {live ? `move ${game.chess?.move ?? 1}` : `${result}${length ? ` · ${length}` : ""}`}
           </span>
         </div>
-        {opening ? <span className="bx-sub">{opening}</span> : null}
         {game.moves?.length ? (
           <ChessGame
             moves={game.moves}
+            evals={game.evals}
+            clocks={game.clocks}
             live={live}
-            white={white?.name ?? "White"}
-            black={sides[1 - (game.firstSide ?? 0)]?.name ?? "Black"}
+            white={seat(white)}
+            black={seat(sides[1 - (game.firstSide ?? 0)])}
+            opening={opening}
           />
         ) : (
           <span className="bx-sub">
+            {opening ? `${opening} · ` : ""}
             {white?.name} {live ? "has" : "had"} the white pieces.
           </span>
         )}

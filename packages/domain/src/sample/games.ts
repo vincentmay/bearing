@@ -59,3 +59,31 @@ export const SAMPLE_GAMES: SampleGame[] = [
   game("Italian Game", 0, `e4 e5 Nf3 Nc6 Bc4 Nd4 Nxe5 Qg5 Nxf7 Qxg2 Rf1 Qxe4+ Be2 Nf3#`),
   game("Semi-Italian Opening", 1, `e4 e5 Nf3 d6 Bc4 Bg4 Nc3 g6 Nxe5 Bxd1 Bxf7+ Ke7 Nd5#`),
 ];
+
+/**
+ * What a source of real games notes beside each move, made up for a sample game: how an engine
+ * judges the position, which wanders and ends where the result says, and the mover's clock,
+ * ninety minutes with thirty seconds added a move. The same game always gets the same notes.
+ */
+export function notesOf(
+  game: SampleGame,
+  upTo = game.moves.length,
+): { evals: number[]; clocks: number[] } {
+  const n = game.moves.length;
+  const end = game.result === 1 ? 6.2 : game.result === 0 ? -6.2 : 0;
+  // A steady scatter from the move's place alone, so that nothing here needs chance.
+  const scatter = (i: number) => Math.sin(i * 12.9898 + n * 78.233) * 0.5 + 0.5;
+  const evals: number[] = [];
+  const clocks: number[] = [];
+  const left = [5400, 5400];
+  for (let i = 0; i < n; i++) {
+    const part = (i + 1) / n;
+    const wander = (scatter(i) - 0.5) * 1.1 * Math.sin(Math.PI * part);
+    evals.push(Math.round((0.2 * (1 - part) + end * part ** 2.4 + wander) * 100) / 100);
+    const side = i % 2;
+    const spent = 20 + Math.round(scatter(i + 7) ** 2 * (i < 16 ? 90 : 420));
+    left[side] = Math.max(35, left[side]! - spent + 30);
+    clocks.push(left[side]!);
+  }
+  return { evals: evals.slice(0, upTo), clocks: clocks.slice(0, upTo) };
+}

@@ -1,4 +1,4 @@
-import { movesOfPgn } from "../chess.ts";
+import { annotatedPgn } from "../chess.ts";
 import type { GameResult, Match, Player, Stage, StageFormat, Tournament } from "../model.ts";
 
 /**
@@ -143,6 +143,8 @@ export interface LichessGame {
   status?: string;
   /** From the round's written games, where they were fetched: the moves, and the opening's name. */
   moves?: string[];
+  evals?: number[];
+  clocks?: number[];
   opening?: string;
 }
 
@@ -150,16 +152,26 @@ export interface LichessGame {
  * The games of a round out of its written record (one PGN after another), by game id: the moves
  * of each and the name of its opening where Lichess has worked one out.
  */
-export function gamesOfPgn(pgn: string): Record<string, { moves: string[]; opening?: string }> {
-  const games: Record<string, { moves: string[]; opening?: string }> = {};
+export function gamesOfPgn(
+  pgn: string,
+): Record<string, { moves: string[]; evals?: number[]; clocks?: number[]; opening?: string }> {
+  const games: ReturnType<typeof gamesOfPgn> = {};
   for (const one of pgn.split(/\n\s*\n(?=\[Event )/)) {
     const tag = (name: string) => new RegExp(`\\[${name} "([^"]*)"\\]`).exec(one)?.[1];
     const id = (tag("GameURL") ?? tag("Site"))?.split("/").at(-1);
     if (!id) continue;
     const opening = tag("Opening");
+    const eco = tag("ECO");
+    const read = annotatedPgn(one);
     games[id] = {
-      moves: movesOfPgn(one),
-      opening: opening && opening !== "?" ? opening : undefined,
+      moves: read.moves,
+      evals: read.evals.length ? read.evals : undefined,
+      clocks: read.clocks.some((c) => c >= 0) ? read.clocks : undefined,
+      // The opening by its name, led by its code where the game gives one: "E05 Catalan Opening".
+      opening:
+        opening && opening !== "?"
+          ? [eco && eco !== "?" ? eco : undefined, opening].filter(Boolean).join(" ")
+          : undefined,
     };
   }
   return games;
@@ -269,6 +281,8 @@ function toMatch(
     winner,
     detail: [game.opening, length].filter(Boolean).join(" · ") || undefined,
     moves: game.moves?.length ? game.moves : undefined,
+    evals: game.moves?.length && game.evals?.length ? game.evals : undefined,
+    clocks: game.moves?.length && game.clocks?.length ? game.clocks : undefined,
     scores:
       winner === undefined
         ? undefined

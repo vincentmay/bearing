@@ -1,5 +1,5 @@
 import type { Match, Player, Round, Tournament } from "../model.ts";
-import { SAMPLE_GAMES, type SampleGame } from "./games.ts";
+import { SAMPLE_GAMES, type SampleGame, notesOf } from "./games.ts";
 import { SAMPLE_PROVENANCE, cet, pick, rng, type Rand } from "./kit.ts";
 
 const p = (
@@ -146,6 +146,7 @@ export function buildChess() {
               scores: result === "draw" ? [0.5, 0.5] : result === 0 ? [1, 0] : [0, 1],
               detail: `${played.opening} · ${Math.ceil(played.moves.length / 2)} moves`,
               moves: played.moves,
+              ...notesOf(played),
             },
           ],
         };
@@ -173,6 +174,7 @@ export function buildChess() {
                   scores: [0.5, 0.5],
                   detail: `${QUICK_DRAW.opening} · ${Math.ceil(QUICK_DRAW.moves.length / 2)} moves`,
                   moves: QUICK_DRAW.moves,
+                  ...notesOf(QUICK_DRAW),
                 }
               : {
                   label: `Board ${gi + 1}`,
@@ -182,6 +184,7 @@ export function buildChess() {
                   chess: { fen: "", move, clocks: LIVE[gi]!.clocks },
                   // White has just made move number `move`.
                   moves: on!.game.moves.slice(0, move * 2 - 1),
+                  ...notesOf(on!.game, move * 2 - 1),
                 },
           ],
           stream: { label: "Commentary", url: "#" },

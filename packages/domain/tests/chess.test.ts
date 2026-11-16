@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test";
-import { CHESS_START, movesOfPgn, replayChess } from "../src/chess.ts";
+import { CHESS_START, MATE, annotatedPgn, movesOfPgn, replayChess } from "../src/chess.ts";
 import { SAMPLE_GAMES } from "../src/sample/games.ts";
 
 describe("following a game of chess", () => {
@@ -77,5 +77,25 @@ describe("a round of written games from Lichess", () => {
       opening: "Ruy Lopez",
     });
     expect(games.gameBBBB).toEqual({ moves: [], opening: undefined });
+  });
+
+  it("the notes beside the moves are read: the engine's judgement and the clocks", () => {
+    const pgn = `[Event "A game"]
+[Result "1-0"]
+
+1. d4 { [%eval 0.15] [%clk 1:30:10] } 1... d5 { [%eval 0.27] [%clk 1:30:55] } (1... Nf6 2. c4)
+2. c4 { [%eval #3] [%clk 0:00:38] } 2... e6 { [%eval #-2] } 1-0`;
+    const read = annotatedPgn(pgn);
+    expect(read.moves).toEqual(["d4", "d5", "c4", "e6"]);
+    expect(read.evals).toEqual([0.15, 0.27, MATE - 3, -(MATE - 2)]);
+    expect(read.clocks).toEqual([5410, 5455, 38, -1]);
+    // A game without notes has its moves and nothing else.
+    expect(annotatedPgn("1. e4 e5 2. Nf3 *")).toEqual({
+      moves: ["e4", "e5", "Nf3"],
+      evals: [],
+      clocks: [-1, -1, -1],
+    });
+    // Judgements that stop part of the way are kept as far as they go, never with a hole.
+    expect(annotatedPgn("1. e4 { [%eval 0.2] } e5 2. Nf3 { [%eval 0.3] } *").evals).toEqual([0.2]);
   });
 });

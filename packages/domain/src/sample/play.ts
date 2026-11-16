@@ -9,7 +9,7 @@ import type {
   Tournament,
   World,
 } from "../model.ts";
-import { SAMPLE_GAMES } from "./games.ts";
+import { SAMPLE_GAMES, notesOf } from "./games.ts";
 import { pick, shuffle, type Rand } from "./kit.ts";
 import { CUP_LIMIT, CUP_POINTS } from "./trackmania.ts";
 
@@ -354,7 +354,13 @@ function stepChess(m: Match, r: Rand): Match {
   const move = Math.ceil(moves.length / 2);
   const chess = { fen: "", move };
   if (moves.length < line.moves.length) {
-    return withGame(m, i, { ...g, chess, moves, detail: `${line.opening} · move ${move}` });
+    return withGame(m, i, {
+      ...g,
+      chess,
+      moves,
+      ...notesOf(line, moves.length),
+      detail: `${line.opening} · move ${move}`,
+    });
   }
   const white = g.firstSide ?? 0;
   const winner = line.result === 0.5 ? ("draw" as const) : line.result === 1 ? white : 1 - white;
@@ -364,6 +370,7 @@ function stepChess(m: Match, r: Rand): Match {
       status: "finished",
       chess,
       moves,
+      ...notesOf(line, moves.length),
       winner,
       scores: m.sides.map((_, s) => (winner === "draw" ? 0.5 : winner === s ? 1 : 0)),
       detail: `${line.opening} · ${move} moves`,
