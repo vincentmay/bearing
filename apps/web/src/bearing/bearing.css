@@ -2214,6 +2214,27 @@ body {
     grid-template-columns: minmax(0, 1fr) 76px minmax(0, 1fr);
   }
 }
+/* A champion in a player's year: how often played, as a bar, and within it how often won. */
+.bx-pool {
+  grid-template-columns: minmax(0, 1fr) minmax(60px, 34%);
+}
+.bx-pool-bar {
+  display: block;
+  height: 6px;
+}
+.bx-pool-bar > i {
+  display: block;
+  height: 100%;
+  margin-left: auto;
+  border-radius: 3px;
+  background: var(--rest);
+  overflow: hidden;
+}
+.bx-pool-bar > i > i {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+}
 /* Two sides against each other over the years: who won how often, then their meetings. */
 .bx-h2h {
   display: grid;

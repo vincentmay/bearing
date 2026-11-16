@@ -1,5 +1,6 @@
 import { type Match, type Player, countryName, playerTotals } from "@bearing/domain";
 import { useFidePlayer } from "../lib/fide";
+import { useChampionPool } from "../lib/pool";
 import { didWin } from "../lib/view";
 import { type Board, useBoard } from "./board";
 import { Back, Go, useVisit } from "./links";
@@ -7,7 +8,7 @@ import { ScheduleRow } from "./lists";
 import { type SideView, plainName, sideOf } from "./model";
 import { type LineStop, StopLine } from "./stages";
 import { ResultRow } from "./today";
-import { Disc, Flag, FollowStar, Problem, Role, Section, positionOf } from "./ui";
+import { Champ, Disc, Flag, FollowStar, Problem, Role, Section, positionOf } from "./ui";
 
 function age(born: string | undefined, now: number): string | undefined {
   if (!born) return undefined;
@@ -73,6 +74,54 @@ function runStops(board: Board, player: Player, side: SideView, own: Match[]): L
                 : undefined,
       };
     });
+}
+
+/**
+ * The champions a League player has played this year, most played first, each with how many
+ * games and how many of them were won.
+ */
+function Pool({ handle, team, board }: { handle: string; team: string; board: Board }) {
+  const year = new Date(board.now).getFullYear();
+  const pool = useChampionPool(handle, team, year);
+  if (!pool.length) return null;
+  // Where a champion's picture is filed is known from the drafts Bearing already has.
+  const filed = new Map<string, { key?: string; patch?: string }>();
+  for (const m of board.atlas.world.matches)
+    for (const g of m.games)
+      for (const c of g.draft?.picks.flat() ?? [])
+        if (c.key && !filed.has(c.name)) filed.set(c.name, { key: c.key, patch: g.draft?.patch });
+  const most = pool[0]!.games;
+  return (
+    <Section label={`Champions in ${year}`}>
+      <div className="bx-list">
+        {pool.map((p) => {
+          const art = filed.get(p.champion);
+          return (
+            <div key={p.champion} className="bx-line bx-pool">
+              <span className="bx-who">
+                <Champ
+                  champion={{ name: p.champion, key: art?.key }}
+                  patch={art?.patch}
+                  size={30}
+                />
+                <span>
+                  <b>{p.champion}</b>
+                  <span className="bx-sub">
+                    {p.games} {p.games === 1 ? "game" : "games"} · won {p.wins}
+                  </span>
+                </span>
+              </span>
+              <span className="bx-pool-bar" aria-hidden>
+                <i style={{ width: `${(p.games / most) * 100}%` }}>
+                  <i style={{ width: `${p.games ? (p.wins / p.games) * 100 : 0}%` }} />
+                </i>
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </Section>
+  );
 }
 
 /**
@@ -322,6 +371,9 @@ export function PlayerPage({ playerId }: { playerId: string }) {
           )}
         </div>
         <div>
+          {team && player.discipline === "lol" ? (
+            <Pool handle={player.handle} team={team.name} board={board} />
+          ) : null}
           {mates.length ? (
             <Section label={`With ${player.handle} at ${plainName(atlas, team?.id)}`}>
               <div className="bx-list">
