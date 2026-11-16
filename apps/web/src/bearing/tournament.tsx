@@ -297,9 +297,20 @@ export function TournamentPage({ tournamentId }: { tournamentId: string }) {
     <>
       <Back />
       <header className="bx-entity">
-        <EventMark image={t.image} size={64} />
+        {/* With room the event's mark stands beside its name; on a phone it leads the line
+            above it, where it takes no width from the name. */}
+        {t.image ? (
+          <span className="bx-wideonly">
+            <EventMark image={t.image} size={64} />
+          </span>
+        ) : null}
         <div>
-          <p className="bx-label">{d.name}</p>
+          <p className="bx-label bx-row" style={{ gap: 8 }}>
+            <span className="bx-phone" style={{ display: "inline-flex" }}>
+              <EventMark image={t.image} size={20} />
+            </span>
+            {d.name}
+          </p>
           <h1 className="bx-display">{t.name}</h1>
           <p className="bx-state" style={{ justifyContent: "flex-start", marginTop: 10 }}>
             {status === "live" && live.length ? <Ping /> : null}

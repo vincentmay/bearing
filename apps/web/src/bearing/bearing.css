@@ -1625,8 +1625,37 @@ body {
   margin-left: 6px;
   background: var(--rest);
 }
+/* A bracket wider than its frame is moved sideways within it, and fades where there is more. */
+.bx-bracket-frame {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.bx-bracket-frame::-webkit-scrollbar {
+  display: none;
+}
+.bx-bracket-frame[data-wider] {
+  margin: 0 -16px;
+  padding: 0 16px;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 16px,
+    #000 calc(100% - 28px),
+    transparent
+  );
+  mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 28px), transparent);
+}
 .bx-bracket {
   position: relative;
+}
+.bx-wideonly {
+  display: none;
+}
+@media (min-width: 900px) {
+  .bx-wideonly {
+    display: contents;
+  }
 }
 .bx-bracket svg {
   position: absolute;

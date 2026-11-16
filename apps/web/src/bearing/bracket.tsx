@@ -13,6 +13,7 @@ interface Placed {
 }
 
 const TILE = 66;
+const TILE_MIN = 118;
 const GAP = 12;
 const HEAD = 24;
 
@@ -53,7 +54,11 @@ export function Bracket({
 
   const gutter = wide ? 30 : 14;
   const count = Math.max(rounds.length, columns ?? 0);
-  const tileW = Math.max(0, (width - gutter * (count - 1)) / count);
+  // A plate is never narrower than a short name, a score and a mark need. Where the rounds do
+  // not fit side by side at that width, the bracket is wider than its frame and is moved
+  // sideways; squeezed plates that say "F..." tell nobody anything.
+  const tileW = Math.max(TILE_MIN, (width - gutter * (count - 1)) / count);
+  const canvas = count * tileW + gutter * (count - 1);
   // A full name needs room; a narrow column takes the short one.
   const roomy = wide && tileW >= 150;
   const placed = new Map<string, Placed>();
@@ -119,90 +124,91 @@ export function Bracket({
   });
 
   return (
-    <div
-      ref={frame}
-      className="bx-bracket"
-      style={{ height: width ? height : 240 }}
-      data-tracing={pointed ? "" : undefined}
-      onPointerLeave={() => setPointed(undefined)}
-    >
-      {width ? (
-        <>
-          <svg width={width} height={height} aria-hidden>
-            {lines.map((line) => (
-              <path
-                key={line.key}
-                d={line.d}
-                data-done={line.done ? "" : undefined}
-                data-on={line.on ? "" : undefined}
-              />
-            ))}
-          </svg>
-          {rounds.map(({ round }, column) => (
-            <h3
-              key={round.id}
-              className="bx-label"
-              style={{ left: column * (tileW + gutter), width: tileW }}
-            >
-              {wide ? round.name : round.short}
-            </h3>
-          ))}
-          {all.map(({ match, x, y }) => {
-            const view = board.view(match);
-            const w = winnerOf(match);
-            const score = view.headline.length === 2 ? view.headline : [];
-            return (
-              <Link
-                key={match.id}
-                to="/match/$matchId"
-                params={{ matchId: match.id }}
-                className="bx-tie"
-                style={{ left: x, top: y, width: tileW }}
-                data-on={pointed && has(match, pointed) ? "" : undefined}
+    <div ref={frame} className="bx-bracket-frame" data-wider={canvas > width + 1 ? "" : undefined}>
+      <div
+        className="bx-bracket"
+        style={{ height: width ? height : 240, width: width ? canvas : undefined }}
+        data-tracing={pointed ? "" : undefined}
+        onPointerLeave={() => setPointed(undefined)}
+      >
+        {width ? (
+          <>
+            <svg width={canvas} height={height} aria-hidden>
+              {lines.map((line) => (
+                <path
+                  key={line.key}
+                  d={line.d}
+                  data-done={line.done ? "" : undefined}
+                  data-on={line.on ? "" : undefined}
+                />
+              ))}
+            </svg>
+            {rounds.map(({ round }, column) => (
+              <h3
+                key={round.id}
+                className="bx-label"
+                style={{ left: column * (tileW + gutter), width: tileW }}
               >
-                {view.sides.map((side, i) => (
-                  <span
-                    key={i}
-                    className="bx-tie-side"
-                    data-lost={typeof w === "number" && w !== i ? "" : undefined}
-                    data-open={side.id ? undefined : ""}
-                    data-me={side.id && side.id === pointed ? "" : undefined}
-                    onPointerEnter={(e) => {
-                      if (e.pointerType === "mouse" && side.id) setPointed(side.id);
-                    }}
-                  >
-                    <Disc side={side} size={18} />
-                    <b>
-                      {side.id
-                        ? roomy
-                          ? side.name
-                          : side.short || side.name
-                        : roomy
-                          ? side.name
-                          : "To come"}
-                    </b>
-                    {match.status === "scheduled" ? null : (
-                      <span className="bx-num">
-                        <Tick>{score[i] ?? ""}</Tick>
-                      </span>
+                {wide ? round.name : round.short}
+              </h3>
+            ))}
+            {all.map(({ match, x, y }) => {
+              const view = board.view(match);
+              const w = winnerOf(match);
+              const score = view.headline.length === 2 ? view.headline : [];
+              return (
+                <Link
+                  key={match.id}
+                  to="/match/$matchId"
+                  params={{ matchId: match.id }}
+                  className="bx-tie"
+                  style={{ left: x, top: y, width: tileW }}
+                  data-on={pointed && has(match, pointed) ? "" : undefined}
+                >
+                  {view.sides.map((side, i) => (
+                    <span
+                      key={i}
+                      className="bx-tie-side"
+                      data-lost={typeof w === "number" && w !== i ? "" : undefined}
+                      data-open={side.id ? undefined : ""}
+                      data-me={side.id && side.id === pointed ? "" : undefined}
+                      onPointerEnter={(e) => {
+                        if (e.pointerType === "mouse" && side.id) setPointed(side.id);
+                      }}
+                    >
+                      <Disc side={side} size={18} />
+                      <b>
+                        {side.id
+                          ? roomy
+                            ? side.name
+                            : side.short || side.name
+                          : roomy
+                            ? side.name
+                            : "To come"}
+                      </b>
+                      {match.status === "scheduled" ? null : (
+                        <span className="bx-num">
+                          <Tick>{score[i] ?? ""}</Tick>
+                        </span>
+                      )}
+                    </span>
+                  ))}
+                  <span className="bx-tie-foot">
+                    {match.status === "scheduled" ? (
+                      `${board.times.weekday(match.scheduledAt)} ${board.times.clock(match.scheduledAt)}`
+                    ) : (
+                      <>
+                        {view.live ? <Ping /> : null}
+                        <Dots dots={view.series} sides={view.sides} size={6} gap={3} fix />
+                      </>
                     )}
                   </span>
-                ))}
-                <span className="bx-tie-foot">
-                  {match.status === "scheduled" ? (
-                    `${board.times.weekday(match.scheduledAt)} ${board.times.clock(match.scheduledAt)}`
-                  ) : (
-                    <>
-                      {view.live ? <Ping /> : null}
-                      <Dots dots={view.series} sides={view.sides} size={6} gap={3} fix />
-                    </>
-                  )}
-                </span>
-              </Link>
-            );
-          })}
-        </>
-      ) : null}
+                </Link>
+              );
+            })}
+          </>
+        ) : null}
+      </div>
     </div>
   );
 }
