@@ -2177,6 +2177,46 @@ body {
     grid-template-columns: minmax(0, 1fr) 76px minmax(0, 1fr);
   }
 }
+/* Everyone in an event, as places to go. */
+.bx-entrants {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 6px;
+}
+.bx-entrant {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 8px 12px 8px 9px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform 0.14s var(--out),
+    border-color 0.16s var(--out);
+}
+.bx-entrant b {
+  flex: 1;
+  min-width: 0;
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bx-entrant .bx-flag {
+  margin: 0;
+}
+.bx-entrant:active {
+  transform: scale(0.97);
+}
+@media (hover: hover) {
+  .bx-entrant:hover {
+    border-color: var(--edge);
+  }
+}
 /* The parts of one event, side by side: the one being looked at is filled. */
 .bx-parts {
   display: flex;

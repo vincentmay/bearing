@@ -213,6 +213,26 @@ function StageDrawing({
   );
 }
 
+/** Everyone in an event, each a way to their own page. */
+function Entrants({ ids, board }: { ids: string[]; board: Board }) {
+  const { atlas } = board;
+  return (
+    <div className="bx-entrants">
+      {ids.map((id) => {
+        const c = atlas.competitor(id);
+        if (!c) return null;
+        return (
+          <Go key={id} to={{ kind: c.kind, id }} className="bx-entrant">
+            <Disc side={sideOf(atlas, id)} size={24} />
+            <b>{plainName(atlas, id)}</b>
+            {c.kind === "player" ? <Flag country={c.country} /> : null}
+          </Go>
+        );
+      })}
+    </div>
+  );
+}
+
 /** What a part of an event is called once the event's own name is taken off it. */
 function partName(part: Tournament, series: string): string {
   const rest = part.name.startsWith(series) ? part.name.slice(series.length) : part.name;
@@ -256,6 +276,7 @@ export function TournamentPage({ tournamentId }: { tournamentId: string }) {
         .filter((x) => x.series === t.series && x.discipline === t.discipline)
         .sort((x, y) => x.start.localeCompare(y.start) || x.name.localeCompare(y.name))
     : [];
+  const entrants = t.participantIds.filter((id) => atlas.competitor(id));
   const where = t.location
     ? [t.location.venue, t.location.city, countryName(t.location.country)]
         .filter(Boolean)
@@ -347,6 +368,11 @@ export function TournamentPage({ tournamentId }: { tournamentId: string }) {
               <p className="bx-explain">{t.blurb}</p>
             </Section>
           ) : null}
+          {entrants.length && (!stage || status === "upcoming") ? (
+            <Section label={`Taking part · ${entrants.length}`}>
+              <Entrants ids={entrants} board={board} />
+            </Section>
+          ) : null}
         </div>
         <div>
           {live.length || next.length ? (
@@ -385,6 +411,11 @@ export function TournamentPage({ tournamentId }: { tournamentId: string }) {
                   </div>
                 ))}
               </div>
+            </Section>
+          ) : null}
+          {entrants.length && stage && status !== "upcoming" ? (
+            <Section label={`Taking part · ${entrants.length}`}>
+              <Entrants ids={entrants} board={board} />
             </Section>
           ) : null}
         </div>
