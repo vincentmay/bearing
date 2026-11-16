@@ -3,7 +3,7 @@ import { ChevronLeft } from "lucide-react";
 import { useAccount } from "../lib/account";
 import { reader } from "../lib/backend";
 import { type Prefs, setPrefs, usePrefs } from "../lib/prefs";
-import { useMinute } from "../lib/world";
+import { pinned, useMinute } from "../lib/world";
 import { useOrigin } from "./shell";
 import { useTimes } from "./time";
 import { Section, Segmented } from "./ui";
@@ -147,14 +147,24 @@ export function Settings() {
 
       <Section label="The data">
         <div className="bx-list">
-          <p className="bx-empty">
-            Bearing is running on sample data: real names, fictional events and generated results.
-            The live matches are played forward faster than real time so that there is something to
-            follow.{" "}
-            {reader
-              ? "The sample is kept on the server, so every open screen sees the same moment."
-              : "The sample is kept in this browser and starts again when the page is reloaded."}
-          </p>
+          {pinned() ? (
+            <p className="bx-empty">
+              Bearing is running on sample data: real names, fictional events and generated results.
+              The live matches are played forward faster than real time so that there is something
+              to follow.{" "}
+              {reader
+                ? "The sample is kept on the server, so every open screen sees the same moment."
+                : "The sample is kept in this browser and starts again when the page is reloaded."}
+            </p>
+          ) : (
+            <p className="bx-empty">
+              What Bearing shows is real, and comes from those who publish it: schedules, results
+              and line-ups from PandaScore; the inside of League of Legends games from
+              lolesports.com and Leaguepedia (CC BY-SA 3.0); chess from Lichess broadcasts; the
+              Counter-Strike ranking from Valve. Every match and event names its sources and when
+              they were last asked, at the foot of its page.
+            </p>
+          )}
         </div>
       </Section>
     </div>

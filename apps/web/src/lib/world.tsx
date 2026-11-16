@@ -63,6 +63,7 @@ async function restore(client: QueryClient): Promise<boolean> {
     new Promise<null>((done) => setTimeout(() => done(null), 250)),
   ]);
   if (!kept?.frame.ready) return false;
+  setClock(kept.frame.clock);
   client.setQueryData(frameQuery.queryKey, kept.frame);
   client.setQueryData(settledQuery(timeOf(kept.frame.clock)).queryKey, kept.settled);
   client.setQueryData(liveQuery.queryKey, kept.live);
@@ -109,6 +110,9 @@ export async function loadWorld(client: QueryClient): Promise<void> {
       await new Promise((done) => setTimeout(done, 400));
       frame = await client.fetchQuery({ ...frameQuery, staleTime: 0 });
     }
+    // The clock is set here, and not by whichever page first reads the world: a page that
+    // reads none of it (the settings) would otherwise tell the sample's time on real data.
+    setClock(frame.clock);
     await Promise.all([
       client.ensureQueryData(settledQuery(timeOf(frame.clock))),
       client.ensureQueryData(liveQuery),

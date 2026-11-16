@@ -2816,7 +2816,7 @@ body {
   flex: 1;
   max-width: 420px;
 }
-.bx-pill {
+.bx .bx-pill {
   height: 36px;
   margin-top: 14px;
   padding: 0 16px;
@@ -2828,7 +2828,7 @@ body {
     background 0.18s var(--out),
     transform 0.15s var(--out);
 }
-.bx-pill:active {
+.bx .bx-pill:active {
   transform: scale(0.96);
 }
 .bx-dayname .bx-sub {
@@ -2972,7 +2972,8 @@ body {
 .bx-star:disabled {
   cursor: default;
 }
-.bx-button {
+/* Named twice over, so that the plain reset of every button does not undo it. */
+.bx .bx-button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -2984,10 +2985,10 @@ body {
   font-weight: 600;
   transition: transform 0.15s;
 }
-.bx-button:active {
+.bx .bx-button:active {
   transform: scale(0.96);
 }
-.bx-button-quiet {
+.bx .bx-button-quiet {
   background: var(--sunk);
   color: var(--ink) !important;
 }
