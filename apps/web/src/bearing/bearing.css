@@ -2177,6 +2177,38 @@ body {
     grid-template-columns: minmax(0, 1fr) 76px minmax(0, 1fr);
   }
 }
+/* The parts of one event, side by side: the one being looked at is filled. */
+.bx-parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 18px;
+}
+.bx-part {
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--sunk);
+  color: var(--ink2);
+  font-size: 12.5px;
+  font-weight: 650;
+  text-decoration: none;
+  transition:
+    background 0.16s var(--out),
+    color 0.16s var(--out),
+    transform 0.14s var(--out);
+}
+.bx-part[aria-current="page"] {
+  background: var(--ink);
+  color: var(--ground);
+}
+.bx-part:active {
+  transform: scale(0.96);
+}
+@media (hover: hover) {
+  .bx-part:not([aria-current="page"]):hover {
+    color: var(--ink);
+  }
+}
 /* The two halves of a double elimination, one above the other. */
 .bx-double {
   display: grid;

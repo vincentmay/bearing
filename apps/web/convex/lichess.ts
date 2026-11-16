@@ -56,10 +56,27 @@ interface Top {
   upcoming?: { tour: LichessTour }[];
 }
 
-async function fetchBroadcast(tourId: string): Promise<LichessBroadcast | null> {
-  const detail = await get<{ tour: LichessTour; rounds: LichessRound[] }>(`/${tourId}`);
+/** A broadcast with the rounds that matter now; `whole` asks for every round it has. */
+async function fetchBroadcast(
+  tourId: string,
+  whole = false,
+  /** Rounds that are over and already in the store, as `round:<id>`; they are not read again. */
+  have?: Record<string, string>,
+): Promise<(LichessBroadcast & { over: string[] }) | null> {
+  const detail = await get<{
+    tour: LichessTour;
+    rounds: LichessRound[];
+    group?: LichessBroadcast["group"];
+  }>(`/${tourId}`);
   if (!detail) return null;
-  const wanted = roundsToFetch(detail.rounds);
+  // Besides the rounds that matter now, a few earlier ones the store has not seen yet: a round
+  // that is over never changes, so each is read once and the event fills in backwards.
+  const earlier = have
+    ? detail.rounds.filter((r) => r.finished && !have[`round:${r.id}`]).slice(-EARLIER_PER_RUN)
+    : [];
+  const wanted = whole
+    ? detail.rounds.slice(0, 24)
+    : [...new Set([...roundsToFetch(detail.rounds), ...earlier])];
   const games: Record<string, LichessGame[]> = {};
   let refused = false;
   for (const round of wanted) {
@@ -73,7 +90,8 @@ async function fetchBroadcast(tourId: string): Promise<LichessBroadcast | null> 
     const moves = gamesOfPgn(pgn ?? "");
     games[round.id] = answer.games.map((game) => ({ ...game, ...moves[game.id] }));
   }
-  return { tour: detail.tour, rounds: detail.rounds, games };
+  const over = wanted.filter((r) => r.finished && games[r.id]).map((r) => r.id);
+  return { tour: detail.tour, rounds: detail.rounds, games, group: detail.group, over };
 }
 
 /** Every hour: the leading broadcasts, their rounds and the games of the rounds that matter now. */
@@ -88,10 +106,36 @@ export const sync = internalAction({
       // The top of the game first; the tier below it only fills what room is left.
       .sort((a, b) => (b.tier ?? 0) - (a.tier ?? 0))
       .slice(0, TOURS);
+    const parts = new Map<string, string>();
+    const have: Record<string, string> = await ctx.runQuery(internal.ingest.digests, {
+      scope: "round",
+    });
     for (const tour of tours) {
-      const broadcast = await fetchBroadcast(tour.id);
+      const broadcast = await fetchBroadcast(tour.id, false, have);
       if (!broadcast) continue;
       await ctx.runMutation(internal.lichess.store, plain(mapBroadcast(broadcast, Date.now())));
+      if (broadcast.over.length)
+        await ctx.runMutation(internal.lichess.noteRounds, { ids: broadcast.over });
+      for (const part of broadcast.group?.tours ?? []) parts.set(part.id, tour.id);
+    }
+    // An event is often several broadcasts: its group stage, its semifinals, its final. The
+    // parts that are not among the leading broadcasts are read whole, a few a run, and one
+    // that is over is read once.
+    const chosen = new Set(tours.map((tour) => tour.id));
+    const known: Record<string, string> = await ctx.runQuery(internal.ingest.digests, {
+      scope: "tour",
+    });
+    let read = 0;
+    for (const id of parts.keys()) {
+      if (chosen.has(id) || known[`tour:${id}`] === "whole" || read >= PARTS_PER_RUN) continue;
+      read++;
+      const broadcast = await fetchBroadcast(id, true);
+      if (!broadcast) continue;
+      await ctx.runMutation(internal.lichess.store, plain(mapBroadcast(broadcast, Date.now())));
+      if (broadcast.rounds.length && broadcast.rounds.every((round) => round.finished))
+        await ctx.runMutation(internal.ingest.put, {
+          digest: { key: `tour:${id}`, hash: "whole" },
+        });
     }
   },
 });
@@ -213,7 +257,28 @@ export const store = internalMutation({
  * better known a photograph with the name of who took it and its licence. Each player is asked
  * about once; the strongest first, a few dozen a run, one request at a time.
  */
+/** Remember rounds that are over and stored, so that they are not asked for again. */
+export const noteRounds = internalMutation({
+  args: { ids: v.array(v.string()) },
+  returns: v.null(),
+  handler: async (ctx, { ids }) => {
+    for (const id of ids) {
+      const key = `round:${id}`;
+      const row = await ctx.db
+        .query("digests")
+        .withIndex("by_key", (q) => q.eq("key", key))
+        .first();
+      if (!row) await ctx.db.insert("digests", { key, hash: "over" });
+    }
+    return null;
+  },
+});
+
 const FACES_PER_RUN = 40;
+/** Earlier rounds of a running event read in one run. */
+const EARLIER_PER_RUN = 3;
+/** Parts of an event read whole in one run. */
+const PARTS_PER_RUN = 3;
 
 export const faceless = internalQuery({
   args: {},

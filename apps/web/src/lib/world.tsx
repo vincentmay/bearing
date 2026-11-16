@@ -84,8 +84,11 @@ function useStoredWorld(): World {
   return useMemo(() => {
     const { clock, ...rest } = frame;
     setClock(clock);
+    // A game nothing is known about is not offered: on real data Trackmania has no source.
+    const played = new Set(rest.tournaments.map((t) => t.discipline));
     return {
       ...rest,
+      disciplines: rest.disciplines.filter((d) => played.has(d.id)),
       now: clock ? clock.pinned : new Date().toISOString(),
       matches: [...settled, ...live],
       // The sample comes with a few follows so that a first look shows a personal page.

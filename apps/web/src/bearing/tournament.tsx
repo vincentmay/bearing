@@ -213,6 +213,12 @@ function StageDrawing({
   );
 }
 
+/** What a part of an event is called once the event's own name is taken off it. */
+function partName(part: Tournament, series: string): string {
+  const rest = part.name.startsWith(series) ? part.name.slice(series.length) : part.name;
+  return rest.replace(/^[\s:|–-]+/, "").trim() || part.name;
+}
+
 export function TournamentPage({ tournamentId }: { tournamentId: string }) {
   const board = useBoard();
   const wide = useWide();
@@ -244,6 +250,12 @@ export function TournamentPage({ tournamentId }: { tournamentId: string }) {
     t.stages.at(-1);
   const stage = t.stages.find((s) => s.id === chosen) ?? current;
   const winner = champion(t);
+  // The other parts of the same event: its group stage, its semifinals, its final.
+  const parts = t.series
+    ? atlas.world.tournaments
+        .filter((x) => x.series === t.series && x.discipline === t.discipline)
+        .sort((x, y) => x.start.localeCompare(y.start) || x.name.localeCompare(y.name))
+    : [];
   const where = t.location
     ? [t.location.venue, t.location.city, countryName(t.location.country)]
         .filter(Boolean)
@@ -271,6 +283,20 @@ export function TournamentPage({ tournamentId }: { tournamentId: string }) {
         </div>
         <FollowStar follow={{ kind: "tournament", id: t.id }} name={t.name} />
       </header>
+      {parts.length > 1 ? (
+        <nav className="bx-parts" aria-label={`Parts of ${t.series}`}>
+          {parts.map((part) => (
+            <Go
+              key={part.id}
+              to={{ kind: "tournament", id: part.id }}
+              className="bx-part"
+              aria-current={part.id === t.id ? "page" : undefined}
+            >
+              {partName(part, t.series ?? "")}
+            </Go>
+          ))}
+        </nav>
+      ) : null}
       <dl className="bx-facts">
         <div>
           <dt className="bx-label">When</dt>

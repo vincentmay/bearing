@@ -170,6 +170,8 @@ export interface LichessBroadcast {
   rounds: LichessRound[];
   /** The games of each round that was fetched, by round id. A round left out is not guessed at. */
   games: Record<string, LichessGame[]>;
+  /** The larger event this broadcast is one part of, with all its parts. */
+  group?: { name: string; tours: { id: string; name: string }[] };
 }
 
 export interface Mapped {
@@ -324,6 +326,7 @@ export function mapBroadcast(source: LichessBroadcast, now: number): Mapped {
     discipline: "chess",
     name: tour.name.replaceAll(" | ", ": "),
     short: (tour.name.split(" | ")[0] ?? tour.name).trim(),
+    series: source.group?.name,
     tier: tour.tier === 5 ? "S" : tour.tier === 4 ? "A" : "B",
     organizer: "",
     location: city ? { city, country: country ?? "" } : null,
