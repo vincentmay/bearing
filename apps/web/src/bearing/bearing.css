@@ -2200,6 +2200,15 @@ body {
     grid-template-columns: minmax(0, 1fr) 76px minmax(0, 1fr);
   }
 }
+/* A place in a ranking: the number, who, and their points. */
+.bx-rank {
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+}
+.bx-rank-n {
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: -0.02em;
+}
 /* Everyone in an event, as places to go. */
 .bx-entrants {
   display: grid;

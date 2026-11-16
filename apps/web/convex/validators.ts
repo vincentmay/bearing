@@ -258,7 +258,15 @@ export const match = v.object({
 export const ranking = v.object({
   discipline: disciplineId,
   title: text,
-  entries: v.array(v.object({ competitorId: text, points: v.number(), change: v.number() })),
+  entries: v.array(
+    v.object({
+      competitorId: text,
+      points: v.number(),
+      change: v.number(),
+      rank: v.optional(v.number()),
+      name: maybeText,
+    }),
+  ),
 });
 
 export const follow = v.object({

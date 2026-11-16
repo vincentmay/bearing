@@ -18,6 +18,7 @@ import type * as pandascore from "../pandascore.js";
 import type * as retention from "../retention.js";
 import type * as sample from "../sample.js";
 import type * as validators from "../validators.js";
+import type * as valve from "../valve.js";
 import type * as world from "../world.js";
 
 import type {
@@ -37,6 +38,7 @@ declare const fullApi: ApiFromModules<{
   retention: typeof retention;
   sample: typeof sample;
   validators: typeof validators;
+  valve: typeof valve;
   world: typeof world;
 }>;
 

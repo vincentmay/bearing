@@ -246,6 +246,9 @@ export function TeamPage({ teamId }: { teamId: string }) {
       c.kind === "team" && !!team.orgId && c.orgId === team.orgId && c.id !== team.id,
   );
   const roster = atlas.roster(team.id);
+  const standing = atlas.world.rankings
+    .find((r) => r.discipline === team.discipline)
+    ?.entries.find((e) => e.competitorId === team.id);
   const lineup = lineupOf(roster, all);
   const year = yearStops(board, team, side, all);
   const won = done.filter((m) => didWin(m, team.id) === true).length;
@@ -315,6 +318,12 @@ export function TeamPage({ teamId }: { teamId: string }) {
             </dd>
             <dt className="bx-label">{d.unit.many} won, lost</dt>
           </div>
+          {standing?.rank ? (
+            <div>
+              <dd className="bx-num">#{standing.rank}</dd>
+              <dt className="bx-label">World ranking</dt>
+            </div>
+          ) : null}
           {titles ? (
             <div>
               <dd className="bx-num">{titles}</dd>

@@ -11,7 +11,8 @@
     "./lichess": "./src/sources/lichess.ts",
     "./pandascore": "./src/sources/pandascore.ts",
     "./lolesports": "./src/sources/lolesports.ts",
-    "./leaguepedia": "./src/sources/leaguepedia.ts"
+    "./leaguepedia": "./src/sources/leaguepedia.ts",
+    "./valve": "./src/sources/valve.ts"
   },
   "scripts": {
     "test": "vp test"

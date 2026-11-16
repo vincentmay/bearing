@@ -306,5 +306,9 @@ export interface World {
 export interface Ranking {
   discipline: DisciplineId;
   title: string;
-  entries: { competitorId: string; points: number; change: number }[];
+  /**
+   * In order. `competitorId` is empty for a team Bearing does not have; `name` then says who.
+   * `rank` is the place the source gives, which the position in this list need not be.
+   */
+  entries: { competitorId: string; points: number; change: number; rank?: number; name?: string }[];
 }

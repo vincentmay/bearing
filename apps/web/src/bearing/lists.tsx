@@ -809,6 +809,49 @@ export function Search() {
               </div>
             </Section>
           ) : null}
+          {q
+            ? null
+            : atlas.world.rankings
+                .filter((r) => r.entries.some((e) => e.rank))
+                .map((r) => (
+                  <Section key={r.title} label={r.title}>
+                    <div className="bx-list">
+                      {r.entries.slice(0, 10).map((e) => {
+                        const known = e.competitorId ? atlas.competitor(e.competitorId) : undefined;
+                        const body = (
+                          <>
+                            <span className="bx-rank-n bx-num">{e.rank}</span>
+                            <span className="bx-who">
+                              {known ? <Disc side={sideOf(atlas, known.id)} size={24} /> : null}
+                              <b>{known ? plainName(atlas, known.id) : e.name}</b>
+                            </span>
+                            <span className="bx-sub bx-mono bx-num">
+                              {e.change > 0
+                                ? `▲${e.change}  `
+                                : e.change < 0
+                                  ? `▼${-e.change}  `
+                                  : ""}
+                              {e.points}
+                            </span>
+                          </>
+                        );
+                        return known ? (
+                          <Go
+                            key={e.rank}
+                            to={{ kind: "team", id: known.id }}
+                            className="bx-line bx-rank"
+                          >
+                            {body}
+                          </Go>
+                        ) : (
+                          <div key={e.rank} className="bx-line bx-rank">
+                            {body}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </Section>
+                ))}
           {q || !events.length ? null : (
             <Section label="Events on now and coming">
               <div className="bx-list">
