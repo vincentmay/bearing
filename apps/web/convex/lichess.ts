@@ -33,11 +33,45 @@ const BASE = "https://lichess.org/api/broadcast";
 /** How many broadcasts are followed at once: the top of the game, not every club night. */
 const TOURS = 5;
 
+/** Lichess has said: not now. */
+class Refused extends Error {
+  constructor() {
+    super("Lichess asked for a pause (429).");
+  }
+}
+
+/** Set when a request for written games was turned away, which does not end a run. */
+let turnedAway = false;
+
+/**
+ * Lichess asks whoever it turns away to wait a full minute before asking anything again. All
+ * of Bearing's chess jobs keep to that together: a refusal in one of them quiets every one of
+ * them for a few minutes, where before each simply tried again half a minute later and was
+ * turned away again.
+ */
+async function politely(ctx: ActionCtx, job: () => Promise<unknown>): Promise<void> {
+  const held: Record<string, string> = await ctx.runQuery(internal.ingest.digests, {
+    scope: "quiet",
+  });
+  if (Number(held["quiet:lichess"] ?? 0) > Date.now()) return;
+  turnedAway = false;
+  try {
+    await job();
+  } catch (error) {
+    if (!(error instanceof Refused)) throw error;
+    turnedAway = true;
+  }
+  if (turnedAway)
+    await ctx.runMutation(internal.ingest.put, {
+      digest: { key: "quiet:lichess", hash: String(Date.now() + 3 * 60_000) },
+    });
+}
+
 async function get<T>(path: string): Promise<T | null> {
   const response = await fetch(`${BASE}${path}`, {
     headers: { Accept: "application/json", "User-Agent": "Bearing (esports schedule viewer)" },
   });
-  if (response.status === 429) throw new Error("Lichess asked for a pause (429).");
+  if (response.status === 429) throw new Refused();
   if (!response.ok) return null;
   return (await response.json()) as T;
 }
@@ -54,6 +88,7 @@ async function written(roundId: string): Promise<string | null> {
   const response = await fetch(`${BASE}/round/${roundId}.pgn`, {
     headers: { "User-Agent": "Bearing (esports schedule viewer)" },
   }).catch(() => null);
+  if (response?.status === 429) turnedAway = true;
   if (!response || response.status === 429) return null;
   return response.ok ? response.text() : "";
 }
@@ -145,45 +180,47 @@ async function hand(ctx: ActionCtx, broadcast: LichessBroadcast) {
 export const sync = internalAction({
   args: {},
   handler: async (ctx) => {
-    if (!(await ctx.runQuery(internal.ingest.enabled, {}))) return;
-    const top = await get<Top>("/top?page=1");
-    const tours = [...(top?.active ?? []), ...(top?.upcoming ?? [])]
-      .map((entry) => entry.tour)
-      .filter((tour) => (tour.tier ?? 0) >= 4)
-      // The top of the game first; the tier below it only fills what room is left.
-      .sort((a, b) => (b.tier ?? 0) - (a.tier ?? 0))
-      .slice(0, TOURS);
-    const parts = new Map<string, string>();
-    const have: Record<string, string> = await ctx.runQuery(internal.ingest.digests, {
-      scope: "round2",
+    await politely(ctx, async () => {
+      if (!(await ctx.runQuery(internal.ingest.enabled, {}))) return;
+      const top = await get<Top>("/top?page=1");
+      const tours = [...(top?.active ?? []), ...(top?.upcoming ?? [])]
+        .map((entry) => entry.tour)
+        .filter((tour) => (tour.tier ?? 0) >= 4)
+        // The top of the game first; the tier below it only fills what room is left.
+        .sort((a, b) => (b.tier ?? 0) - (a.tier ?? 0))
+        .slice(0, TOURS);
+      const parts = new Map<string, string>();
+      const have: Record<string, string> = await ctx.runQuery(internal.ingest.digests, {
+        scope: "round2",
+      });
+      for (const tour of tours) {
+        const broadcast = await fetchBroadcast(tour.id, false, have);
+        if (!broadcast) continue;
+        await hand(ctx, broadcast);
+        if (broadcast.over.length)
+          await ctx.runMutation(internal.lichess.noteRounds, { ids: broadcast.over });
+        for (const part of broadcast.group?.tours ?? []) parts.set(part.id, tour.id);
+      }
+      // An event is often several broadcasts: its group stage, its semifinals, its final. The
+      // parts that are not among the leading broadcasts are read whole, a few a run, and one
+      // that is over is read once.
+      const chosen = new Set(tours.map((tour) => tour.id));
+      const known: Record<string, string> = await ctx.runQuery(internal.ingest.digests, {
+        scope: "tour",
+      });
+      let read = 0;
+      for (const id of parts.keys()) {
+        if (chosen.has(id) || known[`tour:${id}`] === "whole" || read >= PARTS_PER_RUN) continue;
+        read++;
+        const broadcast = await fetchBroadcast(id, true);
+        if (!broadcast) continue;
+        await hand(ctx, broadcast);
+        if (broadcast.rounds.length && broadcast.rounds.every((round) => round.finished))
+          await ctx.runMutation(internal.ingest.put, {
+            digest: { key: `tour:${id}`, hash: "whole" },
+          });
+      }
     });
-    for (const tour of tours) {
-      const broadcast = await fetchBroadcast(tour.id, false, have);
-      if (!broadcast) continue;
-      await hand(ctx, broadcast);
-      if (broadcast.over.length)
-        await ctx.runMutation(internal.lichess.noteRounds, { ids: broadcast.over });
-      for (const part of broadcast.group?.tours ?? []) parts.set(part.id, tour.id);
-    }
-    // An event is often several broadcasts: its group stage, its semifinals, its final. The
-    // parts that are not among the leading broadcasts are read whole, a few a run, and one
-    // that is over is read once.
-    const chosen = new Set(tours.map((tour) => tour.id));
-    const known: Record<string, string> = await ctx.runQuery(internal.ingest.digests, {
-      scope: "tour",
-    });
-    let read = 0;
-    for (const id of parts.keys()) {
-      if (chosen.has(id) || known[`tour:${id}`] === "whole" || read >= PARTS_PER_RUN) continue;
-      read++;
-      const broadcast = await fetchBroadcast(id, true);
-      if (!broadcast) continue;
-      await hand(ctx, broadcast);
-      if (broadcast.rounds.length && broadcast.rounds.every((round) => round.finished))
-        await ctx.runMutation(internal.ingest.put, {
-          digest: { key: `tour:${id}`, hash: "whole" },
-        });
-    }
   },
 });
 
@@ -191,13 +228,15 @@ export const sync = internalAction({
 export const refresh = internalAction({
   args: {},
   handler: async (ctx) => {
-    if (!(await ctx.runQuery(internal.ingest.enabled, {}))) return;
-    const liveTours = await ctx.runQuery(internal.lichess.liveTours, {});
-    for (const tourId of liveTours) {
-      const broadcast = await fetchBroadcast(tourId);
-      if (!broadcast) continue;
-      await hand(ctx, broadcast);
-    }
+    await politely(ctx, async () => {
+      if (!(await ctx.runQuery(internal.ingest.enabled, {}))) return;
+      const liveTours = await ctx.runQuery(internal.lichess.liveTours, {});
+      for (const tourId of liveTours) {
+        const broadcast = await fetchBroadcast(tourId);
+        if (!broadcast) continue;
+        await hand(ctx, broadcast);
+      }
+    });
   },
 });
 
@@ -423,35 +462,39 @@ export const faces = internalAction({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    if (!(await ctx.runQuery(internal.ingest.enabled, {}))) return null;
-    const wanted: string[] = await ctx.runQuery(internal.lichess.faceless, {});
-    for (const key of wanted) {
-      await pause(1000);
-      const response = await fetch(
-        `https://lichess.org/api/fide/player/${key.slice("fide-".length)}`,
-        {
-          headers: {
-            Accept: "application/json",
-            "User-Agent": "Bearing (esports schedule viewer)",
+    await politely(ctx, async () => {
+      if (!(await ctx.runQuery(internal.ingest.enabled, {}))) return null;
+      const wanted: string[] = await ctx.runQuery(internal.lichess.faceless, {});
+      for (const key of wanted) {
+        await pause(1000);
+        const response = await fetch(
+          `https://lichess.org/api/fide/player/${key.slice("fide-".length)}`,
+          {
+            headers: {
+              Accept: "application/json",
+              "User-Agent": "Bearing (esports schedule viewer)",
+            },
           },
-        },
-      ).catch(() => null);
-      // Told to slow down, or not answered: stop, and carry on another day.
-      if (!response || response.status === 429) return null;
-      const body = response.ok
-        ? ((await response.json().catch(() => null)) as {
-            photo?: { small?: string; credit?: string };
-          } | null)
-        : null;
-      await ctx.runMutation(internal.lichess.setFace, {
-        key,
-        image: body?.photo?.small,
-        credit: body?.photo?.credit,
-      });
-    }
-    // More may be waiting; a full run books the next.
-    if (wanted.length >= FACES_PER_RUN)
-      await ctx.scheduler.runAfter(30_000, internal.lichess.faces, {});
+        ).catch(() => null);
+        // Told to slow down, or not answered: stop, and carry on another day.
+        if (response?.status === 429) throw new Refused();
+        if (!response) return null;
+        const body = response.ok
+          ? ((await response.json().catch(() => null)) as {
+              photo?: { small?: string; credit?: string };
+            } | null)
+          : null;
+        await ctx.runMutation(internal.lichess.setFace, {
+          key,
+          image: body?.photo?.small,
+          credit: body?.photo?.credit,
+        });
+      }
+      // More may be waiting; a full run books the next.
+      if (wanted.length >= FACES_PER_RUN)
+        await ctx.scheduler.runAfter(30_000, internal.lichess.faces, {});
+      return null;
+    });
     return null;
   },
 });
