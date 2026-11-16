@@ -60,7 +60,7 @@ export const digests = internalQuery({
     const rows = await ctx.db
       .query("digests")
       .withIndex("by_key", (q) => q.gte("key", `${scope}:`).lt("key", `${scope}:\uffff`))
-      .take(500);
+      .take(4000);
     return Object.fromEntries(rows.map((r) => [r.key, r.hash]));
   },
 });

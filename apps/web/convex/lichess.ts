@@ -9,7 +9,14 @@ import {
 } from "@bearing/domain/lichess";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { internalAction, internalMutation, internalQuery } from "./_generated/server";
+import {
+  type ActionCtx,
+  type MutationCtx,
+  internalAction,
+  internalMutation,
+  internalQuery,
+} from "./_generated/server";
+import { fingerprint } from "./ingest";
 import { competitor, match, tournament } from "./validators";
 
 /**
@@ -94,6 +101,46 @@ async function fetchBroadcast(
   return { tour: detail.tour, rounds: detail.rounds, games, group: detail.group, over };
 }
 
+/**
+ * Hand a broadcast over to the store, and only what is new of it. What a function reads is
+ * what the plan counts: comparing every game of a round with the store every thirty seconds
+ * read far more than it ever wrote. So each game, the list of players and the event carry a
+ * fingerprint of what was last handed over, and a piece that matches its fingerprint stays
+ * where it is. The time of checking is renewed at most every half hour.
+ */
+async function hand(ctx: ActionCtx, broadcast: LichessBroadcast) {
+  const mapped = plain(mapBroadcast(broadcast, Date.now()));
+  const scope = `lichess-${broadcast.tour.id}`;
+  const held: Record<string, string> = await ctx.runQuery(internal.ingest.digests, { scope });
+  const fresh: { key: string; hash: string }[] = [];
+  const changed = (key: string, value: unknown) => {
+    const hash = fingerprint(value);
+    if (held[`${scope}:${key}`] === hash) return false;
+    fresh.push({ key: `${scope}:${key}`, hash });
+    return true;
+  };
+  const matches = mapped.matches.filter((m) => changed(`m:${m.id}`, m));
+  const people = changed("players", mapped.competitors);
+  const event = changed("event", { ...mapped.tournament, provenance: null });
+  const halfHour = String(Math.floor(Date.now() / (30 * 60_000)));
+  if (!matches.length && !people && !event) {
+    if (held[`${scope}:seen`] === halfHour) return;
+    await ctx.runMutation(internal.lichess.checked, {
+      key: mapped.tournament.id,
+      at: mapped.tournament.provenance.checkedAt,
+      note: { key: `${scope}:seen`, hash: halfHour },
+    });
+    return;
+  }
+  fresh.push({ key: `${scope}:seen`, hash: halfHour });
+  await ctx.runMutation(internal.lichess.store, {
+    tournament: mapped.tournament,
+    competitors: people ? mapped.competitors : [],
+    matches,
+    notes: fresh,
+  });
+}
+
 /** Every hour: the leading broadcasts, their rounds and the games of the rounds that matter now. */
 export const sync = internalAction({
   args: {},
@@ -113,7 +160,7 @@ export const sync = internalAction({
     for (const tour of tours) {
       const broadcast = await fetchBroadcast(tour.id, false, have);
       if (!broadcast) continue;
-      await ctx.runMutation(internal.lichess.store, plain(mapBroadcast(broadcast, Date.now())));
+      await hand(ctx, broadcast);
       if (broadcast.over.length)
         await ctx.runMutation(internal.lichess.noteRounds, { ids: broadcast.over });
       for (const part of broadcast.group?.tours ?? []) parts.set(part.id, tour.id);
@@ -131,7 +178,7 @@ export const sync = internalAction({
       read++;
       const broadcast = await fetchBroadcast(id, true);
       if (!broadcast) continue;
-      await ctx.runMutation(internal.lichess.store, plain(mapBroadcast(broadcast, Date.now())));
+      await hand(ctx, broadcast);
       if (broadcast.rounds.length && broadcast.rounds.every((round) => round.finished))
         await ctx.runMutation(internal.ingest.put, {
           digest: { key: `tour:${id}`, hash: "whole" },
@@ -149,7 +196,7 @@ export const refresh = internalAction({
     for (const tourId of liveTours) {
       const broadcast = await fetchBroadcast(tourId);
       if (!broadcast) continue;
-      await ctx.runMutation(internal.lichess.store, plain(mapBroadcast(broadcast, Date.now())));
+      await hand(ctx, broadcast);
     }
   },
 });
@@ -185,8 +232,11 @@ export const store = internalMutation({
     tournament,
     competitors: v.array(competitor),
     matches: v.array(match),
+    /** The fingerprints of what is handed over here, kept for the next time. */
+    notes: v.optional(v.array(v.object({ key: v.string(), hash: v.string() }))),
   },
   handler: async (ctx, args) => {
+    for (const note of args.notes ?? []) await remember(ctx, note);
     // Rewriting a row that has not changed would wake every screen for nothing.
     for (const doc of args.competitors) {
       const row = await ctx.db
@@ -224,8 +274,16 @@ export const store = internalMutation({
         ),
       })),
     };
+    // The time of checking differs on every run. Alone it is a reason to write only every
+    // half hour: the event is read by every open screen, and each write sends it to all of them.
+    const settled =
+      before && same({ ...before.doc, provenance: null }, { ...doc, provenance: null });
+    const recent =
+      before &&
+      Date.parse(doc.provenance.checkedAt) - Date.parse(before.doc.provenance.checkedAt) <
+        30 * 60_000;
     if (!before) await ctx.db.insert("tournaments", { key: doc.id, doc });
-    else if (!same(before.doc, doc)) await ctx.db.patch("tournaments", before._id, { doc });
+    else if (!(settled && recent)) await ctx.db.patch("tournaments", before._id, { doc });
 
     for (const m of args.matches) {
       const row = await ctx.db
@@ -257,6 +315,37 @@ export const store = internalMutation({
  * better known a photograph with the name of who took it and its licence. Each player is asked
  * about once; the strongest first, a few dozen a run, one request at a time.
  */
+async function remember(ctx: MutationCtx, note: { key: string; hash: string }) {
+  const row = await ctx.db
+    .query("digests")
+    .withIndex("by_key", (q) => q.eq("key", note.key))
+    .first();
+  if (!row) await ctx.db.insert("digests", note);
+  else if (row.hash !== note.hash) await ctx.db.patch("digests", row._id, { hash: note.hash });
+}
+
+/** Nothing new, but looked at: the event says when its facts were last confirmed. */
+export const checked = internalMutation({
+  args: {
+    key: v.string(),
+    at: v.string(),
+    note: v.object({ key: v.string(), hash: v.string() }),
+  },
+  returns: v.null(),
+  handler: async (ctx, { key, at, note }) => {
+    await remember(ctx, note);
+    const row = await ctx.db
+      .query("tournaments")
+      .withIndex("by_key", (q) => q.eq("key", key))
+      .first();
+    if (row)
+      await ctx.db.patch("tournaments", row._id, {
+        doc: { ...row.doc, provenance: { ...row.doc.provenance, checkedAt: at } },
+      });
+    return null;
+  },
+});
+
 /** Remember rounds that are over and stored, so that they are not asked for again. */
 export const noteRounds = internalMutation({
   args: { ids: v.array(v.string()) },
