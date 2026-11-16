@@ -150,7 +150,7 @@ export class Atlas {
   stints(teamId: string): Stint[] {
     return this.world.stints
       .filter((s) => s.teamId === teamId)
-      .sort((a, b) => a.from.localeCompare(b.from));
+      .sort((a, b) => (a.from ?? "").localeCompare(b.from ?? ""));
   }
 
   roster(teamId: string): { stint: Stint; player: Player }[] {
@@ -175,7 +175,7 @@ export class Atlas {
   colors(id: string | null | undefined) {
     const c = this.competitor(id);
     if (!c) return { primary: "#6b6b70", secondary: "#2a2a2e" };
-    if (c.kind === "team") return c.colors;
+    if (c.kind === "team" && c.colors) return c.colors;
     return (
       c.colors ?? { primary: this.discipline(c.discipline).palette.accent, secondary: "#1a1a1e" }
     );

@@ -50,7 +50,7 @@ const team = v.object({
   short: text,
   region: text,
   country: maybeText,
-  colors,
+  colors: v.optional(colors),
   founded: maybeText,
 });
 
@@ -75,7 +75,7 @@ export const stint = v.object({
   playerId: text,
   teamId: text,
   role: text,
-  from: text,
+  from: maybeText,
   to: maybeText,
   note: maybeText,
 });
@@ -118,7 +118,7 @@ export const tournament = v.object({
   start: text,
   end: text,
   prize: v.optional(v.object({ amount: v.number(), currency: text })),
-  colors,
+  colors: v.optional(colors),
   participantIds: v.array(text),
   stages: v.array(stage),
   provenance,

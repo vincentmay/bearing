@@ -55,11 +55,14 @@ export function Stops({ view, stops }: { view: MatchView; stops: Stop[] }) {
   return (
     <div className="bx-stops" style={{ gridTemplateColumns: columns }}>
       {stops.map((s, i) => {
-        const g = s.game;
+        // The stop opens into its detail only when the inside of the game is known.
+        const inside =
+          s.game && (s.game.rounds || s.game.events || s.game.cup) ? s.game : undefined;
+        const g = inside;
         const cls = [
           "bx-stop",
           `bx-stop-${s.kind}`,
-          s.kind === "now" && d === "chess" && "bx-stop-tight",
+          s.kind === "now" && !inside && "bx-stop-tight",
           i === stops.length - 1 && s.kind !== "end" && "bx-stop-last",
         ]
           .filter(Boolean)
@@ -179,6 +182,22 @@ export function GameRow({
           <span className="bx-sub bx-mono">
             {d === "cs2" ? `${unit} · ` : ""}
             {toCome(view, index)}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  // Only the result of the game is known, not what happened in it.
+  if (!game.rounds && !game.events && !game.scores && !game.chess && !game.cup) {
+    const length = game.clock ? ` · ${Math.round(game.clock / 60)} min` : "";
+    return (
+      <div className="bx-game">
+        <div className="bx-gamehead">
+          <b>{game.label}</b>
+          <span className="bx-sub bx-mono">
+            {live ? "being played" : winner ? `${winner} won${length}` : "played"}
+            {game.detail ? ` · ${game.detail}` : ""}
           </span>
         </div>
       </div>

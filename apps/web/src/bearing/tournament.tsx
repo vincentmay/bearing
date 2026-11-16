@@ -37,8 +37,9 @@ function StageDrawing({
       </div>
     );
   }
-  if (stage.format === "rounds") {
-    // Known only as rounds and their pairings: the latest round with games first.
+  // A list of rounds: for a stage known only as its pairings, and for double elimination,
+  // which has no drawing of its own yet. The latest round with games comes first.
+  if (stage.format === "rounds" || stage.format === "double-elim") {
     const rounds = stage.rounds.filter((r) => r.matchIds.length).reverse();
     return (
       <>

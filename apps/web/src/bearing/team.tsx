@@ -83,7 +83,8 @@ function History({
   side: SideView;
   now: number;
 }) {
-  const stints = atlas.stints(team.id);
+  // Only stints with a known start can be put on a line of time.
+  const stints = atlas.stints(team.id).filter((s): s is typeof s & { from: string } => !!s.from);
   if (!stints.length) return null;
   const start = Math.min(...stints.map((s) => Date.parse(s.from)));
   const span = Math.max(1, now - start);
@@ -150,6 +151,8 @@ function Maps({ all, team, side }: { all: Match[]; team: Team; side: SideView })
     const index = m.sides.findIndex((s) => s.competitorId === team.id);
     for (const g of m.games) {
       if (g.status !== "finished" || typeof g.winner !== "number") continue;
+      // "Map 2" is a position in a series, not a map: where the name is not known, say nothing.
+      if (/^Map \d+$/.test(g.label)) continue;
       const list = maps.get(g.label) ?? [];
       list.push(g.winner === index ? { k: "won", side: 0, label: "Won" } : { k: "open" });
       maps.set(g.label, list);
@@ -289,7 +292,7 @@ export function TeamPage({ teamId }: { teamId: string }) {
                       <span className="bx-sub">{player.name || countryName(player.country)}</span>
                     </span>
                     <span>{stint.role}</span>
-                    <span>{stint.from.slice(0, 4)}</span>
+                    <span>{stint.from?.slice(0, 4) ?? ""}</span>
                   </Go>
                 ))}
               </div>

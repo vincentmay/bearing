@@ -82,6 +82,7 @@ await narrow.addInitScript(keepLocal);
 for (const [name, path] of PAGES) {
   await narrow.goto(base + path, { waitUntil: "networkidle" });
   await narrow.waitForSelector(".bx-nav");
+  await narrow.evaluate(() => document.fonts.ready);
   const overflow = await narrow.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth + 1,
   );

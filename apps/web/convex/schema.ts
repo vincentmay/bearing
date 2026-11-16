@@ -40,7 +40,7 @@ export default defineSchema({
   disciplines: defineTable({ doc: discipline }),
   organizations: defineTable({ doc: organization }),
   rankings: defineTable({ doc: ranking }),
-  stints: defineTable({ doc: stint }),
+  stints: defineTable({ key: v.string(), doc: stint }).index("by_key", ["key"]),
   competitors: defineTable({ key: v.string(), doc: competitor }).index("by_key", ["key"]),
   tournaments: defineTable({ key: v.string(), doc: tournament }).index("by_key", ["key"]),
   matches: defineTable({

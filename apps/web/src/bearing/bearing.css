@@ -1061,6 +1061,8 @@ body {
   display: grid;
   grid-template-rows: auto 1fr;
   row-gap: 10px;
+  /* Whatever a column cannot hold is cut at the bracket's edge, never pushed past the page. */
+  overflow-x: clip;
 }
 .bx-bracket > .bx-label {
   grid-row: 1;

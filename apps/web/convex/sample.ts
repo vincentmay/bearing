@@ -143,7 +143,7 @@ export const fill = internalMutation({
     for (const doc of args.disciplines ?? []) await ctx.db.insert("disciplines", { doc });
     for (const doc of args.organizations ?? []) await ctx.db.insert("organizations", { doc });
     for (const doc of args.rankings ?? []) await ctx.db.insert("rankings", { doc });
-    for (const doc of args.stints ?? []) await ctx.db.insert("stints", { doc });
+    for (const doc of args.stints ?? []) await ctx.db.insert("stints", { key: doc.id, doc });
     for (const doc of args.competitors ?? [])
       await ctx.db.insert("competitors", { key: doc.id, doc });
     for (const doc of args.tournaments ?? [])
@@ -172,7 +172,11 @@ export const ready = internalMutation({
     if (watch) await ctx.db.patch("watch", watch._id, state);
     else await ctx.db.insert("watch", state);
     if (running) await ctx.scheduler.runAfter(BEAT, internal.sample.beat, { generation });
-    else await ctx.scheduler.runAfter(0, internal.lichess.sync, {});
+    else {
+      // On real data: read every source once now; after that the cron jobs take over.
+      await ctx.scheduler.runAfter(0, internal.lichess.sync, {});
+      await ctx.scheduler.runAfter(0, internal.pandascore.syncAll, {});
+    }
   },
 });
 
@@ -235,8 +239,7 @@ export const reset = internalMutation({
 });
 
 /**
- * Empty the store, keep only the list of games, and let the real sources fill it. Until a
- * second source exists that means chess only.
+ * Empty the store, keep only the list of games, and let the real sources fill it.
  *
  *     npx convex run sample:useLive
  */

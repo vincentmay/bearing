@@ -10,6 +10,8 @@ import { until } from "./time";
 import { Disc, DotRows, Dots, Duo, Mark, Ping, Score, Section, Tick, useReady } from "./ui";
 
 const SIX_HOURS = 6 * 60 * 60 * 1000;
+/** How many other live matches Today lists before it points to the schedule. */
+const LIVE_ROWS = 6;
 
 function Name({ text, long }: { text: string; long: boolean }) {
   return (
@@ -83,7 +85,8 @@ export function LeadCard({
           </span>
         </div>
       )}
-      {wide && !scheduled && !view.solo ? null : (
+      {/* With room the stops say what this line says; a single game has no stops. */}
+      {wide && !scheduled && !view.solo && view.match.bestOf > 1 ? null : (
         <div className="bx-subs">
           {scheduled ? (
             <>
@@ -292,10 +295,16 @@ export function Today() {
           {alsoLive.length ? (
             <Section label="Also live">
               <div className="bx-list">
-                {alsoLive.map((m) => (
+                {alsoLive.slice(0, LIVE_ROWS).map((m) => (
                   <ResultRow key={m.id} view={board.view(m)} />
                 ))}
               </div>
+              {alsoLive.length > LIVE_ROWS ? (
+                <p className="bx-note">
+                  And {alsoLive.length - LIVE_ROWS} more being played.{" "}
+                  <Link to="/schedule">All of today</Link>
+                </p>
+              ) : null}
             </Section>
           ) : null}
           {wide ? null : nextList}

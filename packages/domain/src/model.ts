@@ -47,7 +47,8 @@ export interface Team {
   region: string;
   /** ISO 3166-1 alpha-2, when the team has a home country. */
   country?: string;
-  colors: Colors;
+  /** Absent when no colours are known for the team; it is then drawn in ink. */
+  colors?: Colors;
   founded?: string;
 }
 
@@ -68,13 +69,16 @@ export interface Player {
 
 export type Competitor = Team | Player;
 
-/** A player's time on a team. Open-ended when `to` is absent. */
+/**
+ * A player's time on a team. Open-ended when `to` is absent. `from` is absent when the source
+ * says who is in the team but not since when.
+ */
 export interface Stint {
   id: string;
   playerId: string;
   teamId: string;
   role: string;
-  from: string;
+  from?: string;
   to?: string;
   note?: string;
 }
@@ -133,7 +137,8 @@ export interface Tournament {
   start: string;
   end: string;
   prize?: { amount: number; currency: string };
-  colors: Colors;
+  /** Not shown anywhere: on a page the only colour belongs to a team or a player. */
+  colors?: Colors;
   participantIds: string[];
   stages: Stage[];
   provenance: Provenance;

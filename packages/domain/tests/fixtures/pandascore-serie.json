@@ -1,0 +1,3673 @@
+{
+  "league": {
+    "id": 5386,
+    "name": "BLAST Rivals"
+  },
+  "serie": {
+    "id": 11137,
+    "full_name": "Fall 2026",
+    "begin_at": "2026-11-11T02:00:00Z",
+    "end_at": "2026-11-15T11:00:00Z"
+  },
+  "tournaments": [
+    {
+      "id": 22271,
+      "name": "Playoffs",
+      "type": "offline",
+      "country": "HK",
+      "begin_at": "2026-11-13T07:00:00Z",
+      "end_at": "2026-11-15T11:00:00Z",
+      "winner_id": 124530,
+      "winner_type": "Team",
+      "teams": [
+        {
+          "id": 3210,
+          "name": "G2",
+          "location": "DE",
+          "acronym": "G2"
+        },
+        {
+          "id": 3240,
+          "name": "MOUZ",
+          "location": "DE",
+          "acronym": "MOUZ"
+        },
+        {
+          "id": 3455,
+          "name": "Vitality",
+          "location": "FR",
+          "acronym": "VIT"
+        },
+        {
+          "id": 124523,
+          "name": "Spirit",
+          "location": "RU",
+          "acronym": "TS"
+        },
+        {
+          "id": 124530,
+          "name": "FURIA",
+          "location": "BR",
+          "acronym": "FURIA"
+        },
+        {
+          "id": 130564,
+          "name": "Team Falcons",
+          "location": "SA",
+          "acronym": "FAL"
+        }
+      ],
+      "serie_id": 11137,
+      "region": "ASIA",
+      "league_id": 5386,
+      "prizepool": "1,000,000 United States Dollar",
+      "tier": "s",
+      "has_bracket": true,
+      "live_supported": true
+    },
+    {
+      "id": 22270,
+      "name": "Group B",
+      "type": "offline",
+      "country": "HK",
+      "begin_at": "2026-11-11T06:30:00Z",
+      "end_at": "2026-11-12T13:45:00Z",
+      "winner_id": 124523,
+      "winner_type": "Team",
+      "teams": [
+        {
+          "id": 3210,
+          "name": "G2",
+          "location": "DE",
+          "acronym": "G2"
+        },
+        {
+          "id": 3240,
+          "name": "MOUZ",
+          "location": "DE",
+          "acronym": "MOUZ"
+        },
+        {
+          "id": 124523,
+          "name": "Spirit",
+          "location": "RU",
+          "acronym": "TS"
+        },
+        {
+          "id": 136955,
+          "name": "FUT Esports",
+          "location": "TR",
+          "acronym": "FUT"
+        }
+      ],
+      "serie_id": 11137,
+      "region": "ASIA",
+      "league_id": 5386,
+      "prizepool": null,
+      "tier": "s",
+      "has_bracket": true,
+      "live_supported": true
+    },
+    {
+      "id": 22269,
+      "name": "Group A",
+      "type": "offline",
+      "country": "HK",
+      "begin_at": "2026-11-11T02:00:00Z",
+      "end_at": "2026-11-12T06:46:00Z",
+      "winner_id": 124530,
+      "winner_type": "Team",
+      "teams": [
+        {
+          "id": 3455,
+          "name": "Vitality",
+          "location": "FR",
+          "acronym": "VIT"
+        },
+        {
+          "id": 124530,
+          "name": "FURIA",
+          "location": "BR",
+          "acronym": "FURIA"
+        },
+        {
+          "id": 130564,
+          "name": "Team Falcons",
+          "location": "SA",
+          "acronym": "FAL"
+        },
+        {
+          "id": 133708,
+          "name": "Legacy",
+          "location": "BR",
+          "acronym": "LGC"
+        }
+      ],
+      "serie_id": 11137,
+      "region": "ASIA",
+      "league_id": 5386,
+      "prizepool": null,
+      "tier": "s",
+      "has_bracket": true,
+      "live_supported": true
+    }
+  ],
+  "matches": [
+    {
+      "number_of_games": 3,
+      "opponents": [
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 133708,
+            "name": "Legacy",
+            "location": "BR",
+            "acronym": "LGC"
+          }
+        },
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 124530,
+            "name": "FURIA",
+            "location": "BR",
+            "acronym": "FURIA"
+          }
+        }
+      ],
+      "scheduled_at": "2026-11-11T02:00:00Z",
+      "winner_id": 124530,
+      "league_id": 5386,
+      "streams_list": [
+        {
+          "main": false,
+          "language": "uk",
+          "official": false,
+          "raw_url": "https://www.youtube.com/watch?v=rrX7LhYzf2w"
+        }
+      ],
+      "end_at": "2026-11-11T04:04:14Z",
+      "begin_at": "2026-11-11T02:02:16Z",
+      "serie_id": 11137,
+      "games": [
+        {
+          "complete": true,
+          "id": 236661,
+          "position": 1,
+          "status": "finished",
+          "length": 3689,
+          "finished": true,
+          "begin_at": "2026-11-11T02:02:16Z",
+          "end_at": "2026-11-11T03:03:46Z",
+          "forfeit": false,
+          "match_id": 1762450,
+          "winner_type": "Team",
+          "winner": {
+            "id": 124530,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236662,
+          "position": 2,
+          "status": "finished",
+          "length": 2572,
+          "finished": true,
+          "begin_at": "2026-11-11T03:21:22Z",
+          "end_at": "2026-11-11T04:04:15Z",
+          "forfeit": false,
+          "match_id": 1762450,
+          "winner_type": "Team",
+          "winner": {
+            "id": 124530,
+            "type": "Team"
+          }
+        }
+      ],
+      "draw": false,
+      "status": "finished",
+      "forfeit": false,
+      "results": [
+        {
+          "team_id": 133708,
+          "score": 0
+        },
+        {
+          "team_id": 124530,
+          "score": 2
+        }
+      ],
+      "match_type": "best_of",
+      "winner_type": "Team",
+      "id": 1762450,
+      "name": "LGC vs FURIA",
+      "tournament_id": 22269
+    },
+    {
+      "number_of_games": 3,
+      "opponents": [
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 3455,
+            "name": "Vitality",
+            "location": "FR",
+            "acronym": "VIT"
+          }
+        },
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 130564,
+            "name": "Team Falcons",
+            "location": "SA",
+            "acronym": "FAL"
+          }
+        }
+      ],
+      "scheduled_at": "2026-11-11T04:15:00Z",
+      "winner_id": 3455,
+      "league_id": 5386,
+      "streams_list": [
+        {
+          "main": false,
+          "language": "de",
+          "official": false,
+          "raw_url": "https://www.twitch.tv/zonixxcs"
+        }
+      ],
+      "end_at": "2026-11-11T06:18:33Z",
+      "begin_at": "2026-11-11T04:18:50Z",
+      "serie_id": 11137,
+      "games": [
+        {
+          "complete": true,
+          "id": 236664,
+          "position": 1,
+          "status": "finished",
+          "length": 3159,
+          "finished": true,
+          "begin_at": "2026-11-11T04:18:51Z",
+          "end_at": "2026-11-11T05:11:30Z",
+          "forfeit": false,
+          "match_id": 1762451,
+          "winner_type": "Team",
+          "winner": {
+            "id": 3455,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236665,
+          "position": 2,
+          "status": "finished",
+          "length": 2974,
+          "finished": true,
+          "begin_at": "2026-11-11T05:28:59Z",
+          "end_at": "2026-11-11T06:18:34Z",
+          "forfeit": false,
+          "match_id": 1762451,
+          "winner_type": "Team",
+          "winner": {
+            "id": 3455,
+            "type": "Team"
+          }
+        }
+      ],
+      "draw": false,
+      "status": "finished",
+      "forfeit": false,
+      "results": [
+        {
+          "team_id": 3455,
+          "score": 2
+        },
+        {
+          "team_id": 130564,
+          "score": 0
+        }
+      ],
+      "match_type": "best_of",
+      "winner_type": "Team",
+      "id": 1762451,
+      "name": "VIT vs FAL",
+      "tournament_id": 22269
+    },
+    {
+      "number_of_games": 3,
+      "opponents": [
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 124523,
+            "name": "Spirit",
+            "location": "RU",
+            "acronym": "TS"
+          }
+        },
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 136955,
+            "name": "FUT Esports",
+            "location": "TR",
+            "acronym": "FUT"
+          }
+        }
+      ],
+      "scheduled_at": "2026-11-11T06:30:00Z",
+      "winner_id": 124523,
+      "league_id": 5386,
+      "streams_list": [
+        {
+          "main": false,
+          "language": "en",
+          "official": false,
+          "raw_url": "https://www.youtube.com/watch?v=gSL0kbwMusY"
+        }
+      ],
+      "end_at": "2026-11-11T09:16:22Z",
+      "begin_at": "2026-11-11T06:32:18Z",
+      "serie_id": 11137,
+      "games": [
+        {
+          "complete": true,
+          "id": 236673,
+          "position": 1,
+          "status": "finished",
+          "length": 3375,
+          "finished": true,
+          "begin_at": "2026-11-11T06:32:18Z",
+          "end_at": "2026-11-11T07:28:34Z",
+          "forfeit": false,
+          "match_id": 1762459,
+          "winner_type": "Team",
+          "winner": {
+            "id": 124523,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236674,
+          "position": 2,
+          "status": "finished",
+          "length": 1964,
+          "finished": true,
+          "begin_at": "2026-11-11T07:47:15Z",
+          "end_at": "2026-11-11T08:20:00Z",
+          "forfeit": false,
+          "match_id": 1762459,
+          "winner_type": "Team",
+          "winner": {
+            "id": 136955,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236675,
+          "position": 3,
+          "status": "finished",
+          "length": 2206,
+          "finished": true,
+          "begin_at": "2026-11-11T08:39:36Z",
+          "end_at": "2026-11-11T09:16:23Z",
+          "forfeit": false,
+          "match_id": 1762459,
+          "winner_type": "Team",
+          "winner": {
+            "id": 124523,
+            "type": "Team"
+          }
+        }
+      ],
+      "draw": false,
+      "status": "finished",
+      "forfeit": false,
+      "results": [
+        {
+          "team_id": 124523,
+          "score": 2
+        },
+        {
+          "team_id": 136955,
+          "score": 1
+        }
+      ],
+      "match_type": "best_of",
+      "winner_type": "Team",
+      "id": 1762459,
+      "name": "TS vs FUT",
+      "tournament_id": 22270
+    },
+    {
+      "number_of_games": 3,
+      "opponents": [
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 3240,
+            "name": "MOUZ",
+            "location": "DE",
+            "acronym": "MOUZ"
+          }
+        },
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 3210,
+            "name": "G2",
+            "location": "DE",
+            "acronym": "G2"
+          }
+        }
+      ],
+      "scheduled_at": "2026-11-11T09:30:00Z",
+      "winner_id": 3210,
+      "league_id": 5386,
+      "streams_list": [
+        {
+          "main": false,
+          "language": "fr",
+          "official": false,
+          "raw_url": "https://www.twitch.tv/krl_stream"
+        }
+      ],
+      "end_at": "2026-11-11T12:47:53Z",
+      "begin_at": "2026-11-11T09:36:33Z",
+      "serie_id": 11137,
+      "games": [
+        {
+          "complete": true,
+          "id": 236676,
+          "position": 1,
+          "status": "finished",
+          "length": 2505,
+          "finished": true,
+          "begin_at": "2026-11-11T09:36:33Z",
+          "end_at": "2026-11-11T10:18:19Z",
+          "forfeit": false,
+          "match_id": 1762460,
+          "winner_type": "Team",
+          "winner": {
+            "id": 3240,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236677,
+          "position": 2,
+          "status": "finished",
+          "length": 3766,
+          "finished": true,
+          "begin_at": "2026-11-11T10:37:31Z",
+          "end_at": "2026-11-11T11:40:18Z",
+          "forfeit": false,
+          "match_id": 1762460,
+          "winner_type": "Team",
+          "winner": {
+            "id": 3210,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236678,
+          "position": 3,
+          "status": "finished",
+          "length": 2958,
+          "finished": true,
+          "begin_at": "2026-11-11T11:58:35Z",
+          "end_at": "2026-11-11T12:47:53Z",
+          "forfeit": false,
+          "match_id": 1762460,
+          "winner_type": "Team",
+          "winner": {
+            "id": 3210,
+            "type": "Team"
+          }
+        }
+      ],
+      "draw": false,
+      "status": "finished",
+      "forfeit": false,
+      "results": [
+        {
+          "team_id": 3240,
+          "score": 1
+        },
+        {
+          "team_id": 3210,
+          "score": 2
+        }
+      ],
+      "match_type": "best_of",
+      "winner_type": "Team",
+      "id": 1762460,
+      "name": "MOUZ vs G2",
+      "tournament_id": 22270
+    },
+    {
+      "number_of_games": 3,
+      "opponents": [
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 133708,
+            "name": "Legacy",
+            "location": "BR",
+            "acronym": "LGC"
+          }
+        },
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 130564,
+            "name": "Team Falcons",
+            "location": "SA",
+            "acronym": "FAL"
+          }
+        }
+      ],
+      "scheduled_at": "2026-11-12T02:00:00Z",
+      "winner_id": 130564,
+      "league_id": 5386,
+      "streams_list": [
+        {
+          "main": false,
+          "language": "en",
+          "official": false,
+          "raw_url": "https://www.youtube.com/watch?v=MGSs70BjxLY"
+        }
+      ],
+      "end_at": "2026-11-12T03:49:52Z",
+      "begin_at": "2026-11-12T02:01:06Z",
+      "serie_id": 11137,
+      "games": [
+        {
+          "complete": true,
+          "id": 236667,
+          "position": 1,
+          "status": "finished",
+          "length": 2925,
+          "finished": true,
+          "begin_at": "2026-11-12T02:01:06Z",
+          "end_at": "2026-11-12T02:49:52Z",
+          "forfeit": false,
+          "match_id": 1762452,
+          "winner_type": "Team",
+          "winner": {
+            "id": 130564,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236668,
+          "position": 2,
+          "status": "finished",
+          "length": 2373,
+          "finished": true,
+          "begin_at": "2026-11-12T03:10:19Z",
+          "end_at": "2026-11-12T03:49:53Z",
+          "forfeit": false,
+          "match_id": 1762452,
+          "winner_type": "Team",
+          "winner": {
+            "id": 130564,
+            "type": "Team"
+          }
+        }
+      ],
+      "draw": false,
+      "status": "finished",
+      "forfeit": false,
+      "results": [
+        {
+          "team_id": 133708,
+          "score": 0
+        },
+        {
+          "team_id": 130564,
+          "score": 2
+        }
+      ],
+      "match_type": "best_of",
+      "winner_type": "Team",
+      "id": 1762452,
+      "name": "Elimination Match: LGC vs FAL",
+      "tournament_id": 22269
+    },
+    {
+      "number_of_games": 3,
+      "opponents": [
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 124530,
+            "name": "FURIA",
+            "location": "BR",
+            "acronym": "FURIA"
+          }
+        },
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 3455,
+            "name": "Vitality",
+            "location": "FR",
+            "acronym": "VIT"
+          }
+        }
+      ],
+      "scheduled_at": "2026-11-12T04:00:00Z",
+      "winner_id": 124530,
+      "league_id": 5386,
+      "streams_list": [
+        {
+          "main": false,
+          "language": "ru",
+          "official": false,
+          "raw_url": "https://www.twitch.tv/shadowkekw"
+        }
+      ],
+      "end_at": "2026-11-12T06:46:56Z",
+      "begin_at": "2026-11-12T04:07:32Z",
+      "serie_id": 11137,
+      "games": [
+        {
+          "complete": true,
+          "id": 236670,
+          "position": 1,
+          "status": "finished",
+          "length": 2413,
+          "finished": true,
+          "begin_at": "2026-11-12T04:07:32Z",
+          "end_at": "2026-11-12T04:47:46Z",
+          "forfeit": false,
+          "match_id": 1762453,
+          "winner_type": "Team",
+          "winner": {
+            "id": 3455,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236671,
+          "position": 2,
+          "status": "finished",
+          "length": 3134,
+          "finished": true,
+          "begin_at": "2026-11-12T05:08:04Z",
+          "end_at": "2026-11-12T06:00:18Z",
+          "forfeit": false,
+          "match_id": 1762453,
+          "winner_type": "Team",
+          "winner": {
+            "id": 124530,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236672,
+          "position": 3,
+          "status": "finished",
+          "length": 1578,
+          "finished": true,
+          "begin_at": "2026-11-12T06:20:38Z",
+          "end_at": "2026-11-12T06:46:57Z",
+          "forfeit": false,
+          "match_id": 1762453,
+          "winner_type": "Team",
+          "winner": {
+            "id": 124530,
+            "type": "Team"
+          }
+        }
+      ],
+      "draw": false,
+      "status": "finished",
+      "forfeit": false,
+      "results": [
+        {
+          "team_id": 124530,
+          "score": 2
+        },
+        {
+          "team_id": 3455,
+          "score": 1
+        }
+      ],
+      "match_type": "best_of",
+      "winner_type": "Team",
+      "id": 1762453,
+      "name": "Winners Match: FURIA vs VIT",
+      "tournament_id": 22269
+    },
+    {
+      "number_of_games": 3,
+      "opponents": [
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 136955,
+            "name": "FUT Esports",
+            "location": "TR",
+            "acronym": "FUT"
+          }
+        },
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 3240,
+            "name": "MOUZ",
+            "location": "DE",
+            "acronym": "MOUZ"
+          }
+        }
+      ],
+      "scheduled_at": "2026-11-12T07:00:00Z",
+      "winner_id": 3240,
+      "league_id": 5386,
+      "streams_list": [
+        {
+          "main": false,
+          "language": "en",
+          "official": false,
+          "raw_url": "https://www.youtube.com/watch?v=MGSs70BjxLY"
+        }
+      ],
+      "end_at": "2026-11-12T10:32:43Z",
+      "begin_at": "2026-11-12T06:59:20Z",
+      "serie_id": 11137,
+      "games": [
+        {
+          "complete": true,
+          "id": 236679,
+          "position": 1,
+          "status": "finished",
+          "length": 4518,
+          "finished": true,
+          "begin_at": "2026-11-12T06:59:20Z",
+          "end_at": "2026-11-12T08:14:39Z",
+          "forfeit": false,
+          "match_id": 1762461,
+          "winner_type": "Team",
+          "winner": {
+            "id": 136955,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236680,
+          "position": 2,
+          "status": "finished",
+          "length": 3768,
+          "finished": true,
+          "begin_at": "2026-11-12T08:33:16Z",
+          "end_at": "2026-11-12T09:36:05Z",
+          "forfeit": false,
+          "match_id": 1762461,
+          "winner_type": "Team",
+          "winner": {
+            "id": 3240,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236681,
+          "position": 3,
+          "status": "finished",
+          "length": 2185,
+          "finished": true,
+          "begin_at": "2026-11-12T09:56:18Z",
+          "end_at": "2026-11-12T10:32:44Z",
+          "forfeit": false,
+          "match_id": 1762461,
+          "winner_type": "Team",
+          "winner": {
+            "id": 3240,
+            "type": "Team"
+          }
+        }
+      ],
+      "draw": false,
+      "status": "finished",
+      "forfeit": false,
+      "results": [
+        {
+          "team_id": 136955,
+          "score": 1
+        },
+        {
+          "team_id": 3240,
+          "score": 2
+        }
+      ],
+      "match_type": "best_of",
+      "winner_type": "Team",
+      "id": 1762461,
+      "name": "Elimination Match: FUT vs MOUZ",
+      "tournament_id": 22270
+    },
+    {
+      "number_of_games": 3,
+      "opponents": [
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 124523,
+            "name": "Spirit",
+            "location": "RU",
+            "acronym": "TS"
+          }
+        },
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 3210,
+            "name": "G2",
+            "location": "DE",
+            "acronym": "G2"
+          }
+        }
+      ],
+      "scheduled_at": "2026-11-12T10:50:00Z",
+      "winner_id": 124523,
+      "league_id": 5386,
+      "streams_list": [
+        {
+          "main": false,
+          "language": "en",
+          "official": false,
+          "raw_url": "https://www.youtube.com/watch?v=MGSs70BjxLY"
+        }
+      ],
+      "end_at": "2026-11-12T13:45:10Z",
+      "begin_at": "2026-11-12T10:44:33Z",
+      "serie_id": 11137,
+      "games": [
+        {
+          "complete": true,
+          "id": 236682,
+          "position": 1,
+          "status": "finished",
+          "length": 2915,
+          "finished": true,
+          "begin_at": "2026-11-12T10:44:33Z",
+          "end_at": "2026-11-12T11:33:08Z",
+          "forfeit": false,
+          "match_id": 1762462,
+          "winner_type": "Team",
+          "winner": {
+            "id": 3210,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236683,
+          "position": 2,
+          "status": "finished",
+          "length": 2419,
+          "finished": true,
+          "begin_at": "2026-11-12T11:52:40Z",
+          "end_at": "2026-11-12T12:32:59Z",
+          "forfeit": false,
+          "match_id": 1762462,
+          "winner_type": "Team",
+          "winner": {
+            "id": 124523,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236684,
+          "position": 3,
+          "status": "finished",
+          "length": 2324,
+          "finished": true,
+          "begin_at": "2026-11-12T13:06:26Z",
+          "end_at": "2026-11-12T13:45:11Z",
+          "forfeit": false,
+          "match_id": 1762462,
+          "winner_type": "Team",
+          "winner": {
+            "id": 124523,
+            "type": "Team"
+          }
+        }
+      ],
+      "draw": false,
+      "status": "finished",
+      "forfeit": false,
+      "results": [
+        {
+          "team_id": 124523,
+          "score": 2
+        },
+        {
+          "team_id": 3210,
+          "score": 1
+        }
+      ],
+      "match_type": "best_of",
+      "winner_type": "Team",
+      "id": 1762462,
+      "name": "Winners Match: TS vs G2",
+      "tournament_id": 22270
+    },
+    {
+      "number_of_games": 3,
+      "opponents": [
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 3455,
+            "name": "Vitality",
+            "location": "FR",
+            "acronym": "VIT"
+          }
+        },
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 3240,
+            "name": "MOUZ",
+            "location": "DE",
+            "acronym": "MOUZ"
+          }
+        }
+      ],
+      "scheduled_at": "2026-11-13T08:00:00Z",
+      "winner_id": 3240,
+      "league_id": 5386,
+      "streams_list": [
+        {
+          "main": false,
+          "language": "fr",
+          "official": false,
+          "raw_url": "https://www.twitch.tv/krl_stream"
+        }
+      ],
+      "end_at": "2026-11-13T10:09:24Z",
+      "begin_at": "2026-11-13T08:03:22Z",
+      "serie_id": 11137,
+      "games": [
+        {
+          "complete": true,
+          "id": 236644,
+          "position": 1,
+          "status": "finished",
+          "length": 2748,
+          "finished": true,
+          "begin_at": "2026-11-13T08:03:22Z",
+          "end_at": "2026-11-13T08:49:11Z",
+          "forfeit": false,
+          "match_id": 1762445,
+          "winner_type": "Team",
+          "winner": {
+            "id": 3240,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236645,
+          "position": 2,
+          "status": "finished",
+          "length": 3780,
+          "finished": true,
+          "begin_at": "2026-11-13T09:06:24Z",
+          "end_at": "2026-11-13T10:09:25Z",
+          "forfeit": false,
+          "match_id": 1762445,
+          "winner_type": "Team",
+          "winner": {
+            "id": 3240,
+            "type": "Team"
+          }
+        }
+      ],
+      "draw": false,
+      "status": "finished",
+      "forfeit": false,
+      "results": [
+        {
+          "team_id": 3455,
+          "score": 0
+        },
+        {
+          "team_id": 3240,
+          "score": 2
+        }
+      ],
+      "match_type": "best_of",
+      "winner_type": "Team",
+      "id": 1762445,
+      "name": "Quarterfinal 1: VIT vs MOUZ",
+      "tournament_id": 22271
+    },
+    {
+      "number_of_games": 3,
+      "opponents": [
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 3210,
+            "name": "G2",
+            "location": "DE",
+            "acronym": "G2"
+          }
+        },
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 130564,
+            "name": "Team Falcons",
+            "location": "SA",
+            "acronym": "FAL"
+          }
+        }
+      ],
+      "scheduled_at": "2026-11-13T11:00:00Z",
+      "winner_id": 130564,
+      "league_id": 5386,
+      "streams_list": [
+        {
+          "main": false,
+          "language": "es",
+          "official": false,
+          "raw_url": "https://kick.com/x9nium"
+        }
+      ],
+      "end_at": "2026-11-13T14:09:18Z",
+      "begin_at": "2026-11-13T11:01:51Z",
+      "serie_id": 11137,
+      "games": [
+        {
+          "complete": true,
+          "id": 236647,
+          "position": 1,
+          "status": "finished",
+          "length": 3583,
+          "finished": true,
+          "begin_at": "2026-11-13T11:01:51Z",
+          "end_at": "2026-11-13T12:01:35Z",
+          "forfeit": false,
+          "match_id": 1762446,
+          "winner_type": "Team",
+          "winner": {
+            "id": 3210,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236648,
+          "position": 2,
+          "status": "finished",
+          "length": 1953,
+          "finished": true,
+          "begin_at": "2026-11-13T12:20:03Z",
+          "end_at": "2026-11-13T12:52:37Z",
+          "forfeit": false,
+          "match_id": 1762446,
+          "winner_type": "Team",
+          "winner": {
+            "id": 130564,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236649,
+          "position": 3,
+          "status": "finished",
+          "length": 3061,
+          "finished": true,
+          "begin_at": "2026-11-13T13:18:17Z",
+          "end_at": "2026-11-13T14:09:19Z",
+          "forfeit": false,
+          "match_id": 1762446,
+          "winner_type": "Team",
+          "winner": {
+            "id": 130564,
+            "type": "Team"
+          }
+        }
+      ],
+      "draw": false,
+      "status": "finished",
+      "forfeit": false,
+      "results": [
+        {
+          "team_id": 3210,
+          "score": 1
+        },
+        {
+          "team_id": 130564,
+          "score": 2
+        }
+      ],
+      "match_type": "best_of",
+      "winner_type": "Team",
+      "id": 1762446,
+      "name": "Quarterfinal 2: G2 vs FAL",
+      "tournament_id": 22271
+    },
+    {
+      "number_of_games": 3,
+      "opponents": [
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 124523,
+            "name": "Spirit",
+            "location": "RU",
+            "acronym": "TS"
+          }
+        },
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 3240,
+            "name": "MOUZ",
+            "location": "DE",
+            "acronym": "MOUZ"
+          }
+        }
+      ],
+      "scheduled_at": "2026-11-14T08:00:00Z",
+      "winner_id": 124523,
+      "league_id": 5386,
+      "streams_list": [
+        {
+          "main": false,
+          "language": "pt",
+          "official": false,
+          "raw_url": "https://kick.com/gaules"
+        }
+      ],
+      "end_at": "2026-11-14T09:52:51Z",
+      "begin_at": "2026-11-14T08:01:26Z",
+      "serie_id": 11137,
+      "games": [
+        {
+          "complete": true,
+          "id": 236650,
+          "position": 1,
+          "status": "finished",
+          "length": 2679,
+          "finished": true,
+          "begin_at": "2026-11-14T08:01:26Z",
+          "end_at": "2026-11-14T08:46:05Z",
+          "forfeit": false,
+          "match_id": 1762447,
+          "winner_type": "Team",
+          "winner": {
+            "id": 124523,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236651,
+          "position": 2,
+          "status": "finished",
+          "length": 3044,
+          "finished": true,
+          "begin_at": "2026-11-14T09:02:07Z",
+          "end_at": "2026-11-14T09:52:52Z",
+          "forfeit": false,
+          "match_id": 1762447,
+          "winner_type": "Team",
+          "winner": {
+            "id": 124523,
+            "type": "Team"
+          }
+        }
+      ],
+      "draw": false,
+      "status": "finished",
+      "forfeit": false,
+      "results": [
+        {
+          "team_id": 124523,
+          "score": 2
+        },
+        {
+          "team_id": 3240,
+          "score": 0
+        }
+      ],
+      "match_type": "best_of",
+      "winner_type": "Team",
+      "id": 1762447,
+      "name": "Semifinal 1: TS vs MOUZ",
+      "tournament_id": 22271
+    },
+    {
+      "number_of_games": 3,
+      "opponents": [
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 124530,
+            "name": "FURIA",
+            "location": "BR",
+            "acronym": "FURIA"
+          }
+        },
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 130564,
+            "name": "Team Falcons",
+            "location": "SA",
+            "acronym": "FAL"
+          }
+        }
+      ],
+      "scheduled_at": "2026-11-14T10:45:00Z",
+      "winner_id": 124530,
+      "league_id": 5386,
+      "streams_list": [
+        {
+          "main": false,
+          "language": "pt",
+          "official": false,
+          "raw_url": "https://kick.com/gaules"
+        }
+      ],
+      "end_at": "2026-11-14T13:25:06Z",
+      "begin_at": "2026-11-14T10:48:52Z",
+      "serie_id": 11137,
+      "games": [
+        {
+          "complete": true,
+          "id": 236653,
+          "position": 1,
+          "status": "finished",
+          "length": 5048,
+          "finished": true,
+          "begin_at": "2026-11-14T10:48:52Z",
+          "end_at": "2026-11-14T12:13:00Z",
+          "forfeit": false,
+          "match_id": 1762448,
+          "winner_type": "Team",
+          "winner": {
+            "id": 124530,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236654,
+          "position": 2,
+          "status": "finished",
+          "length": 3343,
+          "finished": true,
+          "begin_at": "2026-11-14T12:29:23Z",
+          "end_at": "2026-11-14T13:25:07Z",
+          "forfeit": false,
+          "match_id": 1762448,
+          "winner_type": "Team",
+          "winner": {
+            "id": 124530,
+            "type": "Team"
+          }
+        }
+      ],
+      "draw": false,
+      "status": "finished",
+      "forfeit": false,
+      "results": [
+        {
+          "team_id": 124530,
+          "score": 2
+        },
+        {
+          "team_id": 130564,
+          "score": 0
+        }
+      ],
+      "match_type": "best_of",
+      "winner_type": "Team",
+      "id": 1762448,
+      "name": "Semifinal 2: FURIA vs FAL",
+      "tournament_id": 22271
+    },
+    {
+      "number_of_games": 5,
+      "opponents": [
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 124523,
+            "name": "Spirit",
+            "location": "RU",
+            "acronym": "TS"
+          }
+        },
+        {
+          "type": "Team",
+          "opponent": {
+            "id": 124530,
+            "name": "FURIA",
+            "location": "BR",
+            "acronym": "FURIA"
+          }
+        }
+      ],
+      "scheduled_at": "2026-11-15T08:00:00Z",
+      "winner_id": 124530,
+      "league_id": 5386,
+      "streams_list": [
+        {
+          "main": false,
+          "language": "en",
+          "official": false,
+          "raw_url": "https://www.youtube.com/watch?v=Hhw5YxvloNE"
+        }
+      ],
+      "end_at": "2026-11-15T11:00:12Z",
+      "begin_at": "2026-11-15T08:05:35Z",
+      "serie_id": 11137,
+      "games": [
+        {
+          "complete": true,
+          "id": 236656,
+          "position": 1,
+          "status": "finished",
+          "length": 3227,
+          "finished": true,
+          "begin_at": "2026-11-15T08:05:35Z",
+          "end_at": "2026-11-15T08:59:22Z",
+          "forfeit": false,
+          "match_id": 1762449,
+          "winner_type": "Team",
+          "winner": {
+            "id": 124530,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236657,
+          "position": 2,
+          "status": "finished",
+          "length": 2508,
+          "finished": true,
+          "begin_at": "2026-11-15T09:16:57Z",
+          "end_at": "2026-11-15T09:58:45Z",
+          "forfeit": false,
+          "match_id": 1762449,
+          "winner_type": "Team",
+          "winner": {
+            "id": 124530,
+            "type": "Team"
+          }
+        },
+        {
+          "complete": true,
+          "id": 236658,
+          "position": 3,
+          "status": "finished",
+          "length": 2645,
+          "finished": true,
+          "begin_at": "2026-11-15T10:16:07Z",
+          "end_at": "2026-11-15T11:00:12Z",
+          "forfeit": false,
+          "match_id": 1762449,
+          "winner_type": "Team",
+          "winner": {
+            "id": 124530,
+            "type": "Team"
+          }
+        }
+      ],
+      "draw": false,
+      "status": "finished",
+      "forfeit": false,
+      "results": [
+        {
+          "team_id": 124523,
+          "score": 0
+        },
+        {
+          "team_id": 124530,
+          "score": 3
+        }
+      ],
+      "match_type": "best_of",
+      "winner_type": "Team",
+      "id": 1762449,
+      "name": "Grand Final: TS vs FURIA",
+      "tournament_id": 22271
+    }
+  ],
+  "brackets": {
+    "22269": [
+      {
+        "id": 1762453,
+        "name": "Winners Match: FURIA vs VIT",
+        "status": "finished",
+        "results": [
+          {
+            "team_id": 3455,
+            "score": 1
+          },
+          {
+            "team_id": 124530,
+            "score": 2
+          }
+        ],
+        "begin_at": "2026-11-12T04:07:32Z",
+        "end_at": "2026-11-12T06:46:56Z",
+        "forfeit": false,
+        "winner_id": 124530,
+        "winner_type": "Team",
+        "games": [
+          {
+            "complete": true,
+            "id": 236670,
+            "position": 1,
+            "status": "finished",
+            "length": 2413,
+            "finished": true,
+            "begin_at": "2026-11-12T04:07:32Z",
+            "end_at": "2026-11-12T04:47:46Z",
+            "forfeit": false,
+            "match_id": 1762453,
+            "winner_type": "Team",
+            "winner": {
+              "id": 3455,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236671,
+            "position": 2,
+            "status": "finished",
+            "length": 3134,
+            "finished": true,
+            "begin_at": "2026-11-12T05:08:04Z",
+            "end_at": "2026-11-12T06:00:18Z",
+            "forfeit": false,
+            "match_id": 1762453,
+            "winner_type": "Team",
+            "winner": {
+              "id": 124530,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236672,
+            "position": 3,
+            "status": "finished",
+            "length": 1578,
+            "finished": true,
+            "begin_at": "2026-11-12T06:20:38Z",
+            "end_at": "2026-11-12T06:46:57Z",
+            "forfeit": false,
+            "match_id": 1762453,
+            "winner_type": "Team",
+            "winner": {
+              "id": 124530,
+              "type": "Team"
+            }
+          }
+        ],
+        "draw": false,
+        "tournament_id": 22269,
+        "match_type": "best_of",
+        "number_of_games": 3,
+        "scheduled_at": "2026-11-12T04:00:00Z",
+        "opponents": [
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 124530,
+              "name": "FURIA",
+              "location": "BR",
+              "acronym": "FURIA"
+            }
+          },
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 3455,
+              "name": "Vitality",
+              "location": "FR",
+              "acronym": "VIT"
+            }
+          }
+        ],
+        "previous_matches": [
+          {
+            "type": "winner",
+            "match_id": 1762450
+          },
+          {
+            "type": "winner",
+            "match_id": 1762451
+          }
+        ]
+      },
+      {
+        "id": 1762452,
+        "name": "Elimination Match: LGC vs FAL",
+        "status": "finished",
+        "results": [
+          {
+            "team_id": 130564,
+            "score": 2
+          },
+          {
+            "team_id": 133708,
+            "score": 0
+          }
+        ],
+        "begin_at": "2026-11-12T02:01:06Z",
+        "end_at": "2026-11-12T03:49:52Z",
+        "forfeit": false,
+        "winner_id": 130564,
+        "winner_type": "Team",
+        "games": [
+          {
+            "complete": true,
+            "id": 236667,
+            "position": 1,
+            "status": "finished",
+            "length": 2925,
+            "finished": true,
+            "begin_at": "2026-11-12T02:01:06Z",
+            "end_at": "2026-11-12T02:49:52Z",
+            "forfeit": false,
+            "match_id": 1762452,
+            "winner_type": "Team",
+            "winner": {
+              "id": 130564,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236668,
+            "position": 2,
+            "status": "finished",
+            "length": 2373,
+            "finished": true,
+            "begin_at": "2026-11-12T03:10:19Z",
+            "end_at": "2026-11-12T03:49:53Z",
+            "forfeit": false,
+            "match_id": 1762452,
+            "winner_type": "Team",
+            "winner": {
+              "id": 130564,
+              "type": "Team"
+            }
+          }
+        ],
+        "draw": false,
+        "tournament_id": 22269,
+        "match_type": "best_of",
+        "number_of_games": 3,
+        "scheduled_at": "2026-11-12T02:00:00Z",
+        "opponents": [
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 133708,
+              "name": "Legacy",
+              "location": "BR",
+              "acronym": "LGC"
+            }
+          },
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 130564,
+              "name": "Team Falcons",
+              "location": "SA",
+              "acronym": "FAL"
+            }
+          }
+        ],
+        "previous_matches": [
+          {
+            "type": "loser",
+            "match_id": 1762450
+          },
+          {
+            "type": "loser",
+            "match_id": 1762451
+          }
+        ]
+      },
+      {
+        "id": 1762451,
+        "name": "VIT vs FAL",
+        "status": "finished",
+        "results": [
+          {
+            "team_id": 130564,
+            "score": 0
+          },
+          {
+            "team_id": 3455,
+            "score": 2
+          }
+        ],
+        "begin_at": "2026-11-11T04:18:50Z",
+        "end_at": "2026-11-11T06:18:33Z",
+        "forfeit": false,
+        "winner_id": 3455,
+        "winner_type": "Team",
+        "games": [
+          {
+            "complete": true,
+            "id": 236664,
+            "position": 1,
+            "status": "finished",
+            "length": 3159,
+            "finished": true,
+            "begin_at": "2026-11-11T04:18:51Z",
+            "end_at": "2026-11-11T05:11:30Z",
+            "forfeit": false,
+            "match_id": 1762451,
+            "winner_type": "Team",
+            "winner": {
+              "id": 3455,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236665,
+            "position": 2,
+            "status": "finished",
+            "length": 2974,
+            "finished": true,
+            "begin_at": "2026-11-11T05:28:59Z",
+            "end_at": "2026-11-11T06:18:34Z",
+            "forfeit": false,
+            "match_id": 1762451,
+            "winner_type": "Team",
+            "winner": {
+              "id": 3455,
+              "type": "Team"
+            }
+          }
+        ],
+        "draw": false,
+        "tournament_id": 22269,
+        "match_type": "best_of",
+        "number_of_games": 3,
+        "scheduled_at": "2026-11-11T04:15:00Z",
+        "opponents": [
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 3455,
+              "name": "Vitality",
+              "location": "FR",
+              "acronym": "VIT"
+            }
+          },
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 130564,
+              "name": "Team Falcons",
+              "location": "SA",
+              "acronym": "FAL"
+            }
+          }
+        ],
+        "previous_matches": []
+      },
+      {
+        "id": 1762450,
+        "name": "LGC vs FURIA",
+        "status": "finished",
+        "results": [
+          {
+            "team_id": 124530,
+            "score": 2
+          },
+          {
+            "team_id": 133708,
+            "score": 0
+          }
+        ],
+        "begin_at": "2026-11-11T02:02:16Z",
+        "end_at": "2026-11-11T04:04:14Z",
+        "forfeit": false,
+        "winner_id": 124530,
+        "winner_type": "Team",
+        "games": [
+          {
+            "complete": true,
+            "id": 236661,
+            "position": 1,
+            "status": "finished",
+            "length": 3689,
+            "finished": true,
+            "begin_at": "2026-11-11T02:02:16Z",
+            "end_at": "2026-11-11T03:03:46Z",
+            "forfeit": false,
+            "match_id": 1762450,
+            "winner_type": "Team",
+            "winner": {
+              "id": 124530,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236662,
+            "position": 2,
+            "status": "finished",
+            "length": 2572,
+            "finished": true,
+            "begin_at": "2026-11-11T03:21:22Z",
+            "end_at": "2026-11-11T04:04:15Z",
+            "forfeit": false,
+            "match_id": 1762450,
+            "winner_type": "Team",
+            "winner": {
+              "id": 124530,
+              "type": "Team"
+            }
+          }
+        ],
+        "draw": false,
+        "tournament_id": 22269,
+        "match_type": "best_of",
+        "number_of_games": 3,
+        "scheduled_at": "2026-11-11T02:00:00Z",
+        "opponents": [
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 133708,
+              "name": "Legacy",
+              "location": "BR",
+              "acronym": "LGC"
+            }
+          },
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 124530,
+              "name": "FURIA",
+              "location": "BR",
+              "acronym": "FURIA"
+            }
+          }
+        ],
+        "previous_matches": []
+      }
+    ],
+    "22270": [
+      {
+        "id": 1762462,
+        "name": "Winners Match: TS vs G2",
+        "status": "finished",
+        "results": [
+          {
+            "team_id": 3210,
+            "score": 1
+          },
+          {
+            "team_id": 124523,
+            "score": 2
+          }
+        ],
+        "begin_at": "2026-11-12T10:44:33Z",
+        "end_at": "2026-11-12T13:45:10Z",
+        "forfeit": false,
+        "winner_id": 124523,
+        "winner_type": "Team",
+        "games": [
+          {
+            "complete": true,
+            "id": 236682,
+            "position": 1,
+            "status": "finished",
+            "length": 2915,
+            "finished": true,
+            "match_id": 1762462,
+            "begin_at": "2026-11-12T10:44:33Z",
+            "end_at": "2026-11-12T11:33:08Z",
+            "forfeit": false,
+            "winner_type": "Team",
+            "winner": {
+              "id": 3210,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236683,
+            "position": 2,
+            "status": "finished",
+            "length": 2419,
+            "finished": true,
+            "match_id": 1762462,
+            "begin_at": "2026-11-12T11:52:40Z",
+            "end_at": "2026-11-12T12:32:59Z",
+            "forfeit": false,
+            "winner_type": "Team",
+            "winner": {
+              "id": 124523,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236684,
+            "position": 3,
+            "status": "finished",
+            "length": 2324,
+            "finished": true,
+            "match_id": 1762462,
+            "begin_at": "2026-11-12T13:06:26Z",
+            "end_at": "2026-11-12T13:45:11Z",
+            "forfeit": false,
+            "winner_type": "Team",
+            "winner": {
+              "id": 124523,
+              "type": "Team"
+            }
+          }
+        ],
+        "draw": false,
+        "tournament_id": 22270,
+        "match_type": "best_of",
+        "number_of_games": 3,
+        "scheduled_at": "2026-11-12T10:50:00Z",
+        "opponents": [
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 124523,
+              "name": "Spirit",
+              "location": "RU",
+              "acronym": "TS"
+            }
+          },
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 3210,
+              "name": "G2",
+              "location": "DE",
+              "acronym": "G2"
+            }
+          }
+        ],
+        "previous_matches": [
+          {
+            "type": "winner",
+            "match_id": 1762459
+          },
+          {
+            "type": "winner",
+            "match_id": 1762460
+          }
+        ]
+      },
+      {
+        "id": 1762461,
+        "name": "Elimination Match: FUT vs MOUZ",
+        "status": "finished",
+        "results": [
+          {
+            "team_id": 3240,
+            "score": 2
+          },
+          {
+            "team_id": 136955,
+            "score": 1
+          }
+        ],
+        "begin_at": "2026-11-12T06:59:20Z",
+        "end_at": "2026-11-12T10:32:43Z",
+        "forfeit": false,
+        "winner_id": 3240,
+        "winner_type": "Team",
+        "games": [
+          {
+            "complete": true,
+            "id": 236679,
+            "position": 1,
+            "status": "finished",
+            "length": 4518,
+            "finished": true,
+            "match_id": 1762461,
+            "begin_at": "2026-11-12T06:59:20Z",
+            "end_at": "2026-11-12T08:14:39Z",
+            "forfeit": false,
+            "winner_type": "Team",
+            "winner": {
+              "id": 136955,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236680,
+            "position": 2,
+            "status": "finished",
+            "length": 3768,
+            "finished": true,
+            "match_id": 1762461,
+            "begin_at": "2026-11-12T08:33:16Z",
+            "end_at": "2026-11-12T09:36:05Z",
+            "forfeit": false,
+            "winner_type": "Team",
+            "winner": {
+              "id": 3240,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236681,
+            "position": 3,
+            "status": "finished",
+            "length": 2185,
+            "finished": true,
+            "match_id": 1762461,
+            "begin_at": "2026-11-12T09:56:18Z",
+            "end_at": "2026-11-12T10:32:44Z",
+            "forfeit": false,
+            "winner_type": "Team",
+            "winner": {
+              "id": 3240,
+              "type": "Team"
+            }
+          }
+        ],
+        "draw": false,
+        "tournament_id": 22270,
+        "match_type": "best_of",
+        "number_of_games": 3,
+        "scheduled_at": "2026-11-12T07:00:00Z",
+        "opponents": [
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 136955,
+              "name": "FUT Esports",
+              "location": "TR",
+              "acronym": "FUT"
+            }
+          },
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 3240,
+              "name": "MOUZ",
+              "location": "DE",
+              "acronym": "MOUZ"
+            }
+          }
+        ],
+        "previous_matches": [
+          {
+            "type": "loser",
+            "match_id": 1762459
+          },
+          {
+            "type": "loser",
+            "match_id": 1762460
+          }
+        ]
+      },
+      {
+        "id": 1762460,
+        "name": "MOUZ vs G2",
+        "status": "finished",
+        "results": [
+          {
+            "team_id": 3210,
+            "score": 2
+          },
+          {
+            "team_id": 3240,
+            "score": 1
+          }
+        ],
+        "begin_at": "2026-11-11T09:36:33Z",
+        "end_at": "2026-11-11T12:47:53Z",
+        "forfeit": false,
+        "winner_id": 3210,
+        "winner_type": "Team",
+        "games": [
+          {
+            "complete": true,
+            "id": 236676,
+            "position": 1,
+            "status": "finished",
+            "length": 2505,
+            "finished": true,
+            "match_id": 1762460,
+            "begin_at": "2026-11-11T09:36:33Z",
+            "end_at": "2026-11-11T10:18:19Z",
+            "forfeit": false,
+            "winner_type": "Team",
+            "winner": {
+              "id": 3240,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236677,
+            "position": 2,
+            "status": "finished",
+            "length": 3766,
+            "finished": true,
+            "match_id": 1762460,
+            "begin_at": "2026-11-11T10:37:31Z",
+            "end_at": "2026-11-11T11:40:18Z",
+            "forfeit": false,
+            "winner_type": "Team",
+            "winner": {
+              "id": 3210,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236678,
+            "position": 3,
+            "status": "finished",
+            "length": 2958,
+            "finished": true,
+            "match_id": 1762460,
+            "begin_at": "2026-11-11T11:58:35Z",
+            "end_at": "2026-11-11T12:47:53Z",
+            "forfeit": false,
+            "winner_type": "Team",
+            "winner": {
+              "id": 3210,
+              "type": "Team"
+            }
+          }
+        ],
+        "draw": false,
+        "tournament_id": 22270,
+        "match_type": "best_of",
+        "number_of_games": 3,
+        "scheduled_at": "2026-11-11T09:30:00Z",
+        "opponents": [
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 3240,
+              "name": "MOUZ",
+              "location": "DE",
+              "acronym": "MOUZ"
+            }
+          },
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 3210,
+              "name": "G2",
+              "location": "DE",
+              "acronym": "G2"
+            }
+          }
+        ],
+        "previous_matches": []
+      },
+      {
+        "id": 1762459,
+        "name": "TS vs FUT",
+        "status": "finished",
+        "results": [
+          {
+            "team_id": 136955,
+            "score": 1
+          },
+          {
+            "team_id": 124523,
+            "score": 2
+          }
+        ],
+        "begin_at": "2026-11-11T06:32:18Z",
+        "end_at": "2026-11-11T09:16:22Z",
+        "forfeit": false,
+        "winner_id": 124523,
+        "winner_type": "Team",
+        "games": [
+          {
+            "complete": true,
+            "id": 236673,
+            "position": 1,
+            "status": "finished",
+            "length": 3375,
+            "finished": true,
+            "match_id": 1762459,
+            "begin_at": "2026-11-11T06:32:18Z",
+            "end_at": "2026-11-11T07:28:34Z",
+            "forfeit": false,
+            "winner_type": "Team",
+            "winner": {
+              "id": 124523,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236674,
+            "position": 2,
+            "status": "finished",
+            "length": 1964,
+            "finished": true,
+            "match_id": 1762459,
+            "begin_at": "2026-11-11T07:47:15Z",
+            "end_at": "2026-11-11T08:20:00Z",
+            "forfeit": false,
+            "winner_type": "Team",
+            "winner": {
+              "id": 136955,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236675,
+            "position": 3,
+            "status": "finished",
+            "length": 2206,
+            "finished": true,
+            "match_id": 1762459,
+            "begin_at": "2026-11-11T08:39:36Z",
+            "end_at": "2026-11-11T09:16:23Z",
+            "forfeit": false,
+            "winner_type": "Team",
+            "winner": {
+              "id": 124523,
+              "type": "Team"
+            }
+          }
+        ],
+        "draw": false,
+        "tournament_id": 22270,
+        "match_type": "best_of",
+        "number_of_games": 3,
+        "scheduled_at": "2026-11-11T06:30:00Z",
+        "opponents": [
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 124523,
+              "name": "Spirit",
+              "location": "RU",
+              "acronym": "TS"
+            }
+          },
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 136955,
+              "name": "FUT Esports",
+              "location": "TR",
+              "acronym": "FUT"
+            }
+          }
+        ],
+        "previous_matches": []
+      }
+    ],
+    "22271": [
+      {
+        "id": 1762449,
+        "name": "Grand Final: TS vs FURIA",
+        "status": "finished",
+        "results": [
+          {
+            "team_id": 124530,
+            "score": 3
+          },
+          {
+            "team_id": 124523,
+            "score": 0
+          }
+        ],
+        "begin_at": "2026-11-15T08:05:35Z",
+        "end_at": "2026-11-15T11:00:12Z",
+        "forfeit": false,
+        "winner_id": 124530,
+        "winner_type": "Team",
+        "games": [
+          {
+            "complete": true,
+            "id": 236656,
+            "position": 1,
+            "status": "finished",
+            "length": 3227,
+            "finished": true,
+            "begin_at": "2026-11-15T08:05:35Z",
+            "end_at": "2026-11-15T08:59:22Z",
+            "forfeit": false,
+            "match_id": 1762449,
+            "winner_type": "Team",
+            "winner": {
+              "id": 124530,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236657,
+            "position": 2,
+            "status": "finished",
+            "length": 2508,
+            "finished": true,
+            "begin_at": "2026-11-15T09:16:57Z",
+            "end_at": "2026-11-15T09:58:45Z",
+            "forfeit": false,
+            "match_id": 1762449,
+            "winner_type": "Team",
+            "winner": {
+              "id": 124530,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236658,
+            "position": 3,
+            "status": "finished",
+            "length": 2645,
+            "finished": true,
+            "begin_at": "2026-11-15T10:16:07Z",
+            "end_at": "2026-11-15T11:00:12Z",
+            "forfeit": false,
+            "match_id": 1762449,
+            "winner_type": "Team",
+            "winner": {
+              "id": 124530,
+              "type": "Team"
+            }
+          }
+        ],
+        "draw": false,
+        "tournament_id": 22271,
+        "match_type": "best_of",
+        "number_of_games": 5,
+        "scheduled_at": "2026-11-15T08:00:00Z",
+        "opponents": [
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 124523,
+              "name": "Spirit",
+              "location": "RU",
+              "acronym": "TS"
+            }
+          },
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 124530,
+              "name": "FURIA",
+              "location": "BR",
+              "acronym": "FURIA"
+            }
+          }
+        ],
+        "previous_matches": [
+          {
+            "type": "winner",
+            "match_id": 1762447
+          },
+          {
+            "type": "winner",
+            "match_id": 1762448
+          }
+        ]
+      },
+      {
+        "id": 1762448,
+        "name": "Semifinal 2: FURIA vs FAL",
+        "status": "finished",
+        "results": [
+          {
+            "team_id": 130564,
+            "score": 0
+          },
+          {
+            "team_id": 124530,
+            "score": 2
+          }
+        ],
+        "begin_at": "2026-11-14T10:48:52Z",
+        "end_at": "2026-11-14T13:25:06Z",
+        "forfeit": false,
+        "winner_id": 124530,
+        "winner_type": "Team",
+        "games": [
+          {
+            "complete": true,
+            "id": 236653,
+            "position": 1,
+            "status": "finished",
+            "length": 5048,
+            "finished": true,
+            "begin_at": "2026-11-14T10:48:52Z",
+            "end_at": "2026-11-14T12:13:00Z",
+            "forfeit": false,
+            "match_id": 1762448,
+            "winner_type": "Team",
+            "winner": {
+              "id": 124530,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236654,
+            "position": 2,
+            "status": "finished",
+            "length": 3343,
+            "finished": true,
+            "begin_at": "2026-11-14T12:29:23Z",
+            "end_at": "2026-11-14T13:25:07Z",
+            "forfeit": false,
+            "match_id": 1762448,
+            "winner_type": "Team",
+            "winner": {
+              "id": 124530,
+              "type": "Team"
+            }
+          }
+        ],
+        "draw": false,
+        "tournament_id": 22271,
+        "match_type": "best_of",
+        "number_of_games": 3,
+        "scheduled_at": "2026-11-14T10:45:00Z",
+        "opponents": [
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 124530,
+              "name": "FURIA",
+              "location": "BR",
+              "acronym": "FURIA"
+            }
+          },
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 130564,
+              "name": "Team Falcons",
+              "location": "SA",
+              "acronym": "FAL"
+            }
+          }
+        ],
+        "previous_matches": [
+          {
+            "type": "winner",
+            "match_id": 1762446
+          }
+        ]
+      },
+      {
+        "id": 1762447,
+        "name": "Semifinal 1: TS vs MOUZ",
+        "status": "finished",
+        "results": [
+          {
+            "team_id": 3240,
+            "score": 0
+          },
+          {
+            "team_id": 124523,
+            "score": 2
+          }
+        ],
+        "begin_at": "2026-11-14T08:01:26Z",
+        "end_at": "2026-11-14T09:52:51Z",
+        "forfeit": false,
+        "winner_id": 124523,
+        "winner_type": "Team",
+        "games": [
+          {
+            "complete": true,
+            "id": 236650,
+            "position": 1,
+            "status": "finished",
+            "length": 2679,
+            "finished": true,
+            "begin_at": "2026-11-14T08:01:26Z",
+            "end_at": "2026-11-14T08:46:05Z",
+            "forfeit": false,
+            "match_id": 1762447,
+            "winner_type": "Team",
+            "winner": {
+              "id": 124523,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236651,
+            "position": 2,
+            "status": "finished",
+            "length": 3044,
+            "finished": true,
+            "begin_at": "2026-11-14T09:02:07Z",
+            "end_at": "2026-11-14T09:52:52Z",
+            "forfeit": false,
+            "match_id": 1762447,
+            "winner_type": "Team",
+            "winner": {
+              "id": 124523,
+              "type": "Team"
+            }
+          }
+        ],
+        "draw": false,
+        "tournament_id": 22271,
+        "match_type": "best_of",
+        "number_of_games": 3,
+        "scheduled_at": "2026-11-14T08:00:00Z",
+        "opponents": [
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 124523,
+              "name": "Spirit",
+              "location": "RU",
+              "acronym": "TS"
+            }
+          },
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 3240,
+              "name": "MOUZ",
+              "location": "DE",
+              "acronym": "MOUZ"
+            }
+          }
+        ],
+        "previous_matches": [
+          {
+            "type": "winner",
+            "match_id": 1762445
+          }
+        ]
+      },
+      {
+        "id": 1762446,
+        "name": "Quarterfinal 2: G2 vs FAL",
+        "status": "finished",
+        "results": [
+          {
+            "team_id": 130564,
+            "score": 2
+          },
+          {
+            "team_id": 3210,
+            "score": 1
+          }
+        ],
+        "begin_at": "2026-11-13T11:01:51Z",
+        "end_at": "2026-11-13T14:09:18Z",
+        "forfeit": false,
+        "winner_id": 130564,
+        "winner_type": "Team",
+        "games": [
+          {
+            "complete": true,
+            "id": 236647,
+            "position": 1,
+            "status": "finished",
+            "length": 3583,
+            "finished": true,
+            "begin_at": "2026-11-13T11:01:51Z",
+            "end_at": "2026-11-13T12:01:35Z",
+            "forfeit": false,
+            "match_id": 1762446,
+            "winner_type": "Team",
+            "winner": {
+              "id": 3210,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236648,
+            "position": 2,
+            "status": "finished",
+            "length": 1953,
+            "finished": true,
+            "begin_at": "2026-11-13T12:20:03Z",
+            "end_at": "2026-11-13T12:52:37Z",
+            "forfeit": false,
+            "match_id": 1762446,
+            "winner_type": "Team",
+            "winner": {
+              "id": 130564,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236649,
+            "position": 3,
+            "status": "finished",
+            "length": 3061,
+            "finished": true,
+            "begin_at": "2026-11-13T13:18:17Z",
+            "end_at": "2026-11-13T14:09:19Z",
+            "forfeit": false,
+            "match_id": 1762446,
+            "winner_type": "Team",
+            "winner": {
+              "id": 130564,
+              "type": "Team"
+            }
+          }
+        ],
+        "draw": false,
+        "tournament_id": 22271,
+        "match_type": "best_of",
+        "number_of_games": 3,
+        "scheduled_at": "2026-11-13T11:00:00Z",
+        "opponents": [
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 3210,
+              "name": "G2",
+              "location": "DE",
+              "acronym": "G2"
+            }
+          },
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 130564,
+              "name": "Team Falcons",
+              "location": "SA",
+              "acronym": "FAL"
+            }
+          }
+        ],
+        "previous_matches": []
+      },
+      {
+        "id": 1762445,
+        "name": "Quarterfinal 1: VIT vs MOUZ",
+        "status": "finished",
+        "results": [
+          {
+            "team_id": 3240,
+            "score": 2
+          },
+          {
+            "team_id": 3455,
+            "score": 0
+          }
+        ],
+        "begin_at": "2026-11-13T08:03:22Z",
+        "end_at": "2026-11-13T10:09:24Z",
+        "forfeit": false,
+        "winner_id": 3240,
+        "winner_type": "Team",
+        "games": [
+          {
+            "complete": true,
+            "id": 236644,
+            "position": 1,
+            "status": "finished",
+            "length": 2748,
+            "finished": true,
+            "begin_at": "2026-11-13T08:03:22Z",
+            "end_at": "2026-11-13T08:49:11Z",
+            "forfeit": false,
+            "match_id": 1762445,
+            "winner_type": "Team",
+            "winner": {
+              "id": 3240,
+              "type": "Team"
+            }
+          },
+          {
+            "complete": true,
+            "id": 236645,
+            "position": 2,
+            "status": "finished",
+            "length": 3780,
+            "finished": true,
+            "begin_at": "2026-11-13T09:06:24Z",
+            "end_at": "2026-11-13T10:09:25Z",
+            "forfeit": false,
+            "match_id": 1762445,
+            "winner_type": "Team",
+            "winner": {
+              "id": 3240,
+              "type": "Team"
+            }
+          }
+        ],
+        "draw": false,
+        "tournament_id": 22271,
+        "match_type": "best_of",
+        "number_of_games": 3,
+        "scheduled_at": "2026-11-13T08:00:00Z",
+        "opponents": [
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 3455,
+              "name": "Vitality",
+              "location": "FR",
+              "acronym": "VIT"
+            }
+          },
+          {
+            "type": "Team",
+            "opponent": {
+              "id": 3240,
+              "name": "MOUZ",
+              "location": "DE",
+              "acronym": "MOUZ"
+            }
+          }
+        ],
+        "previous_matches": []
+      }
+    ]
+  },
+  "rosters": {
+    "22269": {
+      "type": "Team",
+      "rosters": [
+        {
+          "id": 133708,
+          "name": "Legacy",
+          "location": "BR",
+          "players": [
+            {
+              "active": true,
+              "id": 19665,
+              "name": "arT",
+              "role": null,
+              "age": 30,
+              "birthday": "1996-03-27",
+              "first_name": "Andrei",
+              "last_name": "Piovezan",
+              "nationality": "BR"
+            },
+            {
+              "active": true,
+              "id": 23685,
+              "name": "latto",
+              "role": null,
+              "age": 23,
+              "birthday": "2002-12-21",
+              "first_name": "Bruno",
+              "last_name": "Rebelatto",
+              "nationality": "BR"
+            },
+            {
+              "active": true,
+              "id": 24105,
+              "name": "dumau",
+              "role": null,
+              "age": 23,
+              "birthday": "2003-11-09",
+              "first_name": "Eduardo",
+              "last_name": "Wolkmer",
+              "nationality": "BR"
+            },
+            {
+              "active": true,
+              "id": 25439,
+              "name": "try",
+              "role": null,
+              "age": 22,
+              "birthday": "2004-09-23",
+              "first_name": "Santino",
+              "last_name": "Rigal",
+              "nationality": "AR"
+            },
+            {
+              "active": true,
+              "id": 42228,
+              "name": "Ksloks",
+              "role": null,
+              "age": 21,
+              "birthday": "2005-03-31",
+              "first_name": "Italo",
+              "last_name": "Meinberg",
+              "nationality": "BR"
+            }
+          ],
+          "acronym": "LGC",
+          "current_videogame": {
+            "id": 3,
+            "name": "Counter-Strike"
+          }
+        },
+        {
+          "id": 130564,
+          "name": "Team Falcons",
+          "location": "SA",
+          "players": [
+            {
+              "active": true,
+              "id": 17522,
+              "name": "NiKo",
+              "role": null,
+              "age": 29,
+              "birthday": "1997-02-16",
+              "first_name": "Nikola",
+              "last_name": "Kovač",
+              "nationality": "BA"
+            },
+            {
+              "active": true,
+              "id": 17524,
+              "name": "karrigan",
+              "role": null,
+              "age": 36,
+              "birthday": "1990-04-14",
+              "first_name": "Finn",
+              "last_name": "Andersen",
+              "nationality": "DK"
+            },
+            {
+              "active": true,
+              "id": 23037,
+              "name": "TeSeS",
+              "role": null,
+              "age": 25,
+              "birthday": "2000-12-12",
+              "first_name": "René",
+              "last_name": "Madsen",
+              "nationality": "DK"
+            },
+            {
+              "active": true,
+              "id": 25998,
+              "name": "m0NESY",
+              "role": null,
+              "age": 21,
+              "birthday": "2005-05-01",
+              "first_name": "Ilya",
+              "last_name": "Osipov",
+              "nationality": "RU"
+            },
+            {
+              "active": true,
+              "id": 54512,
+              "name": "Kyousuke",
+              "role": null,
+              "age": 18,
+              "birthday": null,
+              "first_name": "Maxim",
+              "last_name": "Lukin",
+              "nationality": "RU"
+            }
+          ],
+          "acronym": "FAL",
+          "current_videogame": {
+            "id": 3,
+            "name": "Counter-Strike"
+          }
+        },
+        {
+          "id": 124530,
+          "name": "FURIA",
+          "location": "BR",
+          "players": [
+            {
+              "active": true,
+              "id": 17497,
+              "name": "FalleN",
+              "role": null,
+              "age": 35,
+              "birthday": "1991-05-30",
+              "first_name": "Gabriel",
+              "last_name": "Toledo",
+              "nationality": "BR"
+            },
+            {
+              "active": true,
+              "id": 18732,
+              "name": "YEKINDAR",
+              "role": null,
+              "age": 27,
+              "birthday": "1999-10-04",
+              "first_name": "Mareks",
+              "last_name": "Gaļinskis",
+              "nationality": "LV"
+            },
+            {
+              "active": true,
+              "id": 19664,
+              "name": "yuurih",
+              "role": null,
+              "age": 26,
+              "birthday": "1999-12-22",
+              "first_name": "Yuri",
+              "last_name": "Santos",
+              "nationality": "BR"
+            },
+            {
+              "active": true,
+              "id": 19667,
+              "name": "KSCERATO",
+              "role": null,
+              "age": 27,
+              "birthday": "1999-09-12",
+              "first_name": "Kaike",
+              "last_name": "Cerato",
+              "nationality": "BR"
+            },
+            {
+              "active": true,
+              "id": 55593,
+              "name": "molodoy",
+              "role": null,
+              "age": 21,
+              "birthday": null,
+              "first_name": "Danil",
+              "last_name": "Golubenko",
+              "nationality": "KZ"
+            }
+          ],
+          "acronym": "FURIA",
+          "current_videogame": {
+            "id": 3,
+            "name": "Counter-Strike"
+          }
+        },
+        {
+          "id": 3455,
+          "name": "Vitality",
+          "location": "FR",
+          "players": [
+            {
+              "active": true,
+              "id": 17515,
+              "name": "apEX",
+              "role": null,
+              "age": 33,
+              "birthday": "1993-02-22",
+              "first_name": "Dan",
+              "last_name": "Madesclaire",
+              "nationality": "FR"
+            },
+            {
+              "active": true,
+              "id": 17663,
+              "name": "ropz",
+              "role": null,
+              "age": 26,
+              "birthday": "1999-12-22",
+              "first_name": "Robin",
+              "last_name": "Kool",
+              "nationality": "EE"
+            },
+            {
+              "active": true,
+              "id": 18452,
+              "name": "ZywOo",
+              "role": null,
+              "age": 26,
+              "birthday": "2000-11-09",
+              "first_name": "Mathieu",
+              "last_name": "Herbaut",
+              "nationality": "FR"
+            },
+            {
+              "active": true,
+              "id": 24714,
+              "name": "mezii",
+              "role": null,
+              "age": 28,
+              "birthday": "1998-10-15",
+              "first_name": "William",
+              "last_name": "Merriman",
+              "nationality": "GB"
+            },
+            {
+              "active": true,
+              "id": 24881,
+              "name": "flameZ",
+              "role": null,
+              "age": 23,
+              "birthday": "2003-06-22",
+              "first_name": "Shahar",
+              "last_name": "Shushan",
+              "nationality": "IL"
+            }
+          ],
+          "acronym": "VIT",
+          "current_videogame": {
+            "id": 3,
+            "name": "Counter-Strike"
+          }
+        }
+      ]
+    },
+    "22270": {
+      "type": "Team",
+      "rosters": [
+        {
+          "id": 136955,
+          "name": "FUT Esports",
+          "location": "TR",
+          "players": [
+            {
+              "active": true,
+              "id": 25096,
+              "name": "SunPayus",
+              "role": null,
+              "age": 27,
+              "birthday": "1998-11-19",
+              "first_name": "Alvaro",
+              "last_name": "Garcia",
+              "nationality": "ES"
+            },
+            {
+              "active": true,
+              "id": 26393,
+              "name": "coolio",
+              "role": null,
+              "age": 26,
+              "birthday": "2000-07-12",
+              "first_name": "András",
+              "last_name": "Fercsák",
+              "nationality": "HU"
+            },
+            {
+              "active": true,
+              "id": 28291,
+              "name": "xfl0ud",
+              "role": null,
+              "age": 23,
+              "birthday": "2002-12-23",
+              "first_name": "Yasin",
+              "last_name": "Koç",
+              "nationality": "TR"
+            },
+            {
+              "active": true,
+              "id": 41186,
+              "name": "Dem0N",
+              "role": null,
+              "age": 19,
+              "birthday": "2007-10-02",
+              "first_name": "Dmytro",
+              "last_name": "Myroshnychenko",
+              "nationality": "UA"
+            },
+            {
+              "active": true,
+              "id": 41860,
+              "name": "Krabeni",
+              "role": null,
+              "age": 21,
+              "birthday": "2005-04-07",
+              "first_name": "Aulon ",
+              "last_name": "Fazlija",
+              "nationality": "XK"
+            },
+            {
+              "active": true,
+              "id": 50853,
+              "name": "dziugss",
+              "role": null,
+              "age": 18,
+              "birthday": "2008-09-12",
+              "first_name": "Džiugas",
+              "last_name": "Steponavičius",
+              "nationality": "LT"
+            }
+          ],
+          "acronym": "FUT",
+          "current_videogame": {
+            "id": 3,
+            "name": "Counter-Strike"
+          }
+        },
+        {
+          "id": 124523,
+          "name": "Spirit",
+          "location": "RU",
+          "players": [
+            {
+              "active": true,
+              "id": 23237,
+              "name": "sh1ro",
+              "role": null,
+              "age": 25,
+              "birthday": "2001-07-15",
+              "first_name": "Dmitry",
+              "last_name": "Sokolov",
+              "nationality": "RU"
+            },
+            {
+              "active": true,
+              "id": 23701,
+              "name": "magixx",
+              "role": null,
+              "age": 23,
+              "birthday": "2003-06-03",
+              "first_name": "Boris",
+              "last_name": "Vorobiev",
+              "nationality": "RU"
+            },
+            {
+              "active": true,
+              "id": 30511,
+              "name": "tN1R",
+              "role": null,
+              "age": 25,
+              "birthday": "2001-02-14",
+              "first_name": "Andrey",
+              "last_name": "Tatarinovich",
+              "nationality": "BY"
+            },
+            {
+              "active": true,
+              "id": 30516,
+              "name": "zont1x",
+              "role": null,
+              "age": 21,
+              "birthday": "2005-07-20",
+              "first_name": "Myroslav",
+              "last_name": "Plakhotia",
+              "nationality": "UA"
+            },
+            {
+              "active": true,
+              "id": 35905,
+              "name": "donk",
+              "role": null,
+              "age": 19,
+              "birthday": "2007-01-25",
+              "first_name": "Danil",
+              "last_name": "Kryshkovets",
+              "nationality": "RU"
+            }
+          ],
+          "acronym": "TS",
+          "current_videogame": {
+            "id": 3,
+            "name": "Counter-Strike"
+          }
+        },
+        {
+          "id": 3240,
+          "name": "MOUZ",
+          "location": "DE",
+          "players": [
+            {
+              "active": true,
+              "id": 26391,
+              "name": "torzsi",
+              "role": null,
+              "age": 24,
+              "birthday": "2002-05-17",
+              "first_name": "Ádám",
+              "last_name": "Torzsás",
+              "nationality": "HU"
+            },
+            {
+              "active": true,
+              "id": 29789,
+              "name": "Spinx",
+              "role": null,
+              "age": 26,
+              "birthday": "2000-09-13",
+              "first_name": "Lotan ",
+              "last_name": "Giladi",
+              "nationality": "IL"
+            },
+            {
+              "active": true,
+              "id": 29856,
+              "name": "xertioN",
+              "role": null,
+              "age": 22,
+              "birthday": "2004-07-22",
+              "first_name": "Dorian",
+              "last_name": "Berman",
+              "nationality": "IL"
+            },
+            {
+              "active": true,
+              "id": 41223,
+              "name": "PR",
+              "role": null,
+              "age": 19,
+              "birthday": "2007-09-17",
+              "first_name": "Oldřich",
+              "last_name": "Nový",
+              "nationality": "CZ"
+            },
+            {
+              "active": true,
+              "id": 56048,
+              "name": "xelex",
+              "role": null,
+              "age": 18,
+              "birthday": null,
+              "first_name": "Adrian",
+              "last_name": "Vincze",
+              "nationality": "HU"
+            }
+          ],
+          "acronym": "MOUZ",
+          "current_videogame": {
+            "id": 3,
+            "name": "Counter-Strike"
+          }
+        },
+        {
+          "id": 3210,
+          "name": "G2",
+          "location": "DE",
+          "players": [
+            {
+              "active": true,
+              "id": 17958,
+              "name": "huNter-",
+              "role": null,
+              "age": 30,
+              "birthday": "1996-01-03",
+              "first_name": "Nemanja",
+              "last_name": "Kovač",
+              "nationality": "BA"
+            },
+            {
+              "active": true,
+              "id": 24880,
+              "name": "NertZ",
+              "role": null,
+              "age": 27,
+              "birthday": "1999-07-12",
+              "first_name": "Guy",
+              "last_name": "Iluz",
+              "nationality": "IL"
+            },
+            {
+              "active": true,
+              "id": 30515,
+              "name": "r1nkle",
+              "role": null,
+              "age": 22,
+              "birthday": "2004-10-27",
+              "first_name": "Artem",
+              "last_name": "Moroz",
+              "nationality": "UA"
+            },
+            {
+              "active": true,
+              "id": 30794,
+              "name": "HeavyGod",
+              "role": null,
+              "age": 24,
+              "birthday": "2002-07-24",
+              "first_name": "Nikita",
+              "last_name": "Martynenko",
+              "nationality": "IL"
+            },
+            {
+              "active": true,
+              "id": 32951,
+              "name": "MATYS",
+              "role": null,
+              "age": 24,
+              "birthday": "2002-04-21",
+              "first_name": "Matúš",
+              "last_name": "Šimko",
+              "nationality": "SK"
+            }
+          ],
+          "acronym": "G2",
+          "current_videogame": {
+            "id": 3,
+            "name": "Counter-Strike"
+          }
+        }
+      ]
+    },
+    "22271": {
+      "type": "Team",
+      "rosters": [
+        {
+          "id": 130564,
+          "name": "Team Falcons",
+          "location": "SA",
+          "players": [
+            {
+              "active": true,
+              "id": 17522,
+              "name": "NiKo",
+              "role": null,
+              "birthday": "1997-02-16",
+              "first_name": "Nikola",
+              "last_name": "Kovač",
+              "nationality": "BA",
+              "age": 29
+            },
+            {
+              "active": true,
+              "id": 17524,
+              "name": "karrigan",
+              "role": null,
+              "birthday": "1990-04-14",
+              "first_name": "Finn",
+              "last_name": "Andersen",
+              "nationality": "DK",
+              "age": 36
+            },
+            {
+              "active": true,
+              "id": 23037,
+              "name": "TeSeS",
+              "role": null,
+              "birthday": "2000-12-12",
+              "first_name": "René",
+              "last_name": "Madsen",
+              "nationality": "DK",
+              "age": 25
+            },
+            {
+              "active": true,
+              "id": 25998,
+              "name": "m0NESY",
+              "role": null,
+              "birthday": "2005-05-01",
+              "first_name": "Ilya",
+              "last_name": "Osipov",
+              "nationality": "RU",
+              "age": 21
+            },
+            {
+              "active": true,
+              "id": 54512,
+              "name": "Kyousuke",
+              "role": null,
+              "birthday": null,
+              "first_name": "Maxim",
+              "last_name": "Lukin",
+              "nationality": "RU",
+              "age": 18
+            }
+          ],
+          "acronym": "FAL",
+          "current_videogame": {
+            "id": 3,
+            "name": "Counter-Strike"
+          }
+        },
+        {
+          "id": 124530,
+          "name": "FURIA",
+          "location": "BR",
+          "players": [
+            {
+              "active": true,
+              "id": 17497,
+              "name": "FalleN",
+              "role": null,
+              "birthday": "1991-05-30",
+              "first_name": "Gabriel",
+              "last_name": "Toledo",
+              "nationality": "BR",
+              "age": 35
+            },
+            {
+              "active": true,
+              "id": 18732,
+              "name": "YEKINDAR",
+              "role": null,
+              "birthday": "1999-10-04",
+              "first_name": "Mareks",
+              "last_name": "Gaļinskis",
+              "nationality": "LV",
+              "age": 27
+            },
+            {
+              "active": true,
+              "id": 19664,
+              "name": "yuurih",
+              "role": null,
+              "birthday": "1999-12-22",
+              "first_name": "Yuri",
+              "last_name": "Santos",
+              "nationality": "BR",
+              "age": 26
+            },
+            {
+              "active": true,
+              "id": 19667,
+              "name": "KSCERATO",
+              "role": null,
+              "birthday": "1999-09-12",
+              "first_name": "Kaike",
+              "last_name": "Cerato",
+              "nationality": "BR",
+              "age": 27
+            },
+            {
+              "active": true,
+              "id": 55593,
+              "name": "molodoy",
+              "role": null,
+              "birthday": null,
+              "first_name": "Danil",
+              "last_name": "Golubenko",
+              "nationality": "KZ",
+              "age": 21
+            }
+          ],
+          "acronym": "FURIA",
+          "current_videogame": {
+            "id": 3,
+            "name": "Counter-Strike"
+          }
+        },
+        {
+          "id": 124523,
+          "name": "Spirit",
+          "location": "RU",
+          "players": [
+            {
+              "active": true,
+              "id": 23237,
+              "name": "sh1ro",
+              "role": null,
+              "birthday": "2001-07-15",
+              "first_name": "Dmitry",
+              "last_name": "Sokolov",
+              "nationality": "RU",
+              "age": 25
+            },
+            {
+              "active": true,
+              "id": 23701,
+              "name": "magixx",
+              "role": null,
+              "birthday": "2003-06-03",
+              "first_name": "Boris",
+              "last_name": "Vorobiev",
+              "nationality": "RU",
+              "age": 23
+            },
+            {
+              "active": true,
+              "id": 30511,
+              "name": "tN1R",
+              "role": null,
+              "birthday": "2001-02-14",
+              "first_name": "Andrey",
+              "last_name": "Tatarinovich",
+              "nationality": "BY",
+              "age": 25
+            },
+            {
+              "active": true,
+              "id": 30516,
+              "name": "zont1x",
+              "role": null,
+              "birthday": "2005-07-20",
+              "first_name": "Myroslav",
+              "last_name": "Plakhotia",
+              "nationality": "UA",
+              "age": 21
+            },
+            {
+              "active": true,
+              "id": 35905,
+              "name": "donk",
+              "role": null,
+              "birthday": "2007-01-25",
+              "first_name": "Danil",
+              "last_name": "Kryshkovets",
+              "nationality": "RU",
+              "age": 19
+            }
+          ],
+          "acronym": "TS",
+          "current_videogame": {
+            "id": 3,
+            "name": "Counter-Strike"
+          }
+        },
+        {
+          "id": 3455,
+          "name": "Vitality",
+          "location": "FR",
+          "players": [
+            {
+              "active": true,
+              "id": 17515,
+              "name": "apEX",
+              "role": null,
+              "birthday": "1993-02-22",
+              "first_name": "Dan",
+              "last_name": "Madesclaire",
+              "nationality": "FR",
+              "age": 33
+            },
+            {
+              "active": true,
+              "id": 17663,
+              "name": "ropz",
+              "role": null,
+              "birthday": "1999-12-22",
+              "first_name": "Robin",
+              "last_name": "Kool",
+              "nationality": "EE",
+              "age": 26
+            },
+            {
+              "active": true,
+              "id": 18452,
+              "name": "ZywOo",
+              "role": null,
+              "birthday": "2000-11-09",
+              "first_name": "Mathieu",
+              "last_name": "Herbaut",
+              "nationality": "FR",
+              "age": 26
+            },
+            {
+              "active": true,
+              "id": 24714,
+              "name": "mezii",
+              "role": null,
+              "birthday": "1998-10-15",
+              "first_name": "William",
+              "last_name": "Merriman",
+              "nationality": "GB",
+              "age": 28
+            },
+            {
+              "active": true,
+              "id": 24881,
+              "name": "flameZ",
+              "role": null,
+              "birthday": "2003-06-22",
+              "first_name": "Shahar",
+              "last_name": "Shushan",
+              "nationality": "IL",
+              "age": 23
+            }
+          ],
+          "acronym": "VIT",
+          "current_videogame": {
+            "id": 3,
+            "name": "Counter-Strike"
+          }
+        },
+        {
+          "id": 3240,
+          "name": "MOUZ",
+          "location": "DE",
+          "players": [
+            {
+              "active": true,
+              "id": 26391,
+              "name": "torzsi",
+              "role": null,
+              "birthday": "2002-05-17",
+              "first_name": "Ádám",
+              "last_name": "Torzsás",
+              "nationality": "HU",
+              "age": 24
+            },
+            {
+              "active": true,
+              "id": 29789,
+              "name": "Spinx",
+              "role": null,
+              "birthday": "2000-09-13",
+              "first_name": "Lotan ",
+              "last_name": "Giladi",
+              "nationality": "IL",
+              "age": 26
+            },
+            {
+              "active": true,
+              "id": 29856,
+              "name": "xertioN",
+              "role": null,
+              "birthday": "2004-07-22",
+              "first_name": "Dorian",
+              "last_name": "Berman",
+              "nationality": "IL",
+              "age": 22
+            },
+            {
+              "active": true,
+              "id": 41223,
+              "name": "PR",
+              "role": null,
+              "birthday": "2007-09-17",
+              "first_name": "Oldřich",
+              "last_name": "Nový",
+              "nationality": "CZ",
+              "age": 19
+            },
+            {
+              "active": true,
+              "id": 56048,
+              "name": "xelex",
+              "role": null,
+              "birthday": null,
+              "first_name": "Adrian",
+              "last_name": "Vincze",
+              "nationality": "HU",
+              "age": 18
+            }
+          ],
+          "acronym": "MOUZ",
+          "current_videogame": {
+            "id": 3,
+            "name": "Counter-Strike"
+          }
+        },
+        {
+          "id": 3210,
+          "name": "G2",
+          "location": "DE",
+          "players": [
+            {
+              "active": true,
+              "id": 17958,
+              "name": "huNter-",
+              "role": null,
+              "birthday": "1996-01-03",
+              "first_name": "Nemanja",
+              "last_name": "Kovač",
+              "nationality": "BA",
+              "age": 30
+            },
+            {
+              "active": true,
+              "id": 24880,
+              "name": "NertZ",
+              "role": null,
+              "birthday": "1999-07-12",
+              "first_name": "Guy",
+              "last_name": "Iluz",
+              "nationality": "IL",
+              "age": 27
+            },
+            {
+              "active": true,
+              "id": 30515,
+              "name": "r1nkle",
+              "role": null,
+              "birthday": "2004-10-27",
+              "first_name": "Artem",
+              "last_name": "Moroz",
+              "nationality": "UA",
+              "age": 22
+            },
+            {
+              "active": true,
+              "id": 30794,
+              "name": "HeavyGod",
+              "role": null,
+              "birthday": "2002-07-24",
+              "first_name": "Nikita",
+              "last_name": "Martynenko",
+              "nationality": "IL",
+              "age": 24
+            },
+            {
+              "active": true,
+              "id": 32951,
+              "name": "MATYS",
+              "role": null,
+              "birthday": "2002-04-21",
+              "first_name": "Matúš",
+              "last_name": "Šimko",
+              "nationality": "SK",
+              "age": 24
+            }
+          ],
+          "acronym": "G2",
+          "current_videogame": {
+            "id": 3,
+            "name": "Counter-Strike"
+          }
+        }
+      ]
+    }
+  }
+}

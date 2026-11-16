@@ -15,8 +15,8 @@ import { competitor, match, tournament } from "./validators";
  * The first real source: chess broadcasts from Lichess, which are open and free to use.
  *
  * It runs only when the deployment has been switched to live data (`sample:useLive`). Schedules
- * are refreshed every hour by a cron job. While a round is being played, the rounds in progress
- * are fetched again every thirty seconds, and that loop ends by itself when nothing is live.
+ * are refreshed every hour by a cron job. While a round is being played, `ingest.tick` has the
+ * rounds in progress fetched again every thirty seconds.
  * Requests go out one at a time, and a "too many requests" answer stops the run until the next
  * hour, as Lichess asks of its API's users.
  */
@@ -24,7 +24,6 @@ import { competitor, match, tournament } from "./validators";
 const BASE = "https://lichess.org/api/broadcast";
 /** How many broadcasts are followed at once: the top of the game, not every club night. */
 const TOURS = 8;
-const LIVE_EVERY = 30_000;
 
 async function get<T>(path: string): Promise<T | null> {
   const response = await fetch(`${BASE}${path}`, {
@@ -56,20 +55,17 @@ async function fetchBroadcast(tourId: string): Promise<LichessBroadcast | null> 
 export const sync = internalAction({
   args: {},
   handler: async (ctx) => {
-    if (!(await ctx.runQuery(internal.lichess.enabled, {}))) return;
+    if (!(await ctx.runQuery(internal.ingest.enabled, {}))) return;
     const top = await get<Top>("/top?page=1");
     const tours = [...(top?.active ?? []), ...(top?.upcoming ?? [])]
       .map((entry) => entry.tour)
       .filter((tour) => (tour.tier ?? 0) >= 4)
       .slice(0, TOURS);
-    let live = false;
     for (const tour of tours) {
       const broadcast = await fetchBroadcast(tour.id);
       if (!broadcast) continue;
-      live ||= broadcast.rounds.some((r) => r.ongoing);
       await ctx.runMutation(internal.lichess.store, plain(mapBroadcast(broadcast, Date.now())));
     }
-    if (live) await ctx.scheduler.runAfter(LIVE_EVERY, internal.lichess.refresh, {});
   },
 });
 
@@ -77,24 +73,13 @@ export const sync = internalAction({
 export const refresh = internalAction({
   args: {},
   handler: async (ctx) => {
-    if (!(await ctx.runQuery(internal.lichess.enabled, {}))) return;
+    if (!(await ctx.runQuery(internal.ingest.enabled, {}))) return;
     const liveTours = await ctx.runQuery(internal.lichess.liveTours, {});
-    let live = false;
     for (const tourId of liveTours) {
       const broadcast = await fetchBroadcast(tourId);
       if (!broadcast) continue;
-      live ||= broadcast.rounds.some((r) => r.ongoing);
       await ctx.runMutation(internal.lichess.store, plain(mapBroadcast(broadcast, Date.now())));
     }
-    if (live) await ctx.scheduler.runAfter(LIVE_EVERY, internal.lichess.refresh, {});
-  },
-});
-
-export const enabled = internalQuery({
-  args: {},
-  handler: async (ctx) => {
-    const source = await ctx.db.query("source").first();
-    return source?.kind === "live" && !source.loading;
   },
 });
 

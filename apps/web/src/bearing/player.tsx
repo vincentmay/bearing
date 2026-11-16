@@ -19,13 +19,23 @@ function careerStops(board: Board, player: Player): LineStop[] {
   const { atlas } = board;
   return atlas.world.stints
     .filter((s) => s.playerId === player.id)
-    .sort((a, b) => a.from.localeCompare(b.from))
+    .sort((a, b) => (a.from ?? "").localeCompare(b.from ?? ""))
     .map((s): LineStop => {
       const team = sideOf(atlas, s.teamId);
       return {
         kind: s.to ? "done" : "now",
         label: team.name,
-        sub: `${s.from.slice(0, 4)} to ${s.to ? s.to.slice(0, 4) : "now"} · ${s.role}`,
+        // Since when is said only where it is known.
+        sub: [
+          s.from
+            ? `${s.from.slice(0, 4)} to ${s.to ? s.to.slice(0, 4) : "now"}`
+            : s.to
+              ? ""
+              : "Now",
+          s.role,
+        ]
+          .filter(Boolean)
+          .join(" · "),
         fill: team.color,
         weight: 1,
         to: { kind: "team", id: s.teamId },
@@ -122,7 +132,8 @@ export function PlayerPage({ playerId }: { playerId: string }) {
       {team ? (
         <p className="bx-note" style={{ margin: "12px 0 0" }}>
           Plays for <Go to={{ kind: "team", id: team.id }}>{team.name}</Go> in{" "}
-          {atlas.discipline(team.discipline).name}, since {stint?.from.slice(0, 4)}.
+          {atlas.discipline(team.discipline).name}
+          {stint?.from ? `, since ${stint.from.slice(0, 4)}` : ""}.
         </p>
       ) : null}
 

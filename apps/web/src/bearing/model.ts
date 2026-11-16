@@ -131,7 +131,7 @@ function tag(c: Competitor | undefined): string {
 export function sideOf(atlas: Atlas, id: string): SideView {
   const c = atlas.competitor(id);
   const name = plainName(atlas, id);
-  const color = c?.kind === "team" ? c.colors.primary : (c?.colors?.primary ?? "var(--ink)");
+  const color = c?.colors?.primary ?? "var(--ink)";
   return {
     id,
     name,
@@ -143,9 +143,10 @@ export function sideOf(atlas: Atlas, id: string): SideView {
   };
 }
 
-function sidesOf(atlas: Atlas, match: Match, discipline: Discipline, subject?: string): SideView[] {
-  // Chess players have no colours: one takes ink, the other the surface colour. Ink goes to
-  // the player the page is about, else to the one the viewer follows, else to the first named.
+function sidesOf(atlas: Atlas, match: Match, subject?: string): SideView[] {
+  // Two sides with no colours of their own, as chess players always are and a team can be:
+  // one takes ink, the other the surface colour. Ink goes to the one the page is about, else
+  // to the one the viewer follows, else to the first named.
   const ids = match.sides.map((s) => s.competitorId);
   const inked =
     subject && ids.includes(subject)
@@ -167,16 +168,18 @@ function sidesOf(atlas: Atlas, match: Match, discipline: Discipline, subject?: s
       };
     }
     const side = sideOf(atlas, s.competitorId);
-    if (discipline.id === "chess") {
-      side.color = i === inked ? "var(--ink)" : "var(--surface)";
-      side.ink = i === inked ? "var(--surface)" : "var(--ink)";
-    } else if (match.sides.length > 2) {
+    if (match.sides.length > 2) {
       side.color = FIELD[i % FIELD.length] ?? "var(--ink)";
       side.ink = "#000";
     }
     return side;
   });
   const [a, b] = sides;
+  if (sides.length === 2 && a && b && a.color === "var(--ink)" && b.color === "var(--ink)") {
+    const pale = inked === 0 ? b : a;
+    pale.color = "var(--surface)";
+    pale.ink = "var(--ink)";
+  }
   if (sides.length === 2 && a?.id && b?.id && alike(a.color, b.color)) {
     // The second-named team falls back to its second colour, then to ink. A second colour
     // that is nearly black or nearly white cannot be told from the page in one of the two
@@ -273,7 +276,7 @@ export function summarize(
 ): MatchView {
   const tournament = atlas.tournamentOf(match);
   const discipline = atlas.discipline(tournament.discipline);
-  const sides = sidesOf(atlas, match, discipline, subject);
+  const sides = sidesOf(atlas, match, subject);
   const solo = sides.length > 2;
   const series = seriesScore(match);
   const game = liveGame(match);
@@ -307,9 +310,11 @@ export function summarize(
       if (!done) status = "Live";
       else if (done.winner === "draw" || done.winner === undefined) status = `${done.label} drawn`;
       else status = `${done.label} to ${sides[done.winner]?.name ?? ""}`;
-    } else if (d === "cs2") status = `Live · round ${(game.rounds?.length ?? 0) + 1}`;
-    else if (d === "lol") status = `Live · game ${gameIndex + 1} · ${gameClock(game.clock ?? 0)}`;
-    else if (d === "rocket-league") status = `Live · game ${gameIndex + 1} · ${rocketClock(game)}`;
+    } else if (d === "cs2" && game.rounds) status = `Live · round ${game.rounds.length + 1}`;
+    else if (d === "lol" && game.clock !== undefined)
+      status = `Live · game ${gameIndex + 1} · ${gameClock(game.clock)}`;
+    else if (d === "rocket-league" && game.clock !== undefined)
+      status = `Live · game ${gameIndex + 1} · ${rocketClock(game)}`;
     else if (d === "chess")
       status = single
         ? `Live · move ${game.chess?.move ?? 1}`
@@ -347,7 +352,7 @@ export function summarize(
       d === "cs2" ? game.label : bestOf(match.bestOf),
       count(series[1] ?? 0),
     ];
-  } else if (d === "lol" && game) {
+  } else if (d === "lol" && game?.scores) {
     subs = [
       `${game.scores?.[0] ?? 0} kills`,
       bestOf(match.bestOf),
@@ -418,8 +423,8 @@ export function titleOf(view: MatchView): string {
 export function stopsOf(atlas: Atlas, view: MatchView, times: Times): Stop[] {
   const { match, sides, discipline } = view;
   const d = discipline.id;
-  // A single game that has not begun has no series to draw.
-  if (match.bestOf === 1 && match.status === "scheduled" && !view.solo) return [];
+  // A single game is not a series, and there is nothing to draw as a line.
+  if (match.bestOf === 1 && !view.solo) return [];
   const series = seriesScore(match);
   const need = Math.floor(match.bestOf / 2) + 1;
   const over = match.status === "finished";
@@ -445,19 +450,21 @@ export function stopsOf(atlas: Atlas, view: MatchView, times: Times): Stop[] {
       else if (d === "lol") sub = g.clock ? `${Math.round(g.clock / 60)} min` : "";
       else if (d === "chess")
         sub = g.winner === "draw" ? "Draw" : `${sides[g.winner as number]?.name ?? ""} won`;
-      else sub = g.scores ? g.scores.join("–") : "";
+      else if (g.scores) sub = g.scores.join("–");
+      // Only who won it is known.
+      if (!sub && typeof g.winner === "number") sub = `${sides[g.winner]?.label ?? ""} won`;
       return { kind: "done", label: name, sub, winner: g.winner };
     }
     if (g.status === "live") {
       let sub = "";
-      if (d === "cs2") sub = `Round ${(g.rounds?.length ?? 0) + 1}, first to 13`;
-      else if (d === "lol")
-        sub = `${gameClock(g.clock ?? 0)} · kills ${(g.scores ?? [0, 0]).join("–")}`;
-      else if (d === "rocket-league")
-        sub = (g.clock ?? 0) > 300 ? `Overtime ${rocketClock(g)}` : `${rocketClock(g)} left`;
+      if (d === "cs2" && g.rounds) sub = `Round ${g.rounds.length + 1}, first to 13`;
+      else if (d === "lol" && g.clock !== undefined)
+        sub = `${gameClock(g.clock)} · kills ${(g.scores ?? [0, 0]).join("–")}`;
+      else if (d === "rocket-league" && g.clock !== undefined)
+        sub = g.clock > 300 ? `Overtime ${rocketClock(g)}` : `${rocketClock(g)} left`;
       else if (d === "chess") sub = `Move ${g.chess?.move ?? 1}`;
       else if (g.cup) sub = `Round ${g.cup.round} · first to ${g.cup.limit}, then one round`;
-      return { kind: "now", label: name, sub, game: g };
+      return { kind: "now", label: name, sub: sub || "Being played", game: g };
     }
     if (over) return { kind: "later", label: name, sub: "Not needed" };
     if (i === nextIndex && !hasLive && match.status === "live")
@@ -503,7 +510,8 @@ export function placeOf(atlas: Atlas, view: MatchView, now: number, times: Times
     const winner = typeof w === "number" ? view.sides[w] : undefined;
     next =
       match.status === "finished"
-        ? winner && ahead.sides.length === 2
+        ? // Said only while it is still ahead of them.
+          winner && ahead.sides.length === 2 && ahead.status !== "finished"
           ? ` ${winner.name} ${winner.plural ? "go" : "goes"} to the ${round2}, ${lower(when)}.`
           : ""
         : waiting && ahead.sides.length === 2
