@@ -2,6 +2,7 @@ import type { World } from "@bearing/domain";
 import { SAMPLE_NOW, advance, buildSampleWorld, rng } from "@bearing/domain/sample";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
+import type { Doc } from "./_generated/dataModel";
 import { type MutationCtx, internalAction, internalMutation, mutation } from "./_generated/server";
 import {
   competitor,
@@ -25,7 +26,12 @@ import {
  * longer than a second. While it lasts the world reads as empty and not ready.
  */
 
-const BEAT = 2400;
+const BEAT = 7200;
+/** Steps of play in one beat: the sample moves on as fast as before, written a third as often. */
+const STEPS = 3;
+/** Every so many beats the whole sample is looked at, in case something was missed between. */
+const WHOLE_EVERY = 40;
+const HOUR = 60 * 60 * 1000;
 /** How long the loop keeps going after the last screen asked for it. */
 const WATCH = 90_000;
 /** After this long the sample has played itself out and starts again. */
@@ -183,39 +189,50 @@ export const ready = internalMutation({
   },
 });
 
-/** One beat: every live match may move on a little. Then the next beat is booked. */
+/**
+ * One beat: every live match moves on a little. Then the next beat is booked.
+ *
+ * What a function reads is what the plan counts, so a beat reads only the matches being played
+ * and those now due. The rest of the sample is read when it is needed: when a match has ended,
+ * since its winner moves on and its event may have places to give out, and every few minutes.
+ */
 export const beat = internalMutation({
-  args: { generation: v.number() },
-  handler: async (ctx, { generation }) => {
+  args: { generation: v.number(), n: v.optional(v.number()) },
+  returns: v.null(),
+  handler: async (ctx, { generation, n = 0 }) => {
     const source = await ctx.db.query("source").first();
     const watch = await ctx.db.query("watch").first();
-    if (!source || !watch || source.loading) return;
-    if (source.kind !== "sample" || source.generation !== generation) return;
+    if (!source || !watch || source.loading) return null;
+    if (source.kind !== "sample" || source.generation !== generation) return null;
     const now = Date.now();
     if (now > watch.until) {
       await ctx.db.patch("watch", watch._id, { running: false });
-      return;
+      return null;
     }
-    // The sample is a few hundred rows, and the ceilings say so.
-    const matches = await ctx.db.query("matches").take(2000);
-    const tournaments = await ctx.db.query("tournaments").take(200);
-    const world: World = {
-      now: SAMPLE_NOW,
-      disciplines: [],
-      organizations: [],
-      competitors: [],
-      stints: [],
-      follows: [],
-      rankings: [],
-      tournaments: tournaments.map((t) => t.doc),
-      matches: matches.map((m) => m.doc),
+    const sampleNow = Date.parse(SAMPLE_NOW) + (now - source.loadedAt);
+    const r = rng(Math.floor(Math.random() * 2 ** 32));
+    type Rows<T extends "matches" | "tournaments"> = Doc<T>[];
+    const play = (matches: Rows<"matches">, tournaments: Rows<"tournaments">) => {
+      const world: World = {
+        now: SAMPLE_NOW,
+        disciplines: [],
+        organizations: [],
+        competitors: [],
+        stints: [],
+        follows: [],
+        rankings: [],
+        tournaments: tournaments.map((t) => t.doc),
+        matches: matches.map((m) => m.doc),
+      };
+      let next = world;
+      for (let step = 0; step < STEPS; step++) next = advance(next, r, sampleNow);
+      return { world, next };
     };
-    const next = advance(
-      world,
-      rng(Math.floor(Math.random() * 2 ** 32)),
-      Date.parse(SAMPLE_NOW) + (now - source.loadedAt),
-    );
-    if (next !== world) {
+    const write = async (
+      matches: Rows<"matches">,
+      tournaments: Rows<"tournaments">,
+      next: World,
+    ) => {
       for (const [i, row] of matches.entries()) {
         const doc = next.matches[i];
         if (doc && doc !== row.doc) {
@@ -226,8 +243,51 @@ export const beat = internalMutation({
         const doc = next.tournaments[i];
         if (doc && doc !== row.doc) await ctx.db.patch("tournaments", row._id, { doc: plain(doc) });
       }
+    };
+
+    let settled = false;
+    if (n % WHOLE_EVERY !== 0) {
+      const live = await ctx.db
+        .query("matches")
+        .withIndex("by_live_and_at", (q) => q.eq("live", true))
+        .take(200);
+      const due = await ctx.db
+        .query("matches")
+        .withIndex("by_live_and_at", (q) =>
+          q
+            .eq("live", false)
+            .gte("at", sampleNow - 2 * HOUR)
+            .lte("at", sampleNow),
+        )
+        .take(200);
+      const matches = [...live, ...due.filter((row) => row.doc.status === "scheduled")];
+      const tournaments: Rows<"tournaments"> = [];
+      for (const key of new Set(matches.map((row) => row.doc.tournamentId))) {
+        const row = await ctx.db
+          .query("tournaments")
+          .withIndex("by_key", (q) => q.eq("key", key))
+          .first();
+        if (row) tournaments.push(row);
+      }
+      const { world, next } = play(matches, tournaments);
+      // A match that ended needs the matches around it; that is left to the whole look below.
+      const ended = next.matches.some(
+        (m, i) => m.status === "finished" && world.matches[i]?.status !== "finished",
+      );
+      if (!ended) {
+        if (next !== world) await write(matches, tournaments, next);
+        settled = true;
+      }
     }
-    await ctx.scheduler.runAfter(BEAT, internal.sample.beat, { generation });
+    if (!settled) {
+      // The sample is a few hundred rows, and the ceilings say so.
+      const matches = await ctx.db.query("matches").take(2000);
+      const tournaments = await ctx.db.query("tournaments").take(200);
+      const { world, next } = play(matches, tournaments);
+      if (next !== world) await write(matches, tournaments, next);
+    }
+    await ctx.scheduler.runAfter(BEAT, internal.sample.beat, { generation, n: n + 1 });
+    return null;
   },
 });
 
