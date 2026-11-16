@@ -207,8 +207,18 @@ const thousands = (n: number) => `${(n / 1000).toFixed(1)}k`;
  * champion they took and their kills, deaths and assists, and beneath them what each side
  * denied the other.
  */
-function Scoreboard({ game }: { game: GameResult }) {
+function Scoreboard({ game, sides }: { game: GameResult; sides: SideView[] }) {
   const atlas = useAtlas();
+  // A line that names a player without saying who they are is matched to the side's own
+  // people by that name, so that it still leads to their page.
+  const idOf = (line: PlayerLine) => {
+    if (line.playerId) return line.playerId;
+    const team = sides[line.side]?.id;
+    const name = line.handle?.toLowerCase();
+    return team && name
+      ? atlas.roster(team).find((r) => r.player.handle.toLowerCase() === name)?.player.id
+      : undefined;
+  };
   const { draft, lines } = game;
   if (!draft && !lines?.length) return null;
   const patch = draft?.patch;
@@ -221,14 +231,15 @@ function Scoreboard({ game }: { game: GameResult }) {
     const champion = name
       ? (draft?.picks[side]?.find((c) => c.name === name) ?? { name })
       : undefined;
-    const who = (line?.playerId ? atlas.player(line.playerId)?.handle : undefined) ?? line?.handle;
+    const id = line ? idOf(line) : undefined;
+    const who = (id ? atlas.player(id)?.handle : undefined) ?? line?.handle;
     return (
       <span className="bx-score-half" data-side={side}>
         {champion ? <Champ champion={champion} patch={patch} /> : <span className="bx-champ" />}
         {line ? (
           <>
-            {line.playerId ? (
-              <Go to={{ kind: "player", id: line.playerId }} className="bx-score-name">
+            {id ? (
+              <Go to={{ kind: "player", id }} className="bx-score-name">
                 {who ?? champion?.name}
               </Go>
             ) : (
@@ -373,7 +384,7 @@ export function GameRow({
           />
         ) : null}
         {game.lead && game.lead.length > 2 ? <GoldLead lead={game.lead} sides={sides} /> : null}
-        <Scoreboard game={game} />
+        <Scoreboard game={game} sides={sides} />
       </div>
     );
   }

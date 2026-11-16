@@ -57,7 +57,14 @@ async function ask<T>(url: string): Promise<T[] | null> {
   return null;
 }
 
-/** Finished League series that still lack their lines, the latest first. */
+/**
+ * Whether the wiki's record of a game is in: its players identified, or its bans, neither of
+ * which the game's own feed can give.
+ */
+const entered = (g: { lines?: { playerId: string }[]; draft?: { bans: unknown[][] } }) =>
+  !!g.lines?.some((l) => l.playerId) || !!g.draft?.bans.some((b) => b.length);
+
+/** Finished League series that still lack the wiki's record, the latest first. */
 export const targets = internalQuery({
   args: { from: v.number(), to: v.number() },
   returns: v.array(
@@ -91,7 +98,7 @@ export const targets = internalQuery({
           league.has(row.doc.tournamentId) &&
           row.doc.sides.length === 2 &&
           row.doc.sides.every((s) => s.competitorId) &&
-          row.doc.games.some((g) => g.status === "finished" && !g.lines),
+          row.doc.games.some((g) => g.status === "finished" && !entered(g)),
       )
       .slice(0, SERIES_PER_RUN);
     if (!wanted.length) return [];
@@ -122,7 +129,7 @@ export const targets = internalQuery({
       games: row.doc.games.map((g) => ({
         status: g.status,
         winner: typeof g.winner === "number" ? g.winner : undefined,
-        known: !!g.lines,
+        known: entered(g),
       })),
     }));
   },

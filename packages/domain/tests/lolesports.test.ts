@@ -8,6 +8,7 @@ import {
   blueSide,
   findEvent,
   lookTimes,
+  playersOf,
   readGame,
   sameTeam,
   stateOf,
@@ -94,5 +95,71 @@ describe("League of Legends, inside a game", () => {
     const times = lookTimes(start, start + 5 * 60_000);
     expect(times).toHaveLength(5);
     for (const t of times) expect(Date.parse(t) % 10_000).toBe(0);
+  });
+
+  test("the players of a moment are read by name, on the match's own sides", () => {
+    const team = (first: number) => ({
+      totalGold: 0,
+      totalKills: 0,
+      towers: 0,
+      barons: 0,
+      dragons: [],
+      participants: [
+        { participantId: first, totalGold: 4321, kills: 2, deaths: 1, assists: 3, creepScore: 88 },
+      ],
+    });
+    const frame = {
+      rfc460Timestamp: "2026-11-14T20:00:00Z",
+      gameState: "in_game",
+      blueTeam: team(1),
+      redTeam: team(6),
+    };
+    const meta = {
+      patchVersion: "16.20.826.3891",
+      blueTeamMetadata: {
+        participantMetadata: [
+          { participantId: 1, summonerName: "GEN Kiin", championId: "LeeSin", role: "top" },
+        ],
+      },
+      redTeamMetadata: {
+        participantMetadata: [
+          { participantId: 6, summonerName: "BLG Bin", championId: "MonkeyKing", role: "bottom" },
+        ],
+      },
+    };
+    // Blue is the match's second side.
+    const read = playersOf(frame, meta, 1);
+    expect(read.lines).toEqual([
+      {
+        playerId: "",
+        handle: "Kiin",
+        side: 1,
+        kills: 2,
+        deaths: 1,
+        assists: 3,
+        role: "Top",
+        gold: 4321,
+        champion: "Lee Sin",
+        cs: 88,
+      },
+      {
+        playerId: "",
+        handle: "Bin",
+        side: 0,
+        kills: 2,
+        deaths: 1,
+        assists: 3,
+        role: "Bot",
+        gold: 4321,
+        champion: "Wukong",
+        cs: 88,
+      },
+    ]);
+    expect(read.draft).toEqual({
+      patch: "16.20.1",
+      picks: [[{ name: "Wukong", key: "MonkeyKing" }], [{ name: "Lee Sin", key: "LeeSin" }]],
+      bans: [[], []],
+    });
+    expect(playersOf(frame, undefined, 0)).toEqual({});
   });
 });

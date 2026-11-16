@@ -3,16 +3,19 @@ import {
   type LolDetails,
   type LolEvent,
   type LolFrame,
+  type LolMeta,
   between,
   blueSide,
   findEvent,
   lookTimes,
+  playersOf,
   readGame,
   stateOf,
 } from "@bearing/domain/lolesports";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { internalAction, internalMutation, internalQuery } from "./_generated/server";
+import { game } from "./validators";
 
 /**
  * What happens inside a League of Legends game: kills, towers, dragons, barons and gold through
@@ -49,12 +52,23 @@ async function api<T>(path: string, k: string): Promise<T | null> {
   return response.ok ? ((await response.json()) as T) : null;
 }
 
-async function frames(gameId: string, startingTime?: string): Promise<LolFrame[]> {
+/** A few seconds of a game from a moment on, and who sits where in it. */
+async function look(
+  gameId: string,
+  startingTime?: string,
+): Promise<{ frames: LolFrame[]; meta?: LolMeta }> {
   const query = startingTime ? `?startingTime=${startingTime}` : "";
   const response = await fetch(`${FEED}/window/${gameId}${query}`);
-  if (!response.ok || response.status === 204) return [];
-  const body = (await response.json().catch(() => null)) as { frames?: LolFrame[] } | null;
-  return body?.frames ?? [];
+  if (!response.ok || response.status === 204) return { frames: [] };
+  const body = (await response.json().catch(() => null)) as {
+    frames?: LolFrame[];
+    gameMetadata?: LolMeta;
+  } | null;
+  return { frames: body?.frames ?? [], meta: body?.gameMetadata };
+}
+
+async function frames(gameId: string, startingTime?: string): Promise<LolFrame[]> {
+  return (await look(gameId, startingTime)).frames;
 }
 
 const mark = (ms: number) =>
@@ -149,6 +163,9 @@ export const apply = internalMutation({
     append: v.boolean(),
     /** The lead in gold by the minute, for a game read from its start. */
     lead: v.optional(numbers),
+    /** The ten players as the feed has them, by name, and the champions they took. */
+    lines: game.fields.lines,
+    draft: game.fields.draft,
   },
   handler: async (ctx, args) => {
     const row = await ctx.db
@@ -175,6 +192,9 @@ export const apply = internalMutation({
         ? {
             ...g,
             lead,
+            // What the wiki has entered, with players identified and bans, is the fuller record.
+            lines: g.lines?.some((l) => l.playerId) ? g.lines : (args.lines ?? g.lines),
+            draft: g.draft?.bans.some((b) => b.length) ? g.draft : (args.draft ?? g.draft),
             startedAt: args.startedAt ?? g.startedAt,
             firstSide: args.firstSide,
             // A finished game keeps the length PandaScore gives it, which is the official one.
@@ -233,7 +253,8 @@ export const enrich = internalAction({
 
         if (game.status === "live" && game.known && game.startedAt) {
           // Already being followed: one look, and whatever fell since the last one.
-          const latest = (await frames(theirs.id, mark(now - LAG))).at(-1);
+          const seen = await look(theirs.id, mark(now - LAG));
+          const latest = seen.frames.at(-1);
           if (!latest) continue;
           const state = stateOf(latest, Date.parse(game.startedAt), blue);
           const before = {
@@ -257,6 +278,7 @@ export const enrich = internalAction({
             },
             events: between(before, state),
             append: true,
+            ...playersOf(latest, seen.meta, blue),
           });
           continue;
         }
@@ -265,7 +287,8 @@ export const enrich = internalAction({
           (game.status === "live" && !game.known) || (game.status === "finished" && !game.known);
         if (!wantsWhole || whole >= GAMES_PER_RUN) continue;
         // Not seen before: read it from its first moment, a look a minute.
-        const first = await frames(theirs.id);
+        const opening = await look(theirs.id);
+        const first = opening.frames;
         if (!first.length) continue;
         whole++;
         const start = Date.parse(first[0]!.rfc460Timestamp);
@@ -289,6 +312,7 @@ export const enrich = internalAction({
           events: read.events ?? [],
           append: false,
           lead: read.lead,
+          ...playersOf(looks.at(-1)!, opening.meta, blue),
         });
       }
     }
