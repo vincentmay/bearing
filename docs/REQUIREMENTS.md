@@ -83,8 +83,8 @@ mode, native apps, any editing of data by users.
 - **B7.** Logo: the ball seated in its ring, always in one colour. Files are in `docs/brand/`.
 - **B8.** Layout: cards one level deep, following the six rules in `docs/BRAND.md`. Boxes never
   nest; headings and section labels lie on the page; inside a card only hairlines divide rows.
-- **B9.** Navigation: a small floating capsule at the bottom with four Lucide icons and no labels.
-  Icons everywhere are Lucide (`lucide-react`, already installed).
+- **B9.** Navigation: on a phone, a small floating capsule at the bottom with four Lucide icons and
+  no labels; on a wide screen see G1a. Icons everywhere are Lucide (`lucide-react`).
 - **B10.** A score is drawn as dots on a line, never in a circle.
 - **B11.** Sample and test data must rotate through several teams, so no colour reads as the
   brand's. Never show yellow against blue as the only example.
@@ -97,8 +97,12 @@ Tournament and Settings were never designed.
 
 ### 4.1 Everywhere
 
-- **G1 (Agreed).** The navigation capsule is visible on every screen. Its four entries are Today,
+- **G1 (Agreed).** The navigation is visible on every screen. Its four entries are Today,
   Schedule, Following and Search. A marker slides to the selected one.
+- **G1a (Agreed on 2026-11-16; form Proposed).** The small capsule at the bottom is for phones.
+  The owner: "the mobile navigation probably should not be used at full hd desktop sizing." From
+  900 px the same capsule sits at the top with its labels, between the mark with its name on
+  the left and Settings on the right. The owner has not yet seen this form.
 - **G2.** Phone layout up to 600 px wide: one column. Wide layout from 900 px: the same content in
   a wider column, with the wide match header (4.3) and lists set side by side where that helps.
   Nothing scrolls sideways at any width from 320 px.
@@ -223,9 +227,14 @@ the prototype and not contested.
 Dot states: won (filled with the winner's colour), being played (an ink outline that breathes, one
 per match), to come (a pale outline, left out once the match is over).
 
-**Data gap:** the model has every Counter-Strike round, but only totals for League objectives and
-Rocket League goals, and only points for Trackmania. The full forms for those three need the time
-of each objective, goal and round win to be added to `GameResult` in `packages/domain`.
+**Data (closed on 2026-11-16):** `GameResult` now carries `events` (each Rocket League goal and
+League objective with its second on the game clock), `clock` (seconds played) and, for a
+Trackmania cup, `cup.rounds` (the finishing order of every round). The sample world fills all
+three.
+
+**Trackmania (Proposed, differs from the prototype):** the prototype showed "first to five
+rounds". The model and the real cup format are points to a limit, then one more round win. The app
+follows the real format: one dot per round in the colour of whoever won it, standings by points.
 
 ## 6. Motion and interaction
 
@@ -248,13 +257,27 @@ All **Agreed** in the prototype. Timings are in `docs/BRAND.md`.
   formats never reach the screens.
 - **D2 (Agreed).** A generated sample world (`packages/domain/src/sample`) drives the app today.
   Keep it: it shows every state at once and is what the screenshot checks run against.
+- **D2a (Proposed).** The sample world is played forward so that live behaviour can be seen:
+  `advance` in `packages/domain/src/sample/play.ts` is a pure function from one world to the next
+  (a round is won, a goal goes in, a match ends, the winner moves on in the bracket). The app
+  calls it every 2.4 seconds and writes the result into the query cache; a backend can call the
+  same function on a schedule. It runs faster than real time, and Settings says so.
 - **D3 (Agreed).** Unknown stays unknown. Nothing is guessed, and any generated sentence is derived
   strictly from match state.
 - **D4.** Real data arrives through one adapter per source, each mapping into the model with
   provenance. The screens only ever read Bearing's own store. Candidates and their licence terms
   are in `docs/DATA-SOURCES.md`; several items there are marked "verify".
 - **D5.** First adapters: Lichess broadcasts for chess (open and free), then Liquipedia for the
-  four other games once access and terms are confirmed.
+  four other games once access and terms are confirmed. The Lichess adapter is built: the
+  mapping is `packages/domain/src/sources/lichess.ts` (tested against a saved real answer), the
+  fetching and storing is `apps/web/convex/lichess.ts`. It follows the eight leading broadcasts
+  of tier 4 and 5.
+- **D5a (Proposed).** A deployment is on sample data or on real data, never a mixture, because
+  the sample lives at a pinned instant and real data in real time. `npx convex run
+  sample:useLive` switches to real data, which for now means chess only.
+- **D5b (Proposed).** The model gained the stage format `rounds`: a stage known only as rounds
+  with their pairings. A Lichess broadcast says nothing reliable about who advances, so it is
+  drawn as that list unless its own description says "round robin".
 - **D6.** Freshness: a live match is at most 30 seconds behind its source; schedules at most an
   hour. If a source is unreachable, the screen says how old its data is.
 - **D7 (Agreed).** Licensing decides what can go public. Several sources are free only for
@@ -315,16 +338,16 @@ official streams and recordings; a spoiler-free mode; football.
 
 ## 11. Technology
 
-| Area      | Requirement                                                              | Status   |
-| --------- | ------------------------------------------------------------------------ | -------- |
-| Packages  | pnpm workspace; Vite+ (`vp`) for dev, build, check and test              | Agreed   |
-| Interface | React 19, TanStack Router (file routes), TanStack Query                  | Agreed   |
-| Styling   | Plain CSS scoped to `.bx` in `bearing.css`; Tailwind 4 is also installed | Proposed |
-| Icons     | `lucide-react`                                                           | Agreed   |
-| Fonts     | `@fontsource-variable/gabarito`, `@fontsource-variable/geist-mono`       | Agreed   |
-| Three.js  | Installed from the earlier directions. The identity has no 3D; remove it | Proposed |
-| Backend   | Convex (section 8)                                                       | Agreed   |
-| Accounts  | Clerk (section 8)                                                        | Agreed   |
+| Area      | Requirement                                                                 | Status   |
+| --------- | --------------------------------------------------------------------------- | -------- |
+| Packages  | pnpm workspace; Vite+ (`vp`) for dev, build, check and test                 | Agreed   |
+| Interface | React 19, TanStack Router (file routes), TanStack Query                     | Agreed   |
+| Styling   | Plain CSS scoped to `.bx` in `bearing.css`. Tailwind was unused and removed | Proposed |
+| Icons     | `lucide-react`                                                              | Agreed   |
+| Fonts     | `@fontsource-variable/gabarito`, `@fontsource-variable/geist-mono`          | Agreed   |
+| Three.js  | Removed with the earlier directions on 2026-11-16                           | Done     |
+| Backend   | Convex (section 8)                                                          | Agreed   |
+| Accounts  | Clerk (section 8)                                                           | Agreed   |
 
 Anything not in this table needs the owner's agreement first.
 
@@ -335,27 +358,57 @@ Location: `C:\Users\vmay1\Code\playground\bearing`. The repository has one commi
 directions included, so removing them later loses nothing. There is no remote. Commit or push
 further work only when the owner asks.
 
-**Built with the new identity (keep, extend):**
+**State on 2026-11-16, after steps 2 to 5 and the code for step 6:**
 
 - `apps/web/src/bearing/`: `bearing.css` (tokens and components), `model.ts` (turns a domain match
-  into what a screen needs: sides, colours, score, dots; includes the look-alike colour rule and
-  the chess rule), `ui.tsx` (mark, disc, split disc, live dot, dots, section), `shell.tsx` (page
-  and navigation), `today.tsx`, `match.tsx`, `lists.tsx` (Schedule, Following, Search).
-- Routes `/`, `/match/$matchId`, `/schedule`, `/following`, `/search` under
-  `apps/web/src/routes/_app*.tsx`.
-- What that slice lacks: the wide layout (G2, M4), all motion beyond the live dot (A2 to A4), the
-  conditional "next" rows (T5), the follow filter on Schedule (S3), states for loading and errors
-  (G6), provenance (G7), and the screens of 4.7 to 4.10.
-
-**Reusable for logic, not for looks:** `packages/domain` (model, derivations, sample world, 12
-tests), `apps/web/src/lib/` (world access, follows, view helpers, generated sentences), and the
-format drawings under `apps/web/src/components/formats/`.
-
-**To remove once the new screens cover them (after a commit):** the six earlier directions
-(`apps/web/src/routes/$dir`, `routes/old.tsx`, `routes/brand.tsx`, `src/pages`, `src/directions`,
-`src/components`, most of `src/styles.css`), the fonts only they use (Archivo, Fraunces, Inter
-Tight, Geist), `three`, and every remaining mention of "Slate" in code, comments and
-`public/favicon.svg`. `README.md` still describes the old state and needs rewriting.
+  into what a screen needs: sides, colours, score, dots, stops, sentences), `time.ts` (every time
+  on a screen goes through it), `board.ts` (what each screen starts from), `ui.tsx` (mark, disc,
+  split disc, live dot, dots that land, ticking score, clock line, star, segmented control,
+  waiting and problem states), `forms.tsx` (the full form of each game, the line of stops),
+  `stages.tsx` (bracket, Swiss table, cross table, cup heats, the generic line of stops),
+  `live.tsx` (keeps the sample moving), `shell.tsx`, `links.tsx`, and the screens `today.tsx`,
+  `match.tsx`, `lists.tsx` (Schedule, Following, Search), `settings.tsx`, `team.tsx`,
+  `player.tsx`, `tournament.tsx`.
+- `apps/web/src/lib/`: `world.tsx` (the world from the browser's sample or from Convex),
+  `backend.ts`, `account.tsx` (Clerk, follows in the account, carrying device follows over),
+  `follows.ts`, `prefs.ts`, `recents.ts`, `view.ts`.
+- `apps/web/convex/`: `schema.ts` and `validators.ts` (the canonical model as validators, with a
+  compile-time check that they match `packages/domain`), `world.ts` (three live queries),
+  `sample.ts` (the sample loaded in batches and played forward on the server while anyone is
+  looking), `lichess.ts` and `crons.ts`, `follows.ts`, `auth.config.ts`.
+- Sections 4.1 to 4.10, 5 and 6 are built at phone and wide width with motion.
+- The six earlier directions, their fonts, Three.js and Tailwind are removed. They are in the
+  first commit.
+- Verified against a local Convex deployment: the sample in the store, two browsers seeing the
+  same moment, real Lichess data end to end, switching between the two.
+- **Not verified, because it needs the owner's Clerk application:** signing in, follows in the
+  account, carrying device follows over on first sign-in (K4), and the restyling of Clerk's
+  screens (K2). The code is written and type-checks; nobody has seen it run.
+- **Not done:** deployment to the owner's Convex project, Liquipedia (access not confirmed),
+  and Y4 (first-screen speed) has not been measured.
+- Readings and choices made while building, all **Proposed**:
+  - M1 and M4: on Today the lead card carries the line of stops at wide width, as in the
+    prototype. On the match page the heading and the stops lie on the page, not in a card.
+  - Settings is reached through a gear: in the Today header on a phone, at the top right on a
+    wide screen.
+  - Appearance, clock and time zone stay on the device and are not synced (K6).
+  - A match with four sides is drawn as one disc in quarters, and named by its heat
+    ("Quarterfinal B").
+  - Schedule shows seven days on a phone (two back, four ahead) and ten on a wide screen. A
+    line joins matches that may be on at the same time, judged from typical lengths.
+  - A second colour that is nearly black or nearly white counts as no second colour, because
+    it cannot be seen on one of the two grounds; the team then takes ink.
+  - Chess: ink goes to the player the page is about, else to the one the viewer follows, else
+    to the first named.
+  - A bracket is drawn as a tree on a phone too, with short names. It fits three rounds;
+    a fourth round will need another answer.
+  - Team: the year as a line of events. Player: the career as a line of teams, or the run
+    through the current event for someone who plays alone. Tournament: each stage drawn for
+    its format.
+  - The sample on the server rests ninety seconds after the last screen stopped looking, and
+    is loaded afresh after three hours, so that function calls are only spent while someone
+    watches.
+  - An account can follow up to 500 things.
 
 **Commands:**
 
@@ -364,8 +417,14 @@ vp install
 vp run @bearing/web#dev            # http://localhost:5810
 vp check                           # format, lint, types
 vp run -r test                     # domain tests
-node scripts/app-shots.mjs         # screenshots of the new screens, light and dark, needs the dev server
+node scripts/app-shots.mjs         # every screen, light and dark, phone and wide; needs the dev server
+node scripts/app-motion.mjs        # plays the sample forward and checks the live behaviour
+node scripts/app-states.mjs        # waiting, could not load, nothing followed, nothing found
+node scripts/app-backend.mjs       # the app against its backend; needs `npx convex dev` running
 ```
+
+In development `window.bearing.pause()` and `window.bearing.step(n)` drive the sample by hand, and
+`?world=slow` or `?world=fail` on any address shows the waiting and the failed state.
 
 ## 13. Order of work
 
@@ -373,15 +432,16 @@ Proposed. Each step ends with the owner seeing it working.
 
 1. **Commit** the repository as it stands. Done on 2026-11-16.
 2. **Finish the five existing screens** against sections 4.1 to 4.6, 5 and 6, on the sample world,
-   at phone and wide width, with motion. Extend the sample world so League, Rocket League and
-   Trackmania have the event times their full forms need.
-3. **Design, show, then build** Team, Player and Tournament. These are where the owner expects the
-   most.
-4. **Remove the old directions** and the leftovers listed in section 12.
-5. **Backend**: Convex, with the sample world loaded into it first, then the Lichess adapter, then
-   Liquipedia once access is confirmed.
-6. **Accounts and sync** with Clerk, to production standard (section 8). The owner has to create
-   the Convex and Clerk projects and hand over the keys before steps 5 and 6 can run for real.
+   at phone and wide width, with motion. Done on 2026-11-16.
+3. **Design, show, then build** Team, Player and Tournament. Built on 2026-11-16. The owner saw
+   the first design and said to carry on with everything; they have not commented on the pages
+   themselves, so the design is still Proposed.
+4. **Remove the old directions** and the leftovers listed in section 12. Done on 2026-11-16.
+5. **Backend**: Convex, with the sample world loaded into it first, then the Lichess adapter. Done
+   on 2026-11-16 against a local deployment. Liquipedia waits for access to be confirmed.
+6. **Accounts and sync** with Clerk. The code is written. It cannot run until the owner has
+   created the Convex and Clerk projects and handed over the two values in
+   `apps/web/.env.example`; then it has to be tested signed in.
 
 ## 14. Open questions for the owner
 
@@ -393,6 +453,13 @@ Proposed. Each step ends with the owner seeing it working.
    watchbearing.com.
 5. Before any public launch: an EU trade mark check on the name "Bearing", and a check of the logo
    against existing marks. Neither has been done.
+6. The navigation capsule is translucent with a blur behind it, as in the prototype, so team
+   colours blur as they pass under it. B4 forbids blurred colour. Keep it, or make it opaque?
+7. Team, Player and Tournament, and the navigation at the top of a wide screen: are they right?
+8. Convex and Clerk: the owner creates both projects (README, "The backend and accounts"). Until
+   then the app runs in the browser on the sample.
+9. Once on real data only chess has a source. Is a chess-only real version useful to the owner
+   now, or should it stay on the sample until Liquipedia is in?
 
 Settled on 2026-11-16 and no longer open: the card layout of round 10 ("Yes it is perfect now"),
 Convex and Clerk, and the first git commit.

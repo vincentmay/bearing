@@ -1,9 +1,9 @@
 # Bearing identity, version 2
 
 Agreed step by step on 2026-11-16. The working version is the live prototype
-`docs/identity/round-10.html`; the reasoning behind the product is in `BRAND-CORE.md`. The app does
-not use this identity yet: it still contains the six earlier directions and the retired "Slate"
-mark. The older guide `docs/identity/bearing-identity.html` is out of date (it still shows colour
+`docs/identity/round-10.html`; the reasoning behind the product is in `BRAND-CORE.md`. The app
+uses this identity under `apps/web/src/bearing/`; the six earlier directions and the retired
+"Slate" mark are still in the repository and are to be removed. The older guide `docs/identity/bearing-identity.html` is out of date (it still shows colour
 fades and soft neutrals).
 
 ## In one sentence
