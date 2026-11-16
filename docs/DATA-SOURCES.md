@@ -1,6 +1,6 @@
 # Data sources
 
-State on 2026-11-16. Four sources are integrated and running; the rest are assessed below with what
+State on 2026-11-16. Six sources are integrated and running; the rest are assessed below with what
 each would add and what it costs. Prices and terms were read on that day from the pages named;
 where a page could not be read, that is said.
 
@@ -13,7 +13,7 @@ Bearing's own store.
 | Game              | Source                                                 | What Bearing gets                                                                                                                                                                                                                          | What it does not get                                                              |
 | ----------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------- |
 | Chess             | Lichess broadcasts                                     | Events, rounds, pairings, results, the position and clocks of games in progress, players with title, rating, federation                                                                                                                    | Organiser, prize money, a format Bearing can draw (only "round robin" when named) |
-| Counter-Strike 2  | PandaScore, free                                       | Events with stages, every match with its series score and the winner of each map, bracket links, teams, players, prize                                                                                                                     | Map names, round scores, rounds, player statistics, when a player joined          |
+| Counter-Strike 2  | PandaScore, free, and Valve's standings                | Events with stages, every match with its series score and the winner of each map, bracket links, teams, players, prize; the world ranking with points and places gained                                                                    | Map names, round scores, rounds, player statistics, when a player joined          |
 | League of Legends | PandaScore, free, the lolesports feed, and Leaguepedia | The same, the length of each game, from the feed what happened inside it (kills, towers, dragons and barons by the minute, during the game and afterwards), and from Leaguepedia every game's picks, bans and player lines once it is over | Gold over time as a drawing; player lines while a game is still being played      |
 | Rocket League     | PandaScore, free                                       | The same as Counter-Strike                                                                                                                                                                                                                 | Goals, game scores                                                                |
 | Trackmania        | none                                                   |                                                                                                                                                                                                                                            | Everything                                                                        |
@@ -86,6 +86,48 @@ game time and takes an objective to have fallen between the two looks where its 
 - It is one switch. The key is the deployment variable `LOLESPORTS_KEY`; without it nothing is
   asked and League falls back to what PandaScore gives. The match page names the feed as a source.
 
+## Valve's regional standings
+
+[github.com/ValveSoftware/counter-strike_regional_standings](https://github.com/ValveSoftware/counter-strike_regional_standings).
+Valve writes Counter-Strike's ranking there about once a month, on the first Monday so far, as
+tables: place, points, team, roster.
+
+- Access: public files, no key. The files are asked for by their likely names
+  (`live/<year>/standings_global_<date>.md`), because GitHub rations the listing of a folder
+  per address and a shared server runs out of it.
+- Licence: the repository has no licence file. The ranking is a set of facts Valve publishes
+  for everyone to see; no terms forbid showing it. Not checked beyond that.
+- How it is used: once a day. The top sixty are kept; a team Bearing has is linked, the others
+  are shown by name. Places gained are against the ranking before.
+- Not used yet, and there: each team's list of counted matches and winnings.
+
+## Lichess's list of FIDE players
+
+`lichess.org/api/fide/player/<id>` and `...?q=<name>`, open and usable from any page.
+
+- A photograph for most known players, with who took it and its licence (most are from
+  Wikimedia Commons). Bearing asks once per player, a second apart, and credits the picture on
+  the player's page. The picture itself is loaded from Lichess's own picture host.
+- The search is asked by the viewer's own browser when they type three letters or more, so a
+  player who is in no event can still be found; nothing of it is stored.
+
+## Reachable, and not permitted (2026-11-16)
+
+An independent look at every source found two that answer without a key and have what Bearing
+lacks, and that have not allowed it:
+
+- **BLAST** (`api.blast.tv`, `data.blast.tv`): Rocket League's championship in full since
+  2021 (brackets, goals per game, player statistics, rosters with dates), and BLAST's own
+  Counter-Strike events with map names and scores. Undocumented; BLAST's terms forbid copying
+  what its site contains.
+- **bo3.gg** (`api.bo3.gg/api/v1`): Counter-Strike maps, every round, economy and player lines
+  since 2020. Undocumented; its robots file disallows `/api/`.
+
+The owner asks both in writing. Until one says yes, nothing is built on it. Also found:
+trackmania.io allows use of its API with the credit "Powered by Trackmania.io", for online
+community cups only; the lolesports feed also has per-player statistics during a game
+(`livestats/v1/details`), which Bearing does not read yet.
+
 ## Leaguepedia
 
 [lol.fandom.com](https://lol.fandom.com), the League of Legends wiki on Fandom. It is not
@@ -109,8 +151,10 @@ Liquipedia and has nothing to do with it. Found on 2026-11-16, after Liquipedia'
   sources give.
 - The champions' pictures are Riot's own public files (Data Dragon,
   `ddragon.leagueoflegends.com`); only the name a picture is filed under is stored.
-- Not used yet, and there: `RosterChanges` (who joined and left, with dates),
-  `TournamentResults` (prize money by place), `Tenures`, and games going back years. This is
+- `TournamentResults` gives every final place of an event and what it paid; Bearing reads it
+  once per League event that is over.
+- Not used yet, and there: `RosterChanges` (who joined and left, with dates), `Tenures`,
+  player pictures (whose licences differ file by file), and games going back years. This is
   what Liquipedia would have given for League.
 
 ## Liquipedia
@@ -170,8 +214,11 @@ Convex's free plan counts what functions read. On 2026-11-16 the account was rep
 its limits. Two jobs read most and were cut down: the hourly PandaScore run compared every
 match with the store, and now sends only the pieces whose fingerprint has changed
 (`digests`); and the League feed looked through five days of matches every thirty seconds
-while anything at all was live, and now does that only every half hour. Lichess's hourly run
-still compares what it fetches.
+while anything at all was live, and now does that only every half hour. The sample on the
+development deployment re-read every match every 2.4 seconds while a screen was open, which was
+the largest reader of all; it now reads only what is being played, a third as often. Lichess's
+hourly run still compares what it fetches. Database I/O stood at 2.09 GB of the plan's 1 GB
+for November when this was written.
 
 ## Before going public
 
