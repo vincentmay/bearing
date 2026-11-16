@@ -1,4 +1,4 @@
-import type { Competitor, Follow, World } from "../model.ts";
+import type { Competitor, World } from "../model.ts";
 import { buildChess, chessPlayers } from "./chess.ts";
 import { buildCs2, cs2Players, cs2Stints, cs2Teams } from "./cs2.ts";
 import { disciplines, organizations } from "./disciplines.ts";
@@ -13,6 +13,8 @@ import { decorateCs2, decorateLol, rosterIndex } from "./stats.ts";
 import { buildTrackmania, tmPlayers } from "./trackmania.ts";
 
 export { SAMPLE_NOW, SAMPLE_PROVENANCE, rng, type Rand } from "./kit.ts";
+export { SAMPLE_FOLLOWS } from "./follows.ts";
+import { SAMPLE_FOLLOWS } from "./follows.ts";
 export { advance } from "./play.ts";
 
 const BLURBS: Record<string, string> = {
@@ -28,12 +30,6 @@ const BLURBS: Record<string, string> = {
 };
 
 /** What the sample's viewer follows, so that a first look shows a personal page. */
-export const SAMPLE_FOLLOWS: Follow[] = [
-  { kind: "organization", id: "vitality" },
-  { kind: "team", id: "lol-t1" },
-  { kind: "player", id: "chess-carlsen" },
-  { kind: "tournament", id: "tm-cup-finals-2026" },
-];
 
 /** One entity per id: a player who moved teams appears once. */
 function unique<T extends { id: string }>(list: T[]): T[] {

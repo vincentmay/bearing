@@ -7,7 +7,7 @@ import { Back, Go } from "./links";
 import { ChessLanes, CupPlaces, CupStandings, GameRow, Stops } from "./forms";
 import { type Dot, type MatchView, type SideView, placeOf, sideOf, stopsOf } from "./model";
 import { type Times, until } from "./time";
-import { Disc, Dots, Ping, Problem, Score, Section } from "./ui";
+import { Disc, Dots, Ping, Problem, Score, Section, Waiting } from "./ui";
 
 /**
  * Where a fact comes from and when it was last checked, for every match and event: one quiet
@@ -353,12 +353,14 @@ function Meetings({ view, board }: { view: MatchView; board: Board }) {
 }
 
 export function MatchPage({ matchId }: { matchId: string }) {
-  const board = useBoard();
+  const board = useBoard(undefined, { match: matchId });
   const wide = useWide();
   const { atlas, now, times } = board;
   const match = atlas.match(matchId);
   const back = <Back parent={match ? { kind: "tournament", id: match.tournamentId } : undefined} />;
   if (!match) {
+    // A match from before the weeks a list reaches back arrives a moment after the page.
+    if (board.loading) return <Waiting />;
     return (
       <>
         {back}

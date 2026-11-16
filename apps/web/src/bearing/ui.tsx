@@ -119,7 +119,10 @@ function judge(img: HTMLImageElement): { dim: boolean; pale: boolean } {
 export function Disc({ side, size = 44 }: { side: SideView; size?: number }) {
   const [state, setState] = useState<"wait" | "shown" | "failed">("wait");
   const [verdict, setVerdict] = useState<{ dim: boolean; pale: boolean }>();
-  const picture = side.image && state !== "failed" ? side.image : undefined;
+  // A small disc asks for the small picture; if there is none, for the picture itself.
+  const [whole, setWhole] = useState(false);
+  const wanted = side.image && !whole && size <= 64 ? small(side.image) : side.image;
+  const picture = side.image && state !== "failed" ? wanted : undefined;
   const arrived = (img: HTMLImageElement) => {
     if (!side.person) setVerdict(judge(img));
     setState("shown");
@@ -149,11 +152,27 @@ export function Disc({ side, size = 44 }: { side: SideView; size?: number }) {
             if (img?.complete && img.naturalWidth > 0 && state === "wait") arrived(img);
           }}
           onLoad={(event) => arrived(event.currentTarget)}
-          onError={() => setState("failed")}
+          onError={() => {
+            if (wanted !== side.image) setWhole(true);
+            else setState("failed");
+          }}
         />
       ) : null}
     </span>
   );
+}
+
+/**
+ * The address of a picture's small version, where its host keeps one. PandaScore files a
+ * `thumb_` copy beside every picture, a quarter of the weight or less; a disc of thirty
+ * pixels has no use for a photograph of two hundred kilobytes.
+ */
+function small(image: string): string {
+  if (!image.startsWith("https://cdn-api.pandascore.co/")) return image;
+  const cut = image.lastIndexOf("/") + 1;
+  return image.slice(cut).startsWith("thumb_")
+    ? image
+    : `${image.slice(0, cut)}thumb_${image.slice(cut)}`;
 }
 
 /**

@@ -3,7 +3,7 @@ import { seriesScore, winnerOf } from "@bearing/domain";
 import { convexQuery } from "@convex-dev/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../convex/_generated/api";
-import { convex } from "./backend";
+import { reader } from "./backend";
 
 /** One earlier meeting of two sides, seen from the first of them. */
 export interface Meeting {
@@ -24,7 +24,7 @@ export function useMeetings(atlas: Atlas, a: string | null, b: string | null, no
   const both = !!a && !!b;
   const { data } = useQuery({
     ...convexQuery(api.meetings.between, { a: a ?? "", b: b ?? "" }),
-    enabled: both && !!convex,
+    enabled: both && !!reader,
   });
   if (!both) return [];
   const own: Meeting[] = atlas.world.matches

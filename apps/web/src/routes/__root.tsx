@@ -3,7 +3,8 @@ import "../bearing/bearing.css";
 
 import type { QueryClient } from "@tanstack/react-query";
 import { Outlet, createRootRouteWithContext, useRouter } from "@tanstack/react-router";
-import { Problem, Waiting } from "../bearing/ui";
+import { ShellWaiting } from "../bearing/shell";
+import { Problem } from "../bearing/ui";
 import { loadWorld } from "../lib/world";
 
 /** A bare page in the Bearing frame, for when the app itself has nothing to show yet. */
@@ -17,13 +18,10 @@ function Frame({ children }: { children: React.ReactNode }) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   loader: ({ context }) => loadWorld(context.queryClient),
-  // Shown only when loading takes long enough to notice.
-  pendingMs: 300,
-  pendingComponent: () => (
-    <Frame>
-      <Waiting title="Today" />
-    </Frame>
-  ),
+  // The frame is there from the first moment; a page on its way arrives into it.
+  pendingMs: 0,
+  pendingMinMs: 0,
+  pendingComponent: ShellWaiting,
   errorComponent: function RootError() {
     const router = useRouter();
     return (

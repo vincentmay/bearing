@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 import { useAccount } from "../lib/account";
-import { convex } from "../lib/backend";
+import { reader } from "../lib/backend";
 import { type Prefs, setPrefs, usePrefs } from "../lib/prefs";
 import { useMinute } from "../lib/world";
 import { useOrigin } from "./shell";
@@ -151,7 +151,7 @@ export function Settings() {
             Bearing is running on sample data: real names, fictional events and generated results.
             The live matches are played forward faster than real time so that there is something to
             follow.{" "}
-            {convex
+            {reader
               ? "The sample is kept on the server, so every open screen sees the same moment."
               : "The sample is kept in this browser and starts again when the page is reloaded."}
           </p>

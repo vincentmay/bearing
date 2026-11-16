@@ -1,11 +1,12 @@
 import { Atlas, type Follow, type Match, type World } from "@bearing/domain";
-import { SAMPLE_FOLLOWS, SAMPLE_NOW, buildSampleWorld } from "@bearing/domain/sample";
+import { SAMPLE_FOLLOWS, SAMPLE_NOW } from "@bearing/domain/sample/follows";
 import { convexQuery } from "@convex-dev/react-query";
-import { type QueryClient, queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo, useSyncExternalStore } from "react";
+import { type QueryClient, queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { api } from "../../convex/_generated/api";
 import { useAccountFollows, useToggleFollow } from "./account";
-import { convex } from "./backend";
+import { reader, storeName } from "./backend";
+import { type Snapshot, readSnapshot, writeSnapshot } from "./snapshot";
 import { isFollowing, useFollows } from "./follows";
 
 /**
@@ -20,6 +21,8 @@ export const worldQuery = queryOptions({
     const mode = import.meta.env.DEV ? new URLSearchParams(location.search).get("world") : null;
     if (mode === "slow") await new Promise((done) => setTimeout(done, 6000));
     if (mode === "fail") throw new Error("The sample world was asked to fail.");
+    // The sample is a good part of a megabyte of names and games; only this path needs it.
+    const { buildSampleWorld } = await import("@bearing/domain/sample");
     return buildSampleWorld();
   },
   staleTime: Infinity,
@@ -46,21 +49,66 @@ const liveQuery = convexQuery(api.world.live, {});
 
 const TIMEOUT = 20_000;
 
-/** Make sure the world is there before a screen is drawn. */
+type Frame = Awaited<ReturnType<NonNullable<(typeof frameQuery)["queryFn"]>>>;
+type Kept = Snapshot<Frame, Match>;
+
+/**
+ * Draw from the last visit, if there was one lately. The three parts of the world are put
+ * where the screens look for them; the store then replaces each as it answers.
+ */
+async function restore(client: QueryClient): Promise<boolean> {
+  // Never worth waiting long for: a slow disk is no better than the network.
+  const kept = await Promise.race([
+    readSnapshot<Frame, Match>(storeName),
+    new Promise<null>((done) => setTimeout(() => done(null), 250)),
+  ]);
+  if (!kept?.frame.ready) return false;
+  client.setQueryData(frameQuery.queryKey, kept.frame);
+  client.setQueryData(settledQuery(timeOf(kept.frame.clock)).queryKey, kept.settled);
+  client.setQueryData(liveQuery.queryKey, kept.live);
+  return true;
+}
+
+let saving: ReturnType<typeof setTimeout> | undefined;
+
+/** Keep the world as it is now for the next visit; a little after it last changed. */
+function keep(snapshot: Kept) {
+  clearTimeout(saving);
+  saving = setTimeout(() => void writeSnapshot(storeName, snapshot), 1500);
+}
+
+/**
+ * Make sure the world is there before a screen is drawn.
+ *
+ * A visit that follows another draws from what the browser kept and does not wait at all. A
+ * first visit asks for all three parts of the world at once: one trip to the store, where
+ * there used to be four in a row.
+ */
 export async function loadWorld(client: QueryClient): Promise<void> {
-  if (!convex) {
+  if (!reader) {
     await client.ensureQueryData(worldQuery);
     return;
   }
-  // The sample is loaded into the store, and kept moving, by asking for it.
-  const backend = convex;
+  const backend = reader;
+  // The sample is loaded into the store, and kept moving, by asking for it. Nothing waits for
+  // the answer: on real data it does nothing.
+  void backend.mutation(api.sample.wake, {}).catch(() => undefined);
+  if (await restore(client)) return;
+
   const ready = (async () => {
-    await backend.mutation(api.sample.wake, {});
+    // Which matches count as settled depends on the world's clock, which only the sample has.
+    // Real time is the guess, and on real data the guess is right.
+    const guess = settledQuery(Date.now());
+    let [frame] = await Promise.all([
+      client.ensureQueryData(frameQuery),
+      client.prefetchQuery(guess),
+      client.prefetchQuery(liveQuery),
+    ]);
     // A store that is being loaded for the first time, or afresh, takes a few seconds.
-    while (!(await backend.query(api.world.ready, {}))) {
+    while (!frame.ready) {
       await new Promise((done) => setTimeout(done, 400));
+      frame = await client.fetchQuery({ ...frameQuery, staleTime: 0 });
     }
-    const frame = await client.ensureQueryData(frameQuery);
     await Promise.all([
       client.ensureQueryData(settledQuery(timeOf(frame.clock))),
       client.ensureQueryData(liveQuery),
@@ -81,8 +129,11 @@ function useStoredWorld(): World {
   const frame = useSuspenseQuery(frameQuery).data;
   const settled = useSuspenseQuery(settledQuery(timeOf(frame.clock))).data;
   const live = useSuspenseQuery(liveQuery).data;
+  useEffect(() => {
+    if (frame.ready) keep({ frame, settled, live });
+  }, [frame, settled, live]);
   return useMemo(() => {
-    const { clock, ...rest } = frame;
+    const { clock, ready: _ready, ...rest } = frame;
     setClock(clock);
     // A game nothing is known about is not offered: on real data Trackmania has no source.
     const played = new Set(rest.tournaments.map((t) => t.discipline));
@@ -97,7 +148,35 @@ function useStoredWorld(): World {
   }, [frame, settled, live]);
 }
 
-export const useWorld: () => World = convex ? useStoredWorld : useLocalWorld;
+export const useWorld: () => World = reader ? useStoredWorld : useLocalWorld;
+
+/**
+ * The same world with some of its matches whole. A list carries a match without the inside
+ * of its games; a page about one match, or about one team's games, asks for those here. Until
+ * they arrive the page stands on what the list has, and nothing waits.
+ */
+export function useDetailed(atlas: Atlas, ids: string[]): { atlas: Atlas; loading: boolean } {
+  const wanted = useMemo(() => [...new Set(ids)].sort().slice(0, 80), [ids]);
+  const on = !!reader && wanted.length > 0;
+  const { data, isPending } = useQuery({
+    ...convexQuery(api.world.detail, { ids: wanted }),
+    enabled: on,
+  });
+  const detailed = useMemo(() => {
+    if (!data?.length) return atlas;
+    const whole = new Map(data.map((m) => [m.id, m as Match]));
+    const had = new Set(atlas.world.matches.map((m) => m.id));
+    return new Atlas({
+      ...atlas.world,
+      matches: [
+        ...atlas.world.matches.map((m) => whole.get(m.id) ?? m),
+        // A match from before the weeks a list reaches back is known only by being asked for.
+        ...[...whole.values()].filter((m) => !had.has(m.id)),
+      ],
+    });
+  }, [atlas, data]);
+  return { atlas: detailed, loading: on && isPending };
+}
 
 /** What the viewer follows: their account's list when signed in, this device's otherwise. */
 function useMine(world: World): Follow[] {
@@ -133,6 +212,11 @@ let timer: ReturnType<typeof setInterval> | undefined;
 
 function setClock(next: { pinned: string; since: number } | null) {
   clock = next ? { pinned: Date.parse(next.pinned), since: next.since } : null;
+}
+
+/** Whether the world is the sample, pinned to its instant, and not real time. */
+export function pinned(): boolean {
+  return clock !== null;
 }
 
 /** The current instant of the world, without subscribing to it. */

@@ -1,10 +1,9 @@
 import type { World } from "@bearing/domain";
-import { advance, rng } from "@bearing/domain/sample";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { api } from "../../convex/_generated/api";
-import { convex } from "../lib/backend";
-import { nowMs, worldQuery } from "../lib/world";
+import { reader } from "../lib/backend";
+import { nowMs, pinned, worldQuery } from "../lib/world";
 
 declare global {
   interface Window {
@@ -28,10 +27,11 @@ const WAKE = 45_000;
 export function useSamplePlayer() {
   const client = useQueryClient();
   useEffect(() => {
-    if (convex) {
-      const backend = convex;
+    if (reader) {
+      const backend = reader;
+      // Only a store on the sample needs telling; real data moves by itself.
       const wake = () => {
-        if (!document.hidden) void backend.mutation(api.sample.wake, {});
+        if (!document.hidden && pinned()) void backend.mutation(api.sample.wake, {});
       };
       const timer = setInterval(wake, WAKE);
       document.addEventListener("visibilitychange", wake);
@@ -40,23 +40,32 @@ export function useSamplePlayer() {
         document.removeEventListener("visibilitychange", wake);
       };
     }
-    const r = rng(Date.now());
-    let paused = false;
-    const beat = () =>
-      client.setQueryData(worldQuery.queryKey, (w: World | undefined) =>
-        w ? advance(w, r, nowMs()) : w,
-      );
-    const timer = setInterval(() => {
-      if (!paused && !document.hidden) beat();
-    }, BEAT);
-    if (import.meta.env.DEV) {
-      window.bearing = {
-        pause: (on = true) => void (paused = on),
-        step: (times = 1) => {
-          for (let i = 0; i < times; i++) beat();
-        },
-      };
-    }
-    return () => clearInterval(timer);
+    let over = false;
+    let timer: ReturnType<typeof setInterval> | undefined;
+    // The sample and the way it is played are fetched only here, where they are used.
+    void import("@bearing/domain/sample").then(({ advance, rng }) => {
+      if (over) return;
+      const r = rng(Date.now());
+      let paused = false;
+      const beat = () =>
+        client.setQueryData(worldQuery.queryKey, (w: World | undefined) =>
+          w ? advance(w, r, nowMs()) : w,
+        );
+      timer = setInterval(() => {
+        if (!paused && !document.hidden) beat();
+      }, BEAT);
+      if (import.meta.env.DEV) {
+        window.bearing = {
+          pause: (on = true) => void (paused = on),
+          step: (times = 1) => {
+            for (let i = 0; i < times; i++) beat();
+          },
+        };
+      }
+    });
+    return () => {
+      over = true;
+      clearInterval(timer);
+    };
   }, [client]);
 }

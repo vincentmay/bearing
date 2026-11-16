@@ -20,8 +20,21 @@ function local(): boolean {
   }
 }
 
-export const convex = url && !local() ? new ConvexReactClient(url) : null;
-export const convexQueryClient = convex ? new ConvexQueryClient(convex) : null;
+const on = url && !local() ? url : null;
+
+/** The connection an account lives on: it waits for sign-in to be settled before it speaks. */
+export const convex = on ? new ConvexReactClient(on) : null;
+
+/**
+ * The connection the world is read on. The world is the same for everyone, so it has no need
+ * to know who is asking, and a connection that does not wait for sign-in starts reading the
+ * moment the page does, about half a second sooner.
+ */
+export const reader = on ? new ConvexReactClient(on) : null;
+export const convexQueryClient = reader ? new ConvexQueryClient(reader) : null;
+
+/** Which store this copy of the app reads; what is kept in the browser is kept per store. */
+export const storeName = on ?? "sample";
 
 /** Clerk's publishable key. Accounts are on only when there is a backend to keep follows in. */
 const key: string | undefined = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;

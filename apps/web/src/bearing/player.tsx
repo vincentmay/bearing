@@ -209,7 +209,7 @@ function Listed({ id }: { id: string }) {
 }
 
 export function PlayerPage({ playerId }: { playerId: string }) {
-  const board = useBoard(playerId);
+  const board = useBoard(playerId, { side: playerId });
   const { atlas, now } = board;
   const player = atlas.player(playerId);
   useVisit("player", playerId, !!player);

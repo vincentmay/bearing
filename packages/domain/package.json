@@ -8,6 +8,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./sample": "./src/sample/index.ts",
+    "./sample/follows": "./src/sample/follows.ts",
     "./lichess": "./src/sources/lichess.ts",
     "./pandascore": "./src/sources/pandascore.ts",
     "./lolesports": "./src/sources/lolesports.ts",

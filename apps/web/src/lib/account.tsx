@@ -1,8 +1,6 @@
 import type { Follow } from "@bearing/domain";
 import { ClerkProvider, useAuth, useClerk, useUser } from "@clerk/react";
-import { convexQuery } from "@convex-dev/react-query";
-import { useQuery } from "@tanstack/react-query";
-import { ConvexProvider, useConvexAuth, useMutation } from "convex/react";
+import { ConvexProvider, useConvexAuth, useMutation, useQuery } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { type ReactNode, useCallback, useEffect } from "react";
 import { api } from "../../convex/_generated/api";
@@ -102,8 +100,6 @@ export function Backend({ children }: { children: ReactNode }) {
   return <WithClerk>{children}</WithClerk>;
 }
 
-const followsQuery = convexQuery(api.follows.list, {});
-
 /**
  * Follows made on this device before signing in are carried into the account the first time
  * that account is used here. After that the account's list is the one that counts.
@@ -129,7 +125,8 @@ function CarryOver() {
 
 function useSignedInFollows(): Follow[] | null {
   const { isAuthenticated } = useConvexAuth();
-  const { data } = useQuery({ ...followsQuery, enabled: isAuthenticated });
+  // Asked on the account's own connection, which knows who is signed in.
+  const data = useQuery(api.follows.list, isAuthenticated ? {} : "skip");
   return isAuthenticated ? (data ?? null) : null;
 }
 

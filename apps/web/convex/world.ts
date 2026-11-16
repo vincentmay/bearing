@@ -1,5 +1,5 @@
 import { SAMPLE_NOW } from "@bearing/domain/sample";
-import { v } from "convex/values";
+import { type Infer, v } from "convex/values";
 import { type QueryCtx, query } from "./_generated/server";
 import {
   competitor,
@@ -36,6 +36,8 @@ export const ready = query({
 export const frame = query({
   args: {},
   returns: v.object({
+    /** False while the store is being loaded: there is nothing to show yet, ask again. */
+    ready: v.boolean(),
     clock: v.union(v.null(), v.object({ pinned: v.string(), since: v.number() })),
     disciplines: v.array(discipline),
     organizations: v.array(organization),
@@ -48,6 +50,7 @@ export const frame = query({
     const source = await usable(ctx);
     if (!source) {
       return {
+        ready: false,
         clock: null,
         disciplines: [],
         organizations: [],
@@ -67,6 +70,7 @@ export const frame = query({
         ctx.db.query("tournaments").take(1000),
       ]);
     return {
+      ready: true,
       // Sample data has a pinned instant that moves on from the moment it was loaded. Real data
       // lives in real time and has no clock of its own.
       clock: source.kind === "sample" ? { pinned: SAMPLE_NOW, since: source.loadedAt } : null,
@@ -93,7 +97,45 @@ export const settled = query({
       .query("matches")
       .withIndex("by_live_and_at", (q) => q.eq("live", false).gte("at", since))
       .take(4000);
-    return rows.map((r) => r.doc);
+    return rows.map((r) => light(r.doc));
+  },
+});
+
+type Doc = Infer<typeof match>;
+
+/**
+ * A match as a list needs it: who, when, the score of every game. What happened inside a game
+ * (rounds, the players' lines, the draft, the moves) is most of a match's weight and is wanted
+ * by one page at a time, so it is left out here and asked for with `detail`.
+ */
+const INSIDE = ["rounds", "lines", "events", "draft", "lead", "moves", "objectives"] as const;
+
+function light(doc: Doc): Doc {
+  return {
+    ...doc,
+    games: doc.games.map((game) => {
+      const rest = { ...game };
+      for (const part of INSIDE) delete rest[part];
+      return rest;
+    }),
+  };
+}
+
+/** Matches whole, with everything known of the inside of their games. At most eighty at once. */
+export const detail = query({
+  args: { ids: v.array(v.string()) },
+  returns: v.array(match),
+  handler: async (ctx, { ids }) => {
+    if (!(await usable(ctx))) return [];
+    const out: Doc[] = [];
+    for (const id of ids.slice(0, 80)) {
+      const row = await ctx.db
+        .query("matches")
+        .withIndex("by_key", (q) => q.eq("key", id))
+        .first();
+      if (row) out.push(row.doc);
+    }
+    return out;
   },
 });
 

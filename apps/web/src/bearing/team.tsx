@@ -221,7 +221,7 @@ function lineupOf(roster: Person[], matches: Match[]) {
 }
 
 export function TeamPage({ teamId }: { teamId: string }) {
-  const board = useBoard();
+  const board = useBoard(undefined, { side: teamId });
   const { atlas, now } = board;
   const team = atlas.team(teamId);
   useVisit("team", teamId, !!team);

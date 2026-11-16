@@ -11,10 +11,66 @@
       content="Everything you follow, in one clear view: what is on, what is next, where it stands."
     />
     <meta property="og:image" content="/og.svg" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <!-- The store, and where marks and faces come from: connected to before they are asked. -->
+    <link rel="preconnect" href="%VITE_CONVEX_URL%" crossorigin />
+    <link rel="preconnect" href="https://cdn-api.pandascore.co" crossorigin />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="/node_modules/@fontsource-variable/gabarito/files/gabarito-latin-wght-normal.woff2"
+    />
+    <style>
+      /* Before anything has loaded: the ground in the right colour and the mark in its place,
+         so that the page does not begin as a white or an empty one. */
+      html {
+        background: #fff;
+        color: #000;
+      }
+      @media (prefers-color-scheme: dark) {
+        html {
+          background: #000;
+          color: #fff;
+        }
+      }
+      .boot {
+        display: none;
+      }
+      @media (min-width: 900px) {
+        .boot {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          max-width: 1040px;
+          height: 74px;
+          margin: 0 auto;
+          padding: 0 32px;
+          box-sizing: border-box;
+          font:
+            800 24px/1 system-ui,
+            sans-serif;
+          letter-spacing: -0.05em;
+          opacity: 0.9;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div class="boot" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 64 64">
+          <path
+            fill="currentColor"
+            d="M56.305 22.767A26 26 0 1 1 41.233 7.695A11 11 0 0 0 35.871 16.475A16 16 0 1 0 47.525 28.129A11 11 0 0 0 56.305 22.767Z"
+          />
+          <circle fill="currentColor" cx="46.85" cy="17.15" r="7.5" />
+        </svg>
+        bearing
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
