@@ -1,6 +1,15 @@
 import { SAMPLE_NOW } from "@bearing/domain/sample";
 import { v } from "convex/values";
 import { type QueryCtx, query } from "./_generated/server";
+import {
+  competitor,
+  discipline,
+  match,
+  organization,
+  ranking,
+  stint,
+  tournament,
+} from "./validators";
 
 /**
  * The world is read in three parts so that what changes often is small. A goal in a live match
@@ -19,12 +28,22 @@ async function usable(ctx: QueryCtx) {
 
 export const ready = query({
   args: {},
+  returns: v.boolean(),
   handler: async (ctx) => (await usable(ctx)) !== null,
 });
 
 /** Everything but the matches: games, organisations, teams and players, events, rankings. */
 export const frame = query({
   args: {},
+  returns: v.object({
+    clock: v.union(v.null(), v.object({ pinned: v.string(), since: v.number() })),
+    disciplines: v.array(discipline),
+    organizations: v.array(organization),
+    rankings: v.array(ranking),
+    stints: v.array(stint),
+    competitors: v.array(competitor),
+    tournaments: v.array(tournament),
+  }),
   handler: async (ctx) => {
     const source = await usable(ctx);
     if (!source) {
@@ -67,6 +86,7 @@ export const frame = query({
  */
 export const settled = query({
   args: { since: v.number() },
+  returns: v.array(match),
   handler: async (ctx, { since }) => {
     if (!(await usable(ctx))) return [];
     const rows = await ctx.db
@@ -80,6 +100,7 @@ export const settled = query({
 /** Matches being played right now. */
 export const live = query({
   args: {},
+  returns: v.array(match),
   handler: async (ctx) => {
     if (!(await usable(ctx))) return [];
     const rows = await ctx.db

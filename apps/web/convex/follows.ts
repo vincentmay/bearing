@@ -31,6 +31,7 @@ async function rowsOf(ctx: QueryCtx | MutationCtx, user: string) {
 /** The caller's follows, or null when nobody is signed in. */
 export const list = query({
   args: {},
+  returns: v.union(v.null(), v.array(follow)),
   handler: async (ctx): Promise<Follow[] | null> => {
     const user = await caller(ctx);
     if (!user) return null;
@@ -41,6 +42,7 @@ export const list = query({
 /** Follow something, or stop following it. */
 export const toggle = mutation({
   args: { follow },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const user = await signedIn(ctx);
     const { kind, id } = args.follow;
@@ -53,12 +55,13 @@ export const toggle = mutation({
       .first();
     if (existing) {
       await ctx.db.delete("follows", existing._id);
-      return;
+      return null;
     }
     if ((await rowsOf(ctx, user)).length >= LIMIT) {
       throw new ConvexError(`An account can follow up to ${LIMIT} things.`);
     }
     await ctx.db.insert("follows", { user, kind, target: id });
+    return null;
   },
 });
 
@@ -68,6 +71,7 @@ export const toggle = mutation({
  */
 export const merge = mutation({
   args: { follows: v.array(follow) },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const user = await signedIn(ctx);
     const rows = await rowsOf(ctx, user);
@@ -80,14 +84,17 @@ export const merge = mutation({
       have.add(key);
       room--;
     }
+    return null;
   },
 });
 
 /** Remove everything this account holds here. */
 export const clear = mutation({
   args: {},
+  returns: v.null(),
   handler: async (ctx) => {
     const user = await signedIn(ctx);
     for (const row of await rowsOf(ctx, user)) await ctx.db.delete("follows", row._id);
+    return null;
   },
 });

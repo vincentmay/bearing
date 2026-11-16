@@ -72,10 +72,12 @@ npx convex run sample:reset     # back to the sample
 ```
 
 Real data comes from Lichess broadcasts (chess, no key) and PandaScore (Counter-Strike 2, League
-of Legends, Rocket League), which needs a free token on the deployment:
+of Legends, Rocket League), which needs a free token on the deployment. What happens inside a
+League game comes from the feed behind lolesports.com, which is optional and unofficial:
 
 ```sh
 npx convex env set PANDASCORE_TOKEN <token>
+npx convex env set LOLESPORTS_KEY <the key lolesports.com sends with its own requests>
 ```
 
 Schedules are read every hour; anything live or due every thirty seconds. What each source gives

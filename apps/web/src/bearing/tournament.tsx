@@ -333,7 +333,7 @@ export function TournamentPage({ tournamentId }: { tournamentId: string }) {
         </div>
       </div>
 
-      <Source provenance={t.provenance} now={now} times={times} />
+      <Source provenance={t.provenance} now={now} times={times} pending={status === "live"} />
     </>
   );
 }

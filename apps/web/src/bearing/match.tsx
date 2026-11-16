@@ -12,16 +12,28 @@ export function Source({
   now,
   times,
   also,
+  pending,
 }: {
   provenance: Provenance;
   now: number;
   times: Times;
   /** A second source that added to what the first one gave. */
   also?: string;
+  /** Still to be played or being played: what is shown can go out of date. */
+  pending?: boolean;
 }) {
   const link = provenance.note?.startsWith("http") ? provenance.note : undefined;
+  // The sources are asked every hour. Three hours without an answer is worth saying.
+  const hours = Math.floor((now - Date.parse(provenance.checkedAt)) / 3_600_000);
   return (
     <p className="bx-source">
+      {pending && hours >= 3 ? (
+        <b>
+          The source has not answered for{" "}
+          {hours < 48 ? `${hours} hours` : `${Math.floor(hours / 24)} days`}; this may be out of
+          date.{" "}
+        </b>
+      ) : null}
       Source: {provenance.source}, checked {times.day(provenance.checkedAt, now).toLowerCase()} at{" "}
       {times.clock(provenance.checkedAt)}.{also ? ` ${also}` : ""}
       {provenance.note && !link ? ` ${provenance.note}` : ""}
@@ -352,6 +364,7 @@ export function MatchPage({ matchId }: { matchId: string }) {
         provenance={view.tournament.provenance}
         now={now}
         times={times}
+        pending={match.status !== "finished"}
         also={
           view.discipline.id === "lol" && match.games.some((g) => g.events)
             ? "What happened inside each game is from the feed of lolesports.com."

@@ -273,10 +273,16 @@ All **Agreed** in the prototype. Timings are in `docs/BRAND.md`.
   are in `docs/DATA-SOURCES.md`; several items there are marked "verify".
 - **D5 (Agreed on 2026-11-16).** Real data, from the best source for each game. The owner: "We
   should make use of all the information we can get and have, the best stuff." Running today:
-  Lichess broadcasts for chess, and PandaScore's free plan for Counter-Strike 2, League of Legends
-  and Rocket League. Trackmania has no source until Liquipedia grants access.
-  `docs/DATA-SOURCES.md` says what each source gives, what it lacks, and what paid plans would
-  add.
+  Lichess broadcasts for chess, PandaScore's free plan for Counter-Strike 2, League of Legends
+  and Rocket League, and the feed behind lolesports.com for what happens inside a League game.
+  Trackmania has no source until Liquipedia grants access. `docs/DATA-SOURCES.md` says what each
+  source gives, what it lacks, and what paid plans would add.
+- **D5d (Agreed on 2026-11-16).** No paid data plans. The owner on PandaScore's prices: "I will
+  absolutely NOT pay 1000€ per game per month". What the free plans lack comes from sources that
+  cost nothing, or is left out (D5b).
+- **D5e (Proposed).** The lolesports feed is unofficial: Riot publishes no terms for it, neither
+  allowing nor forbidding. It is used for a non-commercial Bearing, named as a source on the
+  match page, and is one deployment variable (`LOLESPORTS_KEY`) away from being off.
 - **D5a (Proposed).** A deployment is on sample data or on real data, never a mixture, because
   the sample lives at a pinned instant and real data in real time. `npx convex run
   sample:useLive` switches to real data and `sample:reset` back. The owner's deployment is on
@@ -286,15 +292,19 @@ All **Agreed** in the prototype. Timings are in `docs/BRAND.md`.
   winner is known is one row saying who won; a team without a known colour is drawn in ink; a
   line-up without join dates has no "who played when". Team colours are kept by hand for the
   well-known teams, because no source has them.
-- **D5c (Proposed).** Which events: Lichess broadcasts of tier 4 and 5, PandaScore tiers S, A and
-  B. What ended more than sixty days ago is removed.
+- **D5c (Proposed).** Which events: Lichess broadcasts of tier 4 and 5, five at once and the top
+  tier first; PandaScore tiers S, A and B. What ended more than sixty days ago is removed.
 - **D6.** Freshness: a live match is at most 30 seconds behind its source; schedules at most an
   hour. Built: schedules every hour; once a minute a check looks for anything live or due, and
   only then are the sources asked, now and thirty seconds later. Every match and event shows
-  when its source was last checked. Not built: a warning on the screen when a source has been
-  unreachable for long.
-- **D7 (Agreed).** Licensing decides what can go public. Several sources are free only for
+  when its source was last checked, and says so in words when a match still open has gone
+  three hours without its source answering.
+- **D7 (Agreed).** Licensing decides what can go public. Every source in use is free only for
   non-commercial use, and team logos are not licensed at all, which is why teams are discs.
+- **D8 (Agreed on 2026-11-16).** The code will be open source ("we can open source this project
+  for sure"), which Liquipedia's free plan requires. The owner would like Bearing to earn money
+  one day; on that day the free plans end and paid agreements are needed, so earning is a later
+  decision with a known cost, and nothing is built for it now.
 
 ## 8. Accounts, sync and the backend
 
@@ -366,10 +376,11 @@ Anything not in this table needs the owner's agreement first.
 
 ## 12. State of the repository
 
-Location: `C:\Users\vmay1\Code\playground\bearing`. The repository has one commit, made on
-2026-11-16 with the owner's agreement. It holds everything as it stood at handover, the six old
-directions included, so removing them later loses nothing. There is no remote. Commit or push
-further work only when the owner asks.
+Location: `C:\Users\vmay1\Code\playground\bearing`. The first commit, made on 2026-11-16,
+holds everything as it stood at handover, the six old directions included, so removing them later
+loses nothing. Finished stages are committed on `master` ("you can work on main, this task is
+everything"). There is no remote yet; publishing the repository waits for the owner's choice of
+licence.
 
 **State on 2026-11-16, after steps 2 to 5 and the code for step 6:**
 
@@ -389,8 +400,8 @@ further work only when the owner asks.
   compile-time check that they match `packages/domain`), `world.ts` (three live queries),
   `sample.ts` (the sample loaded in batches and played forward on the server while anyone is
   looking), `ingest.ts` (where every real source writes, and the once-a-minute check for live
-  matches), `lichess.ts`, `pandascore.ts`, `retention.ts`, `crons.ts`, `follows.ts`,
-  `auth.config.ts`.
+  matches), `lichess.ts`, `pandascore.ts`, `lolesports.ts`, `retention.ts`, `crons.ts`,
+  `follows.ts`, `auth.config.ts`.
 - Sections 4.1 to 4.10, 5 and 6 are built at phone and wide width with motion.
 - The six earlier directions, their fonts, Three.js and Tailwind are removed. They are in the
   first commit.
@@ -398,8 +409,14 @@ further work only when the owner asks.
   moment, real data from Lichess and PandaScore end to end, signing in, device follows carried
   into the account (K4), a change reaching a second browser, signing out, and Clerk's dialog in
   the identity (K2). The backend's functions have their own tests (`apps/web/convex/*.test.ts`).
-- **Not done:** Liquipedia (needs the owner's application), hosting of the web app, a Clerk
-  production instance (needs a domain), and Y4 (first-screen speed) has not been measured.
+- A pass over every screen on real data, phone and wide, light and dark, as someone following
+  a few things (`.local/pass.mjs`). What it changed is listed below under the readings.
+- **Not done:** Liquipedia (the owner applies; the text is in `docs/LIQUIPEDIA-APPLICATION.md`),
+  publishing the code, hosting of the web app at `bearing.vincentmay.com`, a Clerk production
+  instance for that address, and Y4 (first-screen speed) has not been measured.
+- **Missing on real data, for want of a free source:** all of Trackmania; Counter-Strike map
+  names, map scores and rounds; Rocket League game scores and goals; prize money by place; when
+  a player joined a team; events as Swiss tables or groups (they are lists of rounds).
 - Readings and choices made while building, all **Proposed**:
   - M1 and M4: on Today the lead card carries the line of stops at wide width, as in the
     prototype. On the match page the heading and the stops lie on the page, not in a card.
@@ -423,6 +440,18 @@ further work only when the owner asks.
     is loaded afresh after three hours, so that function calls are only spent while someone
     watches.
   - An account can follow up to 500 things.
+  - From the pass on real data: a round with many matches is one line that leads to its event
+    (more than three for a game played one against one, more than eight for teams); what the
+    viewer follows keeps its own line. On an event page a long round lists its pairings a line
+    each, and only the round being played is open.
+  - The lead card on Today is, in this order: a live match of something followed, a live match
+    of a top-tier event, the next match of something followed, the next match of anything.
+  - A pale team colour without much colour in it is treated like white: the team takes ink.
+  - A team page gives matches won and lost, maps won and lost and events won, and says from how
+    many matches. The year as a line appears only with two events or more.
+  - A player page lists the others in the team. Search, before anything is typed, lists the
+    events that are on or coming, the top tier first; it is the way to browse events.
+  - Double elimination has no drawing of its own yet: it is a list of rounds in order of play.
 
 **Commands:**
 
@@ -452,29 +481,35 @@ Proposed. Each step ends with the owner seeing it working.
    the owner the same day ("Yes, looks right i suppose").
 4. **Remove the old directions** and the leftovers listed in section 12. Done on 2026-11-16.
 5. **Backend**: Convex. Done on 2026-11-16 in the owner's Convex project `bearing`, on real data
-   from Lichess and PandaScore. Liquipedia waits for the owner's application.
+   from Lichess, PandaScore and the lolesports feed. Liquipedia waits for the owner's application.
 6. **Accounts and sync** with Clerk. Done on 2026-11-16 in the owner's Clerk application
    `Bearing` (development instance), and checked signed in by `scripts/app-account.mjs`. A
    production instance needs a domain the owner controls.
+7. **Going public, small**: the code on GitHub under a licence the owner picks, the Liquipedia
+   application, the web app at `bearing.vincentmay.com`, a Convex production deployment and a
+   Clerk production instance for that address. Waits for the owner (section 14).
+8. **More data without paying**: start.gg for Rocket League game scores (needs the owner's
+   token); Liquipedia once granted, Trackmania first.
 
 ## 14. Open questions for the owner
 
-1. Liquipedia: will you apply for data API access? It has to be a person, through
-   liquipedia.net/api or their Discord. It is the only source for Trackmania and would add prize
-   money by place, transfers and map scores. Free access appears to need open-source code; is
-   publishing Bearing's code acceptable?
-2. Round-by-round live state (every Counter-Strike round, League objectives on the clock) is only
-   in PandaScore's Live plan, from 1,000 € per game per month. The app is built to show it when
-   the data is there and to do without it when it is not. Is doing without it acceptable?
-3. English only, or German as well?
-4. The domain: nothing is bought. Within budget the clean options found were bearinglive.com and
-   watchbearing.com. A production Clerk instance and a public address both wait for it.
-5. Before any public launch: an EU trade mark check on the name "Bearing", a check of the logo
-   against existing marks, and paid data agreements (the free plans are for non-commercial use).
-6. The navigation capsule: opaque (as built, following B4) or translucent with a blur (as in
+1. The licence for the public code. MIT lets anyone do anything, a rival paid product included.
+   AGPL-3.0 keeps anyone who runs a changed Bearing as a service bound to publish their changes,
+   which protects a project that may one day earn money. Recommended: AGPL-3.0.
+2. Hosting the web app. The domain vincentmay.com is on Cloudflare, so Cloudflare Pages is the
+   short way to `bearing.vincentmay.com`: free, and the DNS record is one click in the same
+   account. It is new technology and needs a yes, and a sign-in to Cloudflare by the owner.
+3. Liquipedia: send the application (`docs/LIQUIPEDIA-APPLICATION.md`) once the code is public.
+4. A start.gg token for Rocket League game scores (start.gg, Developer Settings, "Create new
+   token"). Free.
+5. English only, or German as well?
+6. The lasting domain: nothing is bought. Within budget the clean options found were
+   bearinglive.com and watchbearing.com. Until then `bearing.vincentmay.com`.
+7. Before any launch that earns money: an EU trade mark check on the name "Bearing", a check of
+   the logo against existing marks, and paid data agreements (D7, D8).
+8. The navigation capsule: opaque (as built, following B4) or translucent with a blur (as in
    the prototype)? See G1b.
-7. Where should Bearing be hosted? The backend is deployed; the web app itself only runs on the
-   owner's machine so far.
 
 Settled on 2026-11-16 and no longer open: the card layout of round 10 ("Yes it is perfect now"),
-Convex and Clerk, and the first git commit.
+Convex and Clerk, committing on `master`, no paid data plans, open source, and
+`bearing.vincentmay.com` as the address for now.

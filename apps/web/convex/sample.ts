@@ -67,16 +67,17 @@ async function begin(ctx: MutationCtx, to: "sample" | "live", now: number) {
  */
 export const wake = mutation({
   args: {},
+  returns: v.null(),
   handler: async (ctx) => {
     const now = Date.now();
     const source = await ctx.db.query("source").first();
-    if (source?.kind === "live" && !source.loading) return;
+    if (source?.kind === "live" && !source.loading) return null;
     const age = source ? now - source.loadedAt : Infinity;
     if (!source || (source.loading ? age > STUCK : age > STALE)) {
       await begin(ctx, source?.kind ?? "sample", now);
-      return;
+      return null;
     }
-    if (source.loading) return;
+    if (source.loading) return null;
     const watch = await ctx.db.query("watch").first();
     const state = { until: now + WATCH, running: true };
     if (watch) await ctx.db.patch("watch", watch._id, state);
@@ -84,6 +85,7 @@ export const wake = mutation({
     if (!watch?.running) {
       await ctx.scheduler.runAfter(BEAT, internal.sample.beat, { generation: source.generation });
     }
+    return null;
   },
 });
 
