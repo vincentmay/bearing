@@ -5,16 +5,14 @@ import {
   type Tournament,
   formatPoints,
   roundRobinStandings,
-  swissRecords,
-  winnerOf,
 } from "@bearing/domain";
 import { Link } from "@tanstack/react-router";
 import type { CSSProperties, ReactNode } from "react";
 import type { Board } from "./board";
 import { Go } from "./links";
-import { type Dot, type MatchView, heat, sideOf } from "./model";
+import { heat } from "./model";
 import { until } from "./time";
-import { Disc, Dots, Ping, Tick } from "./ui";
+import { Disc, Ping } from "./ui";
 
 /** One stop on a line: an event in a team's year, a team in a player's career. */
 export interface LineStop {
@@ -63,171 +61,6 @@ export function StopLine({ stops }: { stops: LineStop[] }) {
         </div>
       ))}
     </div>
-  );
-}
-
-// ---------------------------------------------------------------------------------------------
-// Elimination: a bracket
-
-/** One match in a bracket: both sides with their score, and the dots of the series under them. */
-function Tie({ view, board, wide }: { view: MatchView; board: Board; wide: boolean }) {
-  const { match } = view;
-  const w = winnerOf(match);
-  const score = view.headline.length === 2 ? view.headline : [];
-  return (
-    <Link to="/match/$matchId" params={{ matchId: match.id }} className="bx-tie bx-press">
-      {view.sides.map((side, i) => (
-        <span
-          key={i}
-          className="bx-tie-side"
-          data-lost={typeof w === "number" && w !== i ? "" : undefined}
-          data-open={side.id ? undefined : ""}
-        >
-          <Disc side={side} size={16} />
-          <b>
-            {side.id ? (wide ? side.name : side.short || side.name) : wide ? side.name : "To come"}
-          </b>
-          {match.status === "scheduled" ? null : (
-            <span className="bx-num">
-              <Tick>{score[i] ?? ""}</Tick>
-            </span>
-          )}
-        </span>
-      ))}
-      <span className="bx-tie-foot">
-        {match.status === "scheduled" ? (
-          `${board.times.weekday(match.scheduledAt)} ${board.times.clock(match.scheduledAt)}`
-        ) : (
-          <>
-            {view.live ? <Ping /> : null}
-            <Dots dots={view.series} sides={view.sides} size={7} gap={3} fix />
-          </>
-        )}
-      </span>
-    </Link>
-  );
-}
-
-/**
- * Single elimination, drawn as a tree. Each round is a column and the matches of a round are
- * spread evenly, so a match sits between the two that feed it and the joining lines can be
- * drawn from their positions alone.
- */
-export function Bracket({ stage, board, wide }: { stage: Stage; board: Board; wide: boolean }) {
-  const rounds = stage.rounds
-    .map((round) => ({
-      round,
-      matches: round.matchIds.flatMap((id) => board.atlas.match(id) ?? []),
-    }))
-    .filter((r) => r.matches.length);
-  if (!rounds.length) return <p className="bx-empty">The bracket has not been drawn yet.</p>;
-  const columns = rounds.map(() => "minmax(0, 1fr)").join(wide ? " 28px " : " 12px ");
-  return (
-    <div className="bx-bracket" style={{ gridTemplateColumns: columns }}>
-      {rounds.map(({ round, matches }, c) => {
-        const next = rounds[c + 1];
-        return [
-          <h3 key={`h${round.id}`} className="bx-label" style={{ gridColumn: c * 2 + 1 }}>
-            {wide ? round.name : round.short}
-          </h3>,
-          <div key={round.id} className="bx-round" style={{ gridColumn: c * 2 + 1 }}>
-            {matches.map((m) => (
-              <Tie key={m.id} view={board.view(m)} board={board} wide={wide} />
-            ))}
-          </div>,
-          next ? (
-            <svg
-              key={`l${round.id}`}
-              className="bx-joins"
-              style={{ gridColumn: c * 2 + 2 }}
-              viewBox="0 0 10 100"
-              preserveAspectRatio="none"
-              aria-hidden
-            >
-              {matches.map((m, i) => {
-                const target = next.matches.findIndex((n) => n.id === m.next?.winner);
-                const j = target >= 0 ? target : Math.floor(i / 2);
-                const from = ((i + 0.5) / matches.length) * 100;
-                const to = ((j + 0.5) / next.matches.length) * 100;
-                return (
-                  <path
-                    key={m.id}
-                    d={`M0 ${from}H5V${to}H10`}
-                    data-done={m.status === "finished" ? "" : undefined}
-                  />
-                );
-              })}
-            </svg>
-          ) : null,
-        ];
-      })}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------------------------
-// Swiss: every team's path through the rounds
-
-export function SwissTable({
-  stage,
-  tournament,
-  board,
-}: {
-  stage: Stage;
-  tournament: Tournament;
-  board: Board;
-}) {
-  const { atlas } = board;
-  const records = swissRecords(atlas, stage, tournament.participantIds);
-  const rounds = stage.rounds.length;
-  const need = stage.rules?.winsToAdvance ?? 3;
-  return (
-    <>
-      {records.map((r) => {
-        const side = sideOf(atlas, r.competitorId);
-        const dots: Dot[] = Array.from({ length: rounds }, (_, i): Dot => {
-          const result = r.path[i];
-          if (result === "W") return { k: "won", side: 0, label: `Round ${i + 1} · won` };
-          if (result === "L") return { k: "shared", label: `Round ${i + 1} · lost` };
-          return { k: "open" };
-        });
-        return (
-          <Go key={r.competitorId} to={{ kind: "team", id: r.competitorId }} className="bx-swiss">
-            <span className="bx-row" style={{ gap: 9, minWidth: 0 }}>
-              <Disc side={side} size={20} />
-              <b>{side.name}</b>
-            </span>
-            <span
-              className="bx-dots bx-fix"
-              style={{ "--ds": "11px", "--dg": "4px" } as CSSProperties}
-            >
-              {dots.map((d, i) => (
-                <i
-                  key={i}
-                  className={
-                    d.k === "won" ? undefined : d.k === "shared" ? "bx-dot-lost" : "bx-dot-none"
-                  }
-                  style={d.k === "won" ? { background: side.color } : undefined}
-                  title={"label" in d ? d.label : undefined}
-                />
-              ))}
-            </span>
-            <span className="bx-mono bx-num">
-              {r.wins}–{r.losses}
-            </span>
-            <span className="bx-sub">
-              {r.status === "advanced"
-                ? "through"
-                : r.status === "eliminated"
-                  ? "out"
-                  : r.wins + r.losses
-                    ? `needs ${need - r.wins}`
-                    : ""}
-            </span>
-          </Go>
-        );
-      })}
-    </>
   );
 }
 

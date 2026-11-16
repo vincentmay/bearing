@@ -16,7 +16,9 @@ import { Back, Go, useVisit } from "./links";
 import { ScheduleRow } from "./lists";
 import { Source } from "./match";
 import { plainName, sideOf } from "./model";
-import { Bracket, CrossTable, Heat, SwissTable } from "./stages";
+import { Bracket } from "./bracket";
+import { CrossTable, Heat } from "./stages";
+import { SwissFlow } from "./swiss";
 import { until } from "./time";
 import { Disc, FollowStar, Ping, Problem, Section, Segmented } from "./ui";
 
@@ -138,11 +140,9 @@ function StageDrawing({
   }
   if (stage.format === "swiss") {
     return (
-      <>
-        <div className="bx-list">
-          <SwissTable stage={stage} tournament={tournament} board={board} />
-        </div>
-      </>
+      <div className="bx-list bx-pad">
+        <SwissFlow stage={stage} tournament={tournament} board={board} />
+      </div>
     );
   }
   if (stage.format === "round-robin") {
