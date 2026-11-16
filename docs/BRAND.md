@@ -57,9 +57,10 @@ shape, so that check is needed before any public launch.
 
 Team colours appear in two forms only, both flat:
 
-1. **A disc**: a team is a flat circle in its colour with its short name on it. No logos. A match
-   that has not started is one disc split between its two teams, with a ring around it that fills as
-   the start gets closer.
+1. **A mark or a disc**: a team is shown by its own mark where a source has one, standing free
+   with nothing behind it; a mark that would be lost on the ground keeps a plain plate. A
+   player's picture fills a disc. Without a picture, a team or player is a flat circle in its
+   colour with its short name on it. (Changed by the owner on 2026-11-16; before that, no logos.)
 2. **A dot**: one thing won.
 
 Never as text, a button, a background, a tint, a bar or a glow. Sample data must rotate through

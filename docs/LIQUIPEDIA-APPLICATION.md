@@ -1,5 +1,10 @@
 # Liquipedia: the application for data access
 
+**Outcome: refused on 2026-11-16**, within the hour of sending: "we do not provide free API
+access for projects looking to replicate core features of Liquipedia." This page is kept as the
+record of what was asked. The text that was sent is the owner's own shortening of the one below,
+to fit the form's 2,000 characters.
+
 For the form at [liquipedia.net/api](https://liquipedia.net/api). It has to be sent by the owner,
 as a person. The free plan asks for open-source code, and the text points to the repository, which
 is public.

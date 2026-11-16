@@ -113,8 +113,16 @@ What Liquipedia would add that nothing else has:
 - For Counter-Strike: map names and map scores, without paying PandaScore.
 - Swiss stages and groups as structures, not only as lists of matches.
 
-What it needs from the owner: the application, made by a person, with a public repository to
-point to. The text for it is in `docs/LIQUIPEDIA-APPLICATION.md`.
+**Refused on 2026-11-16.** The owner applied for the free plan that day; the answer came
+within the hour: "Unfortunately, we do not provide free API access for projects looking to
+replicate core features of Liquipedia." Schedules, brackets and results are what Liquipedia
+itself is, so a free plan is not to be had for Bearing however it is worded. What is left is
+the paid "Enterprise" plan, whose price is not published, and doing without:
+
+- Trackmania has no source. Nadeo's services are the only other candidate.
+- Counter-Strike map names and scores: no free source is known.
+- Rocket League game scores: start.gg, with a token.
+- Prize money by place and transfers: from no source for now.
 
 ## Considered and not used
 

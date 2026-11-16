@@ -74,9 +74,15 @@ mode, native apps, any editing of data by users.
 
 - **B1.** Black and white only: `#000` and `#FFF` with plain greys, in a light and a dark mode.
 - **B2.** The brand has no accent colour. Nothing is red, including "live".
-- **B3.** The only colour on a page belongs to a team or player, and it appears in two forms only:
-  a flat disc with the short name on it, and a flat dot for a thing won. No team logos.
-- **B4.** No gradients, colour fades, tints, glows or blurred colour, anywhere.
+- **B3 (changed by the owner on 2026-11-16).** The only colour on a page belongs to a team or
+  player. A team is shown by its own mark and a player by their picture wherever a source has
+  one ("Player icons, team icons, player pictures, everything is missing"); the mark stands on
+  its own, with nothing behind it ("Just the logo, no background"). Only a mark that would be
+  lost on the ground it is shown on keeps a plain plate. Where there is no picture, the flat
+  disc in the team's colour with the short name stays. A thing won is still a flat dot.
+- **B4 (changed by the owner on 2026-11-16).** No gradients, colour fades, tints or glows. One
+  exception, asked for by the owner ("transparency effects, blur, frost, glass"): the navigation
+  capsule is glass, and what scrolls beneath it shows through, blurred.
 - **B5.** Nothing shaded or three-dimensional. No bevels, no glossy spheres.
 - **B6.** Typeface Gabarito for everything read; Geist Mono for small technical labels. Names are
   ExtraBold, scores are Regular at the same size, numbers use tabular figures.
@@ -104,9 +110,8 @@ Tournament and Settings were never designed.
   capsule sits at the top with its labels, between the mark with its name on the left and
   Settings on the right. The owner on this form and on the three new pages: "Yes, looks right i
   suppose."
-- **G1b (Proposed).** The capsule is opaque. In the prototype it was translucent with a blur,
-  which let team colours show through as a haze; B4 forbids blurred colour, and this document
-  outranks the prototype. The owner asked to see both and has not answered yet.
+- **G1b (Agreed on 2026-11-16).** The capsule is glass: translucent, with a blur behind it and
+  a lit upper edge. Where a browser cannot blur it is solid.
 - **G2.** Phone layout up to 600 px wide: one column. Wide layout from 900 px: the same content in
   a wider column, with the wide match header (4.3) and lists set side by side where that helps.
   Nothing scrolls sideways at any width from 320 px.
@@ -116,8 +121,22 @@ Tournament and Settings were never designed.
 - **G5.** Every match, team, player and tournament shown anywhere is a link to its own page.
 - **G6.** Every screen has a designed state for loading, for "nothing here" and for "could not
   load". None of them is a spinner alone.
-- **G7 (Agreed).** Where a fact comes from, and when it was last checked, can be seen for every
-  match and tournament (the domain model carries this as `Provenance`).
+- **G7 (Agreed, shortened on 2026-11-16).** Where a fact comes from, and when it was last
+  checked, can be seen for every match and tournament, as one quiet line at the foot of the
+  page: the source's name, linked where there is somewhere to go, and the time. The owner asked
+  for the longer sentence to go ("do we really need all of this").
+- **G8 (Agreed on 2026-11-16).** Back leads to where the viewer came from, and says so by name:
+  from an event to a player and back to that event. A page opened directly leads back to what
+  it belongs to (a match to its event, a player to their team), then to its tab.
+- **G9 (Agreed on 2026-11-16).** Nothing is explained in a legend under a drawing. A drawing that
+  needs one is redrawn; what a thing means is shown by pointing at it.
+- **G10 (Agreed on 2026-11-16).** Everything that can be pressed answers the pointer before it
+  is pressed, and the press itself. The owner's bar: "apple is the least standard we want to
+  achieve".
+- **G11 (Agreed on 2026-11-16).** A match in any list is the same row: when and how it stands
+  on the left, one side to a line with its mark, the scores in a column at the right.
+- **G12 (Agreed on 2026-11-16).** The viewer's own disc or picture sits in the frame, where
+  Settings is reached, once they are signed in.
 
 ### 4.2 Today
 
@@ -157,14 +176,18 @@ The home screen. Answers questions 1 to 3.
 - **M7.** A match that has not started shows its start time large, the countdown, and each side's
   recent form.
 - **M8.** Line-ups and per-player lines where the data has them (the model has `PlayerLine`).
+- **M9 (Agreed on 2026-11-16).** A game of chess shows its board, White at the bottom, with the
+  moves beside it: step, jump, play it through, or pick a move. It stays with a game that is
+  still being played. The owner: "for chess i would expect the board in our style with the
+  moves so you can view it quickly".
 
 ### 4.4 Schedule
 
 - **S1.** A row of days; the selected day is a filled circle. Today is selected first.
-- **S2.** All matches of that day in time order, across all games, with status (to come, live,
-  final score).
+- **S2.** All matches of that day in time order, across all games, each in the row of G11.
 - **S3.** A switch between "everything" and "what I follow".
-- **S4.** Matches that overlap in time are recognisable as overlapping.
+- **S4 (dropped on 2026-11-16).** Matches that overlap in time were joined by a line; the owner
+  found the schedule hard to follow, and the line went with the redesign.
 
 ### 4.5 Following
 
@@ -202,10 +225,11 @@ The home screen. Answers questions 1 to 3.
 
 - **TO1.** Name, dates, place, organiser, prize, and where its facts come from.
 - **TO2.** The format explained in plain language (the model has `Stage.explainer`).
-- **TO3.** Each stage drawn for its format: single and double elimination as a bracket, Swiss as
-  rounds with records, round robin as a table, Trackmania cup as heats. The logic for records and
-  standings exists in the domain package; drawings exist in the old code under
-  `apps/web/src/components/formats/` and can be reused for structure, not for appearance.
+- **TO3.** Each stage drawn for its format. Single elimination is a bracket of plates joined
+  by lines; pointing at a team lights its way through. Swiss is a flow: records are places,
+  teams stand at the record they hold, the lines are the results that took them there, and a
+  team that is pointed at or picked has its way drawn out and told round by round. Round robin
+  is a table, a Trackmania cup is heats. Double elimination is still a list of rounds.
 - **TO4.** Brackets follow the dot rule: a decided match shows the winner's dot.
 - **TO5.** Final placements and prize money once known.
 
@@ -300,7 +324,9 @@ All **Agreed** in the prototype. Timings are in `docs/BRAND.md`.
   when its source was last checked, and says so in words when a match still open has gone
   three hours without its source answering.
 - **D7 (Agreed).** Licensing decides what can go public. Every source in use is free only for
-  non-commercial use, and team logos are not licensed at all, which is why teams are discs.
+  non-commercial use. Team marks and player pictures are shown from the addresses PandaScore
+  gives for them; nobody has licensed them to Bearing, which is how every site of this kind
+  shows them, and is a thing to settle before Bearing earns money.
 - **D8 (Agreed on 2026-11-16).** The code is open source under AGPL-3.0 ("we can open source this
   project for sure"), which Liquipedia's free plan requires. The owner would like Bearing to earn money
   one day; on that day the free plans end and paid agreements are needed, so earning is a later
@@ -419,10 +445,13 @@ licence.
   real data, accounts on Clerk's production instance with email and password. Checked there in
   a browser: every kind of page at phone and wide width, and signing in, following something
   and finding it again after a reload.
-- **Not done:** Liquipedia (the owner sends the application in
-  `docs/LIQUIPEDIA-APPLICATION.md`), sign-in with Google on the public site (it needs a Google
-  OAuth client of the owner's; it is switched off there until then), deploys on every push
-  (they are run by hand), and Y4 (first-screen speed) has not been measured.
+- **Liquipedia said no** on 2026-11-16, within the hour: "we do not provide free API access
+  for projects looking to replicate core features of Liquipedia". Trackmania therefore has no
+  source, and map scores, prize money by place and transfers have to come from elsewhere or stay
+  out. See `docs/DATA-SOURCES.md`.
+- **Not done:** sign-in with Google on the public site (it needs a Google OAuth client of the
+  owner's; it is switched off there until then), deploys on every push (they are run by hand),
+  a drawing for double elimination, and Y4 (first-screen speed) has not been measured.
 - The development deployment is back on the sample world, so that only production asks the
   sources.
 - **Missing on real data, for want of a free source:** all of Trackmania; Counter-Strike map
@@ -498,24 +527,24 @@ Proposed. Each step ends with the owner seeing it working.
    production instance needs a domain the owner controls.
 7. **Going public, small**: done on 2026-11-16. The code is on GitHub under AGPL-3.0 and the app
    at `bearing.vincentmay.com`. The Liquipedia application is the owner's to send.
-8. **More data without paying**: start.gg for Rocket League game scores (needs the owner's
-   token); Liquipedia once granted, Trackmania first.
+8. **More data without paying**: Liquipedia refused (section 12). Next: start.gg for Rocket
+   League game scores, with the owner's token; then a source for Trackmania.
+9. **The owner's first round of feedback on the built screens** (2026-11-16): done as G8 to
+   G12, B3, B4, M9 and TO3 say. The owner called it "just the beginning".
 
 ## 14. Open questions for the owner
 
-1. Liquipedia: send the application (`docs/LIQUIPEDIA-APPLICATION.md`); the code is public.
-2. start.gg for Rocket League game scores, free with a token from the owner's account. The
-   owner asked whether Liquipedia makes it unnecessary. It does if Liquipedia grants access, so
-   start.gg waits for Liquipedia's answer and is the fallback if that is no or slow.
+1. A start.gg token (start.gg, Developer Settings, "Create new token"), for Rocket League game
+   scores. It was the fallback if Liquipedia said no, and Liquipedia has.
+2. Trackmania has no source. The candidates are Nadeo's own services (official, needs a Ubisoft
+   account of the owner's) and leaving Trackmania out of the public version until one exists.
 3. English only, or German as well?
 4. The lasting domain: nothing is bought. Within budget the clean options found were
    bearinglive.com and watchbearing.com. Until then `bearing.vincentmay.com`.
 5. Before any launch that earns money: an EU trade mark check on the name "Bearing", a check of
    the logo against existing marks, and paid data agreements (D7, D8).
-6. The navigation capsule: opaque (as built, following B4) or translucent with a blur (as in
-   the prototype)? See G1b.
 
 Settled on 2026-11-16 and no longer open: the card layout of round 10 ("Yes it is perfect now"),
 Convex and Clerk, committing on `master`, no paid data plans, open source under AGPL-3.0 at
 github.com/vincentmay/bearing, Cloudflare Pages as the host, and `bearing.vincentmay.com` as the
-address for now.
+address for now, team marks and player pictures, and the glass capsule.
