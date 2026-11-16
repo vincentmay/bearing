@@ -17,7 +17,7 @@ import { Back, Go, useVisit } from "./links";
 import { ScheduleRow } from "./lists";
 import { Source } from "./match";
 import { plainName, sideOf } from "./model";
-import { Bracket } from "./bracket";
+import { Bracket, DoubleBracket } from "./bracket";
 import { CrossTable, Heat } from "./stages";
 import { SwissFlow } from "./swiss";
 import { until } from "./time";
@@ -164,10 +164,16 @@ function StageDrawing({
       </div>
     );
   }
-  // A list of rounds: for a stage known only as its pairings, and for double elimination,
-  // which has no drawing of its own yet.
-  if (stage.format === "rounds" || stage.format === "double-elim") {
+  // A list of rounds, for a stage known only as its pairings.
+  if (stage.format === "rounds") {
     return <Rounds stage={stage} board={board} />;
+  }
+  if (stage.format === "double-elim") {
+    return (
+      <div className="bx-list bx-pad">
+        <DoubleBracket stage={stage} board={board} wide={wide} />
+      </div>
+    );
   }
   if (stage.format === "swiss") {
     return (

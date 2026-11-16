@@ -21,10 +21,28 @@ const HEAD = 24;
  * middle of the two that feed it, and a line runs from each of those into the row its winner
  * takes. Point at a team and its way through the bracket is drawn out, the rest stepping back.
  */
-export function Bracket({ stage, board, wide }: { stage: Stage; board: Board; wide: boolean }) {
+export function Bracket({
+  stage,
+  board,
+  wide,
+  columns,
+  pointed: given,
+  onPoint,
+}: {
+  stage: Stage;
+  board: Board;
+  wide: boolean;
+  /** Lay the rounds out as if there were this many, so that two brackets share their columns. */
+  columns?: number;
+  /** The team pointed at, when two brackets trace the same team together. */
+  pointed?: string;
+  onPoint?: (id: string | undefined) => void;
+}) {
   const frame = useRef<HTMLDivElement>(null);
   const width = useWidth(frame);
-  const [pointed, setPointed] = useState<string>();
+  const [own, setOwn] = useState<string>();
+  const pointed = onPoint ? given : own;
+  const setPointed = onPoint ?? setOwn;
   const rounds = stage.rounds
     .map((round) => ({
       round,
@@ -34,22 +52,37 @@ export function Bracket({ stage, board, wide }: { stage: Stage; board: Board; wi
   if (!rounds.length) return <p className="bx-empty">The bracket has not been drawn yet.</p>;
 
   const gutter = wide ? 30 : 14;
-  const tileW = Math.max(0, (width - gutter * (rounds.length - 1)) / rounds.length);
+  const count = Math.max(rounds.length, columns ?? 0);
+  const tileW = Math.max(0, (width - gutter * (count - 1)) / count);
+  // A full name needs room; a narrow column takes the short one.
+  const roomy = wide && tileW >= 150;
   const placed = new Map<string, Placed>();
-  rounds.forEach(({ matches }, column) => {
+  rounds.forEach((round, column) => {
+    const before = rounds[column - 1]?.matches ?? [];
+    // A round is read in the order of the matches that feed it, so that no two lines cross.
+    const fedBy = (m: Match) => {
+      const at = before.findIndex((b) => b.next?.winner === m.id);
+      return at < 0 ? undefined : (placed.get(before[at]!.id)?.y ?? at);
+    };
+    if (round.matches.every((m) => fedBy(m) !== undefined))
+      round.matches = [...round.matches].sort((x, y) => fedBy(x)! - fedBy(y)!);
+    const { matches } = round;
     matches.forEach((match, i) => {
-      const before = rounds[column - 1]?.matches ?? [];
       const fed = before.flatMap((m) => {
         const p = placed.get(m.id);
         return p && m.next?.winner === match.id ? [p] : [];
       });
-      // Without links from the source, a match is fed by the two above it in order.
-      const feeders = fed.length
-        ? fed
-        : [before[i * 2], before[i * 2 + 1]].flatMap((m) => (m ? (placed.get(m.id) ?? []) : []));
-      const y = feeders.length
+      // Without links from the source, a match is fed by the two above it in order; or, in a
+      // round as long as the one before (a lower bracket taking in those who dropped), by one.
+      const guess =
+        before.length === matches.length ? [before[i]] : [before[i * 2], before[i * 2 + 1]];
+      const feeders = fed.length ? fed : guess.flatMap((m) => (m ? (placed.get(m.id) ?? []) : []));
+      const wanted = feeders.length
         ? feeders.reduce((sum, p) => sum + p.y, 0) / feeders.length
         : HEAD + i * (TILE + GAP);
+      // Never on top of the match above it in the same round.
+      const above = matches[i - 1] ? placed.get(matches[i - 1]!.id) : undefined;
+      const y = above ? Math.max(wanted, above.y + TILE + GAP) : wanted;
       placed.set(match.id, { match, column, x: column * (tileW + gutter), y });
     });
   });
@@ -141,10 +174,10 @@ export function Bracket({ stage, board, wide }: { stage: Stage; board: Board; wi
                     <Disc side={side} size={18} />
                     <b>
                       {side.id
-                        ? wide
+                        ? roomy
                           ? side.name
                           : side.short || side.name
-                        : wide
+                        : roomy
                           ? side.name
                           : "To come"}
                     </b>
@@ -170,6 +203,56 @@ export function Bracket({ stage, board, wide }: { stage: Stage; board: Board; wi
           })}
         </>
       ) : null}
+    </div>
+  );
+}
+
+const lowerRound = (name: string) => /lower/i.test(name);
+const partName = (name: string) => {
+  const rest = name
+    .replace(/^(upper|lower)\s+bracket\s*/i, "")
+    .replace(/\s+match$/i, "")
+    .trim();
+  return rest ? rest[0]!.toUpperCase() + rest.slice(1) : name;
+};
+
+/**
+ * Double elimination: the upper bracket with whatever it leads to, and beneath it the lower
+ * bracket, where a team that has lost once plays on. Both share their columns, and pointing at
+ * a team traces it through both.
+ */
+export function DoubleBracket({
+  stage,
+  board,
+  wide,
+}: {
+  stage: Stage;
+  board: Board;
+  wide: boolean;
+}) {
+  const [pointed, setPointed] = useState<string>();
+  const filled = stage.rounds.filter((r) => r.matchIds.some((id) => board.atlas.match(id)));
+  const part = (lower: boolean): Stage => ({
+    ...stage,
+    rounds: filled
+      .filter((r) => lowerRound(r.name) === lower)
+      .map((r) => ({ ...r, name: partName(r.name) })),
+  });
+  const [upper, lower] = [part(false), part(true)];
+  if (!lower.rounds.length || !upper.rounds.length)
+    return <Bracket stage={stage} board={board} wide={wide} />;
+  const columns = Math.max(upper.rounds.length, lower.rounds.length);
+  const shared = { board, wide, columns, pointed, onPoint: setPointed };
+  return (
+    <div className="bx-double">
+      <section>
+        <h3 className="bx-double-name">Upper bracket</h3>
+        <Bracket stage={upper} {...shared} />
+      </section>
+      <section>
+        <h3 className="bx-double-name">Lower bracket</h3>
+        <Bracket stage={lower} {...shared} />
+      </section>
     </div>
   );
 }
