@@ -30,6 +30,8 @@ const router = createRouter({
   context: { queryClient },
   defaultPreload: "intent",
   scrollRestoration: true,
+  // One page leaves as the next arrives, where the browser can do that.
+  defaultViewTransition: true,
 });
 
 declare module "@tanstack/react-router" {

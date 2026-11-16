@@ -46,6 +46,58 @@ export function Settings() {
         <h1 className="bx-title">Settings</h1>
       </header>
 
+      <Section label="Account">
+        <div className="bx-list">
+          {account.state === "in" ? (
+            <div className="bx-result bx-profile">
+              <span className="bx-menu-face" data-big="">
+                {account.image ? (
+                  <img src={account.image} alt="" />
+                ) : (
+                  <span aria-hidden>
+                    {(account.name ?? account.email ?? "?").slice(0, 1).toUpperCase()}
+                  </span>
+                )}
+              </span>
+              <span style={{ minWidth: 0 }}>
+                <b>{account.name ?? account.email ?? "Signed in"}</b>
+                <span className="bx-sub">
+                  {account.name && account.email ? `${account.email} · ` : ""}
+                  What you follow is kept in your account and is the same on every device.
+                </span>
+              </span>
+            </div>
+          ) : (
+            <p className="bx-empty">
+              {account.state === "none"
+                ? "This copy of Bearing runs without accounts. What you follow is kept on this device."
+                : "You do not need an account. What you follow is kept on this device; signing in keeps it the same on every device."}
+            </p>
+          )}
+        </div>
+        {account.state === "out" ? (
+          <p style={{ margin: "12px 0 0" }}>
+            <button type="button" className="bx-button" onClick={account.signIn}>
+              Sign in or create an account
+            </button>
+          </p>
+        ) : null}
+        {account.state === "in" ? (
+          <p className="bx-row" style={{ margin: "12px 0 0", gap: 8, flexWrap: "wrap" }}>
+            <button type="button" className="bx-button" onClick={account.manage}>
+              Manage account
+            </button>
+            <button type="button" className="bx-button bx-button-quiet" onClick={account.signOut}>
+              Sign out
+            </button>
+          </p>
+        ) : null}
+        <p className="bx-note">
+          An account holds an email address and the list of what you follow, nothing else. The
+          settings above stay on this device.
+        </p>
+      </Section>
+
       <Section label="Appearance">
         <Segmented
           options={THEMES}
@@ -91,48 +143,6 @@ export function Settings() {
             ))}
           </select>
         </label>
-      </Section>
-
-      <Section label="Account">
-        <div className="bx-list">
-          {account.state === "in" ? (
-            <div className="bx-result">
-              <span>
-                <b>{account.email ?? "Signed in"}</b>
-                <span className="bx-sub">
-                  What you follow is kept in your account and is the same on every device.
-                </span>
-              </span>
-            </div>
-          ) : (
-            <p className="bx-empty">
-              {account.state === "none"
-                ? "This copy of Bearing runs without accounts. What you follow is kept on this device."
-                : "You do not need an account. What you follow is kept on this device; signing in keeps it the same on every device."}
-            </p>
-          )}
-        </div>
-        {account.state === "out" ? (
-          <p style={{ margin: "12px 0 0" }}>
-            <button type="button" className="bx-button" onClick={account.signIn}>
-              Sign in or create an account
-            </button>
-          </p>
-        ) : null}
-        {account.state === "in" ? (
-          <p className="bx-row" style={{ margin: "12px 0 0", gap: 8, flexWrap: "wrap" }}>
-            <button type="button" className="bx-button" onClick={account.manage}>
-              Manage account
-            </button>
-            <button type="button" className="bx-button bx-button-quiet" onClick={account.signOut}>
-              Sign out
-            </button>
-          </p>
-        ) : null}
-        <p className="bx-note">
-          An account holds an email address and the list of what you follow, nothing else. The
-          settings above stay on this device.
-        </p>
       </Section>
 
       <Section label="The data">

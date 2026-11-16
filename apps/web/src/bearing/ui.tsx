@@ -4,6 +4,8 @@ import {
   ClipboardList,
   Crosshair,
   Eye,
+  LogIn,
+  LogOut,
   Megaphone,
   Settings,
   Star,
@@ -11,7 +13,7 @@ import {
   UserRound,
   Zap,
 } from "lucide-react";
-import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
+import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
 import { useAccount } from "../lib/account";
 import { useAtlas, useFollow } from "../lib/world";
 import type { Dot, MatchView, SideView } from "./model";
@@ -317,28 +319,92 @@ export function Champ({
  */
 export function AccountLink({ className }: { className?: string }) {
   const account = useAccount();
-  const signedIn = account.state === "in";
-  const label = signedIn ? "Your account and settings" : "Settings";
-  return (
-    <Link
-      to="/settings"
-      className={className ? `bx-iconbtn ${className}` : "bx-iconbtn"}
-      aria-label={label}
-      title={label}
-      data-account={signedIn ? "" : undefined}
-    >
-      {signedIn ? (
-        account.image ? (
-          <img src={account.image} alt="" />
-        ) : (
-          <span aria-hidden>{(account.name ?? "?").slice(0, 1).toUpperCase()}</span>
-        )
-      ) : account.state === "none" ? (
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const away = (event: PointerEvent) => {
+      if (!box.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const key = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", away);
+    document.addEventListener("keydown", key);
+    return () => {
+      document.removeEventListener("pointerdown", away);
+      document.removeEventListener("keydown", key);
+    };
+  }, [open]);
+  const button = className ? `bx-iconbtn ${className}` : "bx-iconbtn";
+  // Without accounts there is nobody to be: the way leads straight to the settings.
+  if (account.state === "none") {
+    return (
+      <Link to="/settings" className={button} aria-label="Settings" title="Settings">
         <Settings size={18} />
-      ) : (
-        <UserRound size={18} />
-      )}
-    </Link>
+      </Link>
+    );
+  }
+  const signedIn = account.state === "in";
+  const face = signedIn ? (
+    account.image ? (
+      <img src={account.image} alt="" />
+    ) : (
+      <span aria-hidden>{(account.name ?? account.email ?? "?").slice(0, 1).toUpperCase()}</span>
+    )
+  ) : null;
+  const then = (act: () => void) => () => {
+    setOpen(false);
+    act();
+  };
+  return (
+    <span className="bx-account" ref={box}>
+      <button
+        type="button"
+        className={button}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={signedIn ? "Your account" : "Account"}
+        data-account={signedIn ? "" : undefined}
+        onClick={() => setOpen(!open)}
+      >
+        {face ?? <UserRound size={18} />}
+      </button>
+      {open ? (
+        <div className="bx-menu" role="menu">
+          <div className="bx-menu-who">
+            {signedIn ? <span className="bx-menu-face">{face}</span> : null}
+            <span style={{ minWidth: 0 }}>
+              <b>{signedIn ? (account.name ?? "Signed in") : "Not signed in"}</b>
+              <span className="bx-sub">
+                {signedIn ? account.email : "What you follow is kept on this device."}
+              </span>
+            </span>
+          </div>
+          {signedIn ? (
+            <button type="button" role="menuitem" onClick={then(account.manage)}>
+              <UserRound size={16} aria-hidden />
+              Manage account
+            </button>
+          ) : (
+            <button type="button" role="menuitem" onClick={then(account.signIn)}>
+              <LogIn size={16} aria-hidden />
+              Sign in or create an account
+            </button>
+          )}
+          <Link to="/settings" role="menuitem" onClick={() => setOpen(false)}>
+            <Settings size={16} aria-hidden />
+            Settings
+          </Link>
+          {signedIn ? (
+            <button type="button" role="menuitem" onClick={then(account.signOut)}>
+              <LogOut size={16} aria-hidden />
+              Sign out
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+    </span>
   );
 }
 
