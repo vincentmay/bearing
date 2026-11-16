@@ -1664,6 +1664,8 @@ body {
 }
 /* A bracket wider than its frame is moved sideways within it, and fades where there is more. */
 .bx-bracket-frame {
+  min-width: 0;
+  max-width: 100%;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
@@ -2717,7 +2719,13 @@ body {
 /* The two halves of a double elimination, one above the other. */
 .bx-double {
   display: grid;
+  /* One column that may be narrower than what is in it: a bracket wider than the page is
+     moved sideways inside its own frame, and must not widen the page. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 26px;
+}
+.bx-double > section {
+  min-width: 0;
 }
 .bx-double-name {
   margin: 0 0 12px;

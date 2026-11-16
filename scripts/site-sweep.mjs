@@ -76,7 +76,8 @@ for (const { mode, viewport, scheme, scale } of MODES) {
           .filter(
             (el) =>
               visible(el) &&
-              !(el.innerText || "").trim() &&
+              // What is folded away has no text to show; what it says when open is what counts.
+              !(el.textContent || "").trim() &&
               !el.getAttribute("aria-label") &&
               !el.getAttribute("title") &&
               !el.closest("label"),
@@ -126,6 +127,8 @@ for (const href of list) {
     dispatchEvent(new PopStateEvent("popstate"));
   }, href);
   await page.waitForTimeout(350);
+  // A page that asks for something of its own (an older match) is given the time to get it.
+  await page.waitForSelector(".bx-wait", { state: "detached", timeout: 5000 }).catch(() => {});
   const state = await page.evaluate(() => {
     const text = document.querySelector("main")?.innerText ?? "";
     return {
