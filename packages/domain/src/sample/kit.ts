@@ -7,7 +7,7 @@ import type { GameResult, Match, Provenance, Veto } from "../model.ts";
 export const SAMPLE_NOW = "2026-11-15T18:40:00Z";
 
 export const SAMPLE_PROVENANCE: Provenance = {
-  source: "Slate design sample",
+  source: "Bearing sample data",
   checkedAt: SAMPLE_NOW,
   note: "Real names, fictional events and generated results. Not live data.",
 };

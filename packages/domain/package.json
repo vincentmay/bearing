@@ -2,11 +2,12 @@
   "name": "@bearing/domain",
   "version": "0.0.0",
   "private": true,
-  "description": "Slate's canonical domain model: disciplines, competitors, tournaments, stages and matches.",
+  "description": "Bearing's canonical domain model: disciplines, competitors, tournaments, stages and matches.",
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./sample": "./src/sample/index.ts"
+    "./sample": "./src/sample/index.ts",
+    "./lichess": "./src/sources/lichess.ts"
   },
   "scripts": {
     "test": "vp test"

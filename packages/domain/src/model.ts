@@ -1,5 +1,5 @@
 /**
- * Slate's canonical model. Every source adapter (Liquipedia, PandaScore, Lichess broadcasts, …)
+ * Bearing's canonical model. Every source adapter (Liquipedia, PandaScore, Lichess broadcasts, …)
  * maps into these shapes; the UI never sees a provider's own format.
  *
  * Conventions
@@ -85,7 +85,17 @@ export interface Provenance {
   note?: string;
 }
 
-export type StageFormat = "swiss" | "single-elim" | "double-elim" | "round-robin" | "cup";
+/**
+ * How a stage works. "rounds" is for a stage Bearing knows only as a list of rounds with their
+ * pairings: it is drawn as that list, and nothing is assumed about who advances.
+ */
+export type StageFormat =
+  | "swiss"
+  | "single-elim"
+  | "double-elim"
+  | "round-robin"
+  | "cup"
+  | "rounds";
 
 export interface Round {
   id: string;
@@ -169,8 +179,23 @@ export interface GameResult {
   objectives?: { towers: number[]; dragons: number[]; barons: number[]; gold: number[] };
   /** Chess: current or final position, clocks, engine evaluation (white's view). */
   chess?: { fen: string; move: number; clocks?: string[]; eval?: number; lastMove?: string };
-  /** Trackmania cup: point limit and who has reached it. */
-  cup?: { limit: number; round: number; finalists: number[] };
+  /**
+   * Trackmania cup: the point limit, the round being raced, who has reached the limit, and the
+   * finishing order of every round raced so far (side indices, first place first).
+   */
+  cup?: { limit: number; round: number; finalists: number[]; rounds?: number[][] };
+  /** Seconds on the game clock: played so far while live, in total once finished. */
+  clock?: number;
+  /** Things that happened at a known moment, in order: Rocket League goals, League objectives. */
+  events?: GameEvent[];
+}
+
+/** One goal or objective, with the moment it happened. */
+export interface GameEvent {
+  /** Seconds on the game clock, counted up from the start of the game. */
+  at: number;
+  side: number;
+  kind: "goal" | "tower" | "dragon" | "baron";
 }
 
 export interface RoundRecord {
@@ -224,7 +249,7 @@ export interface Follow {
   id: string;
 }
 
-/** A self-contained snapshot of everything Slate knows. */
+/** A self-contained snapshot of everything Bearing knows. */
 export interface World {
   now: string;
   disciplines: Discipline[];

@@ -1,0 +1,875 @@
+{
+  "tour": {
+    "id": "3yQeQYED",
+    "name": "2nd Belt and Road China International Chess Open (Bengbu, Anhui) 2026 Group A",
+    "slug": "2nd-belt-and-road-china-international-chess-open-bengbu-anhui-2026-group-a",
+    "info": {
+      "format": "9-round Swiss",
+      "tc": "90 min + 30 sec / move",
+      "fideTC": "standard",
+      "location": "Bengbu, China",
+      "timeZone": "Asia/Shanghai",
+      "players": "Bai Jinshi, Gupta A, Afanasiev",
+      "standings": "https://s1.chess-results.com/tnr1539817.aspx"
+    },
+    "createdAt": 1794641974301,
+    "url": "https://lichess.org/broadcast/2nd-belt-and-road-china-international-chess-open-bengbu-anhui-2026-group-a/3yQeQYED",
+    "tier": 3,
+    "dates": [1794812400000, 1795222800000]
+  },
+  "rounds": [
+    {
+      "id": "nJcBDmFE",
+      "name": "Round 1",
+      "slug": "round-1",
+      "ongoing": true,
+      "startsAt": 1794812400000,
+      "url": "https://lichess.org/broadcast/2nd-belt-and-road-china-international-chess-open-bengbu-anhui-2026-group-a/round-1/nJcBDmFE"
+    },
+    {
+      "id": "gB345vel",
+      "name": "Round 2",
+      "slug": "round-2",
+      "startsAt": 1794877200000,
+      "url": "https://lichess.org/broadcast/2nd-belt-and-road-china-international-chess-open-bengbu-anhui-2026-group-a/round-2/gB345vel"
+    },
+    {
+      "id": "VSiTo8l4",
+      "name": "Round 3",
+      "slug": "round-3",
+      "startsAt": 1794898800000,
+      "url": "https://lichess.org/broadcast/2nd-belt-and-road-china-international-chess-open-bengbu-anhui-2026-group-a/round-3/VSiTo8l4"
+    },
+    {
+      "id": "iA7Yri6A",
+      "name": "Round 4",
+      "slug": "round-4",
+      "startsAt": 1794963600000,
+      "url": "https://lichess.org/broadcast/2nd-belt-and-road-china-international-chess-open-bengbu-anhui-2026-group-a/round-4/iA7Yri6A"
+    },
+    {
+      "id": "pHw2b5Sm",
+      "name": "Round 5",
+      "slug": "round-5",
+      "startsAt": 1794985200000,
+      "url": "https://lichess.org/broadcast/2nd-belt-and-road-china-international-chess-open-bengbu-anhui-2026-group-a/round-5/pHw2b5Sm"
+    },
+    {
+      "id": "FE5rA9zA",
+      "name": "Round 6",
+      "slug": "round-6",
+      "startsAt": 1795071600000,
+      "url": "https://lichess.org/broadcast/2nd-belt-and-road-china-international-chess-open-bengbu-anhui-2026-group-a/round-6/FE5rA9zA"
+    },
+    {
+      "id": "wlQyHzvn",
+      "name": "Round 7",
+      "slug": "round-7",
+      "startsAt": 1795136400000,
+      "url": "https://lichess.org/broadcast/2nd-belt-and-road-china-international-chess-open-bengbu-anhui-2026-group-a/round-7/wlQyHzvn"
+    },
+    {
+      "id": "957lPa8l",
+      "name": "Round 8",
+      "slug": "round-8",
+      "startsAt": 1795158000000,
+      "url": "https://lichess.org/broadcast/2nd-belt-and-road-china-international-chess-open-bengbu-anhui-2026-group-a/round-8/957lPa8l"
+    },
+    {
+      "id": "z8OWpx2E",
+      "name": "Round 9",
+      "slug": "round-9",
+      "startsAt": 1795222800000,
+      "url": "https://lichess.org/broadcast/2nd-belt-and-road-china-international-chess-open-bengbu-anhui-2026-group-a/round-9/z8OWpx2E"
+    }
+  ],
+  "games": {
+    "nJcBDmFE": [
+      {
+        "id": "oKKifNNq",
+        "name": "Bai, Jinshi - Silva, David",
+        "fen": "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
+        "players": [
+          {
+            "name": "Bai, Jinshi",
+            "title": "GM",
+            "rating": 2600,
+            "fideId": 8602280,
+            "fed": "CHN",
+            "clock": 545300
+          },
+          {
+            "name": "Silva, David",
+            "title": "IM",
+            "rating": 2285,
+            "fideId": 10101314,
+            "fed": "ANG",
+            "clock": 543000
+          }
+        ],
+        "lastMove": "g1f3",
+        "status": "1-0"
+      },
+      {
+        "id": "hIWZ7TNE",
+        "name": "Wang, Qinxuanyi - Gupta, Abhijeet",
+        "fen": "2Q5/6qk/7p/p2p2p1/4b3/6P1/P4PP1/2R3K1 b - - 2 47",
+        "players": [
+          {
+            "name": "Wang, Qinxuanyi",
+            "title": "WIM",
+            "rating": 2274,
+            "fideId": 8636060,
+            "fed": "CHN",
+            "clock": 49900
+          },
+          {
+            "name": "Gupta, Abhijeet",
+            "title": "GM",
+            "rating": 2549,
+            "fideId": 5010608,
+            "fed": "IND",
+            "clock": 12100
+          }
+        ],
+        "lastMove": "e1c1",
+        "status": "1-0"
+      },
+      {
+        "id": "JT6Xe9HL",
+        "name": "Afanasiev, Nikita - Yuan, Qingyu",
+        "fen": "2r1b1k1/1R3pp1/5q1p/2nB1N2/p4Q1P/4P1P1/5P2/6K1 w - - 10 46",
+        "players": [
+          {
+            "name": "Afanasiev, Nikita",
+            "title": "GM",
+            "rating": 2527,
+            "fideId": 24183555,
+            "fed": "RUS",
+            "clock": 14500
+          },
+          {
+            "name": "Yuan, Qingyu",
+            "rating": 2269,
+            "fideId": 8609772,
+            "fed": "CHN",
+            "clock": 7400
+          }
+        ],
+        "lastMove": "d7c5",
+        "thinkTime": 37,
+        "status": "*"
+      },
+      {
+        "id": "fCgouvm7",
+        "name": "Li, Bo - Xu, Yinglun",
+        "fen": "8/6k1/4p3/p4p1P/2b5/8/5K2/3B4 w - - 0 48",
+        "players": [
+          {
+            "name": "Li, Bo",
+            "title": "IM",
+            "rating": 2243,
+            "fideId": 8602786,
+            "fed": "CHN",
+            "clock": 23700
+          },
+          {
+            "name": "Xu, Yinglun",
+            "title": "GM",
+            "rating": 2516,
+            "fideId": 8604940,
+            "fed": "CHN",
+            "clock": 11800
+          }
+        ],
+        "lastMove": "f7f5",
+        "thinkTime": 31,
+        "status": "*"
+      },
+      {
+        "id": "7sJrN1s2",
+        "name": "Zhao, Chenxi - Jiang, Liu",
+        "fen": "4R3/kr4r1/8/P7/5p2/5K2/4R1P1/8 w - - 18 53",
+        "players": [
+          {
+            "name": "Zhao, Chenxi",
+            "title": "GM",
+            "rating": 2515,
+            "fideId": 8611513,
+            "fed": "CHN",
+            "clock": 67400
+          },
+          {
+            "name": "Jiang, Liu",
+            "rating": 2238,
+            "fideId": 8640653,
+            "fed": "CHN",
+            "clock": 5200
+          }
+        ],
+        "lastMove": "g4g7",
+        "thinkTime": 100,
+        "status": "*"
+      },
+      {
+        "id": "LWQYLlCk",
+        "name": "Yang, Siyuan - Dai, Changren",
+        "fen": "5k2/3Rbp2/4p1pp/pB1b4/P2P3P/4P1K1/r5P1/4N3 b - - 1 46",
+        "players": [
+          {
+            "name": "Yang, Siyuan",
+            "rating": 2229,
+            "fideId": 8631166,
+            "fed": "CHN",
+            "clock": 5000
+          },
+          {
+            "name": "Dai, Changren",
+            "title": "GM",
+            "rating": 2500,
+            "fideId": 8608156,
+            "fed": "CHN",
+            "clock": 11600
+          }
+        ],
+        "lastMove": "f3e1",
+        "thinkTime": 21,
+        "status": "*"
+      },
+      {
+        "id": "NXB8ZXpW",
+        "name": "Wang, Shixu B - Zhang, Xiao",
+        "fen": "R4Bk1/1r6/1p2bpp1/1P1p4/2nP3P/5P2/4BK2/8 w - - 1 50",
+        "players": [
+          {
+            "name": "Wang, Shixu B",
+            "title": "IM",
+            "rating": 2470,
+            "fideId": 8610665,
+            "fed": "CHN",
+            "clock": 20900
+          },
+          {
+            "name": "Zhang, Xiao",
+            "title": "WIM",
+            "rating": 2212,
+            "fideId": 8610894,
+            "fed": "CHN",
+            "clock": 20500
+          }
+        ],
+        "lastMove": "h7g8",
+        "thinkTime": 21,
+        "status": "*"
+      },
+      {
+        "id": "VMyCAkjQ",
+        "name": "Chu, Jiamin - Nitish Belurkar",
+        "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+        "players": [
+          {
+            "name": "Chu, Jiamin",
+            "title": "CM",
+            "rating": 2211,
+            "fideId": 8610061,
+            "fed": "CHN",
+            "clock": 545600
+          },
+          {
+            "name": "Nitish Belurkar",
+            "title": "IM",
+            "rating": 2467,
+            "fideId": 5084768,
+            "fed": "IND",
+            "clock": 543000
+          }
+        ],
+        "lastMove": "e2e4",
+        "status": "1-0"
+      },
+      {
+        "id": "lMPGlAuY",
+        "name": "Lou, Yiping - Xu, Chang(CQ)",
+        "fen": "8/8/3B4/8/1P4p1/6P1/3r4/5k1K w - - 12 46",
+        "players": [
+          {
+            "name": "Lou, Yiping",
+            "title": "IM",
+            "rating": 2437,
+            "fideId": 8603928,
+            "fed": "CHN",
+            "clock": 31200
+          },
+          {
+            "name": "Xu, Chang(CQ)",
+            "rating": 2195,
+            "fideId": 8641757,
+            "fed": "CHN",
+            "clock": 13800
+          }
+        ],
+        "lastMove": "b2d2",
+        "status": "0-1"
+      },
+      {
+        "id": "vvu0urj2",
+        "name": "Zhang, Yinzhe - Dong, Hongfu",
+        "fen": "r1b2r1k/ppp1q2p/3p2p1/6N1/1P2P1n1/2Q3P1/P4PB1/2R2RK1 b - - 15 26",
+        "players": [
+          {
+            "name": "Zhang, Yinzhe",
+            "rating": 2166,
+            "fideId": 8626995,
+            "fed": "CHN",
+            "clock": 58600
+          },
+          {
+            "name": "Dong, Hongfu",
+            "rating": 2434,
+            "fideId": 8626960,
+            "fed": "CHN",
+            "clock": 38800
+          }
+        ],
+        "lastMove": "c4c3",
+        "check": "+",
+        "status": "½-½"
+      },
+      {
+        "id": "fHWjPMJy",
+        "name": "Gong, Sunle - Dunaev, Dmitriy",
+        "fen": "R4bk1/5r1p/6p1/3PQb2/2PB4/8/3q2PP/5B1K b - - 1 31",
+        "players": [
+          {
+            "name": "Gong, Sunle",
+            "title": "IM",
+            "rating": 2426,
+            "fideId": 8620229,
+            "fed": "CHN",
+            "clock": 265200
+          },
+          {
+            "name": "Dunaev, Dmitriy",
+            "rating": 2155,
+            "fideId": 55657826,
+            "fed": "RUS",
+            "clock": 142700
+          }
+        ],
+        "lastMove": "f2d4",
+        "status": "1-0"
+      },
+      {
+        "id": "vA90ggCh",
+        "name": "Zhou, Shumeng - Wang, Yanbin",
+        "fen": "4rk2/2p1r3/ppp1n3/6p1/P3R2p/2NP4/1PP3PP/4R1K1 w - - 0 35",
+        "players": [
+          {
+            "name": "Zhou, Shumeng",
+            "rating": 2144,
+            "fideId": 8622116,
+            "fed": "CHN",
+            "clock": 91200
+          },
+          {
+            "name": "Wang, Yanbin",
+            "title": "IM",
+            "rating": 2412,
+            "fideId": 8617996,
+            "fed": "CHN",
+            "clock": 132800
+          }
+        ],
+        "lastMove": "g6g5",
+        "status": "½-½"
+      },
+      {
+        "id": "NJEm7sND",
+        "name": "Yang, Zilong - Anand, Tsogtbileg",
+        "fen": "8/6p1/4Rk2/2pPn3/2P1P3/2K5/8/8 b - - 1 41",
+        "players": [
+          {
+            "name": "Yang, Zilong",
+            "title": "IM",
+            "rating": 2407,
+            "fideId": 8641528,
+            "fed": "CHN",
+            "clock": 93700
+          },
+          {
+            "name": "Anand, Tsogtbileg",
+            "title": "CM",
+            "rating": 2140,
+            "fideId": 4926552,
+            "fed": "MGL",
+            "clock": 216400
+          }
+        ],
+        "lastMove": "e8e6",
+        "check": "+",
+        "status": "1-0"
+      },
+      {
+        "id": "u5fRKzhx",
+        "name": "Sun, Yidi - Rychkov, Oleg",
+        "fen": "4k3/1p3p2/p1nR1Br1/4PpPp/PP5P/8/5KP1/8 b - - 0 32",
+        "players": [
+          {
+            "name": "Sun, Yidi",
+            "rating": 2136,
+            "fideId": 8614776,
+            "fed": "CHN",
+            "clock": 123200
+          },
+          {
+            "name": "Rychkov, Oleg",
+            "title": "FM",
+            "rating": 2405,
+            "fideId": 4122852,
+            "fed": "RUS",
+            "clock": 326600
+          }
+        ],
+        "lastMove": "a2a4",
+        "status": "1-0"
+      },
+      {
+        "id": "L1Fjenay",
+        "name": "Xu, Junwei - Chen, lvheng",
+        "fen": "6k1/4Rp2/1p4p1/p6p/P3P2P/1Pr3P1/5PK1/8 w - - 1 33",
+        "players": [
+          {
+            "name": "Xu, Junwei",
+            "rating": 2398,
+            "fideId": 8611130,
+            "fed": "CHN",
+            "clock": 365300
+          },
+          {
+            "name": "Chen, lvheng",
+            "rating": 2125,
+            "fideId": 8627967,
+            "fed": "CHN",
+            "clock": 142800
+          }
+        ],
+        "lastMove": "h7g8",
+        "status": "½-½"
+      },
+      {
+        "id": "vYNfEr1Y",
+        "name": "Zhu, Diwen - Cao, Qingfeng",
+        "fen": "7k/p2q2p1/7p/1P5P/P3Q3/6P1/4P1K1/8 b - - 12 47",
+        "players": [
+          {
+            "name": "Zhu, Diwen",
+            "rating": 2121,
+            "fideId": 8610983,
+            "fed": "CHN",
+            "clock": 13600
+          },
+          {
+            "name": "Cao, Qingfeng",
+            "title": "IM",
+            "rating": 2396,
+            "fideId": 8627568,
+            "fed": "CHN",
+            "clock": 15400
+          }
+        ],
+        "lastMove": "h3g2",
+        "thinkTime": 67,
+        "status": "*"
+      },
+      {
+        "id": "H2lrq2FA",
+        "name": "Obgolts, Erik - Du, Yuxin",
+        "fen": "4n1k1/p7/P1P1p2p/2Q1Ppp1/3Bp3/6PP/2q2P1K/8 b - - 1 44",
+        "players": [
+          {
+            "name": "Obgolts, Erik",
+            "title": "IM",
+            "rating": 2391,
+            "fideId": 24199044,
+            "fed": "RUS",
+            "clock": 118900
+          },
+          {
+            "name": "Du, Yuxin",
+            "rating": 2117,
+            "fideId": 8610282,
+            "fed": "CHN",
+            "clock": 3400
+          }
+        ],
+        "lastMove": "a3c5",
+        "status": "1-0"
+      },
+      {
+        "id": "Atqz8jz7",
+        "name": "Sanchir, Munkhbat - Li, Shilong",
+        "fen": "k3r2r/1b1n3p/pq3npQ/3p1p2/1p1Np3/1N6/PPP1B2P/1K1R4 w - - 8 32",
+        "players": [
+          {
+            "name": "Sanchir, Munkhbat",
+            "rating": 2112,
+            "fideId": 4926986,
+            "fed": "MGL",
+            "clock": 89800
+          },
+          {
+            "name": "Li, Shilong",
+            "title": "GM",
+            "rating": 2374,
+            "fideId": 8600678,
+            "fed": "CHN",
+            "clock": 36400
+          }
+        ],
+        "lastMove": "b8a8",
+        "status": "0-1"
+      },
+      {
+        "id": "XdDRZpc8",
+        "name": "Llaneza Vega, Marcos - Iderjavkhlan, Tumursukh",
+        "fen": "1r4k1/4R2p/1pbN1B1P/p1n5/2P2p2/1P3P2/P4KP1/8 b - - 4 38",
+        "players": [
+          {
+            "name": "Llaneza Vega, Marcos",
+            "title": "IM",
+            "rating": 2368,
+            "fideId": 2253585,
+            "fed": "ESP",
+            "clock": 28700
+          },
+          {
+            "name": "Iderjavkhlan, Tumursukh",
+            "rating": 2111,
+            "fideId": 4923790,
+            "fed": "MGL",
+            "clock": 15600
+          }
+        ],
+        "lastMove": "g7f6",
+        "status": "1-0"
+      },
+      {
+        "id": "U7z9T9XG",
+        "name": "Yuan, Shunzhe - Nie, Xinyang",
+        "fen": "8/8/7P/2q5/8/p4Q2/k1K5/8 w - - 5 73",
+        "players": [
+          {
+            "name": "Yuan, Shunzhe",
+            "rating": 2095,
+            "fideId": 8649464,
+            "fed": "CHN",
+            "clock": 129000
+          },
+          {
+            "name": "Nie, Xinyang",
+            "title": "IM",
+            "rating": 2367,
+            "fideId": 8607222,
+            "fed": "CHN",
+            "clock": 55400
+          }
+        ],
+        "lastMove": "d4c5",
+        "check": "+",
+        "thinkTime": 54,
+        "status": "*"
+      },
+      {
+        "id": "469lfx18",
+        "name": "Jin, Yueheng - Song, Yihang",
+        "fen": "r4bk1/5p2/4p1pp/2PPQ3/1q6/p5P1/P4PKP/B3R3 b - - 2 42",
+        "players": [
+          {
+            "name": "Jin, Yueheng",
+            "title": "IM",
+            "rating": 2356,
+            "fideId": 8616868,
+            "fed": "CHN",
+            "clock": 38400
+          },
+          {
+            "name": "Song, Yihang",
+            "rating": 2091,
+            "fideId": 8650195,
+            "fed": "CHN",
+            "clock": 4200
+          }
+        ],
+        "lastMove": "e3e5",
+        "status": "1-0"
+      },
+      {
+        "id": "bdiGsU7b",
+        "name": "Xu, Wei - Hong, Mingren",
+        "fen": "8/8/7p/1PP1nkp1/2r5/2R5/8/4K3 w - - 1 48",
+        "players": [
+          {
+            "name": "Xu, Wei",
+            "rating": 2085,
+            "fideId": 8643318,
+            "fed": "CHN",
+            "clock": 70900
+          },
+          {
+            "name": "Hong, Mingren",
+            "title": "IM",
+            "rating": 2355,
+            "fideId": 8641560,
+            "fed": "CHN",
+            "clock": 350300
+          }
+        ],
+        "lastMove": "g4c4",
+        "status": "0-1"
+      },
+      {
+        "id": "EZu4Qmpj",
+        "name": "Xie, Jiaxiang - Zhong, Taoyu",
+        "fen": "1r4k1/5pp1/4p2p/3pn1q1/5nP1/2P1R3/P2QBP2/1N4K1 w - - 2 35",
+        "players": [
+          {
+            "name": "Xie, Jiaxiang",
+            "rating": 2327,
+            "fideId": 8631603,
+            "fed": "CHN",
+            "clock": 7900
+          },
+          {
+            "name": "Zhong, Taoyu",
+            "title": "FM",
+            "rating": 2082,
+            "fideId": 8640378,
+            "fed": "CHN",
+            "clock": 29400
+          }
+        ],
+        "lastMove": "c8b8",
+        "status": "0-1"
+      },
+      {
+        "id": "5ds5RpqF",
+        "name": "Mu, Wangxueyao - Xie, Jianjun",
+        "fen": "8/5ppk/3B3p/2n1p3/R2nP3/5B1P/2r2PP1/6K1 w - - 0 31",
+        "players": [
+          {
+            "name": "Mu, Wangxueyao",
+            "title": "WFM",
+            "rating": 2082,
+            "fideId": 8636001,
+            "fed": "CHN",
+            "clock": 81100
+          },
+          {
+            "name": "Xie, Jianjun",
+            "title": "FM",
+            "rating": 2319,
+            "fideId": 8600953,
+            "fed": "CHN",
+            "clock": 87700
+          }
+        ],
+        "lastMove": "d7c5",
+        "status": "½-½"
+      },
+      {
+        "id": "HJ63vclO",
+        "name": "Senlle Caride, Miguel - Guo, Ziming",
+        "fen": "2BRk1r1/8/1pK1Pp1p/2p4r/P3RP2/2P5/1P5P/8 b - - 0 42",
+        "players": [
+          {
+            "name": "Senlle Caride, Miguel",
+            "title": "FM",
+            "rating": 2318,
+            "fideId": 2282500,
+            "fed": "ESP",
+            "clock": 4400
+          },
+          {
+            "name": "Guo, Ziming",
+            "rating": 2081,
+            "fideId": 8655090,
+            "fed": "CHN",
+            "clock": 200800
+          }
+        ],
+        "lastMove": "d2d8",
+        "check": "+",
+        "status": "1-0"
+      },
+      {
+        "id": "sdF6OgNG",
+        "name": "Xie, Chujun - Xi, Qi",
+        "fen": "4k3/5b2/1p5p/r2PPp2/p1p5/P1N1b3/1P1R3P/4NK2 b - - 2 42",
+        "players": [
+          {
+            "name": "Xie, Chujun",
+            "rating": 2077,
+            "fideId": 8637750,
+            "fed": "CHN"
+          },
+          {
+            "name": "Xi, Qi",
+            "rating": 2315,
+            "fideId": 8618623,
+            "fed": "CHN",
+            "clock": 7000
+          }
+        ],
+        "lastMove": "g2f1",
+        "status": "½-½"
+      },
+      {
+        "id": "2lJ0msPS",
+        "name": "Chen, Hongsen - Tong, Yiyi",
+        "fen": "8/8/p7/4p1p1/r5k1/P3R1P1/3K1P2/8 w - - 0 47",
+        "players": [
+          {
+            "name": "Chen, Hongsen",
+            "title": "IM",
+            "rating": 2314,
+            "fideId": 8625450,
+            "fed": "CHN",
+            "clock": 8300
+          },
+          {
+            "name": "Tong, Yiyi",
+            "rating": 2072,
+            "fideId": 8639868,
+            "fed": "CHN",
+            "clock": 18400
+          }
+        ],
+        "lastMove": "e6e5",
+        "thinkTime": 42,
+        "status": "*"
+      },
+      {
+        "id": "ByUuTpw9",
+        "name": "Jin, Yanbo - Jin, Ruijun",
+        "fen": "3q2k1/6pp/4pp2/1Q6/p7/P5P1/1P3P1P/2Rr2K1 w - - 1 35",
+        "players": [
+          {
+            "name": "Jin, Yanbo",
+            "rating": 2059,
+            "fideId": 4324900,
+            "fed": "NZL",
+            "clock": 155700
+          },
+          {
+            "name": "Jin, Ruijun",
+            "title": "FM",
+            "rating": 2314,
+            "fideId": 8623708,
+            "fed": "CHN",
+            "clock": 19200
+          }
+        ],
+        "lastMove": "d7d1",
+        "check": "+",
+        "status": "½-½"
+      },
+      {
+        "id": "zDlLgCjw",
+        "name": "Munkhgal, Gombosuren - Cai, Lin",
+        "fen": "4b3/8/1p2p3/pP1pN1kp/P2P2P1/5K1P/8/8 b - - 0 52",
+        "players": [
+          {
+            "name": "Munkhgal, Gombosuren",
+            "title": "GM",
+            "rating": 2310,
+            "fideId": 4901266,
+            "fed": "MGL",
+            "clock": 30700
+          },
+          {
+            "name": "Cai, Lin",
+            "rating": 2039,
+            "fideId": 8606196,
+            "fed": "CHN",
+            "clock": 36500
+          }
+        ],
+        "lastMove": "g3g4",
+        "thinkTime": 108,
+        "status": "*"
+      },
+      {
+        "id": "ermlP658",
+        "name": "Ha,Yihan - Jiang, Tianyu",
+        "fen": "8/5ppk/3p3p/2pPp3/2q1P3/3b1P1P/1Q4P1/2R4K b - - 7 43",
+        "players": [
+          {
+            "name": "Ha,Yihan",
+            "rating": 2013,
+            "fideId": 8617120,
+            "fed": "CHN",
+            "clock": 3800
+          },
+          {
+            "name": "Jiang, Tianyu",
+            "rating": 2300,
+            "fideId": 8627215,
+            "fed": "CHN",
+            "clock": 3200
+          }
+        ],
+        "lastMove": "a1c1",
+        "thinkTime": 37,
+        "status": "*"
+      },
+      {
+        "id": "uJ3pkmNO",
+        "name": "Polschikov, Alexey - Abudureheman, Namaiti",
+        "fen": "8/5pk1/7p/6p1/6P1/1p1N2KP/5P2/8 b - - 1 39",
+        "players": [
+          {
+            "name": "Polschikov, Alexey",
+            "title": "IM",
+            "rating": 2292,
+            "fideId": 24130583,
+            "fed": "RUS",
+            "clock": 115100
+          },
+          {
+            "name": "Abudureheman, Namaiti",
+            "rating": 2004,
+            "fideId": 8620270,
+            "fed": "CHN",
+            "clock": 327900
+          }
+        ],
+        "lastMove": "e5d3",
+        "status": "1-0"
+      },
+      {
+        "id": "K5EctWUe",
+        "name": "Wang, Zekai - Yang, Lanqin",
+        "fen": "2r5/k5p1/4p2p/1R1pP2P/3K2P1/b1r5/8/1R6 b - - 2 35",
+        "players": [
+          {
+            "name": "Wang, Zekai",
+            "rating": 2000,
+            "fideId": 8655979,
+            "fed": "CHN",
+            "clock": 4600
+          },
+          {
+            "name": "Yang, Lanqin",
+            "title": "FM",
+            "rating": 2292,
+            "fideId": 8653984,
+            "fed": "CHN",
+            "clock": 66800
+          }
+        ],
+        "lastMove": "d3d4",
+        "status": "0-1"
+      }
+    ]
+  }
+}

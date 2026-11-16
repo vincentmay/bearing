@@ -30,6 +30,28 @@ export const tmPlayers: Player[] = [
 
 const TRACKS = ["Glacier Run", "Copper Loop", "Paddock 7", "Sunken Pier", "Ridge Drift"];
 
+/** Points for finishing a round first, second, third and fourth. */
+export const CUP_POINTS = [10, 6, 4, 3];
+export const CUP_LIMIT = 60;
+
+/** Quarterfinal A so far: the finishing order of each round, by side index. */
+const QF_A_ROUNDS = [
+  [1, 0, 2, 3],
+  [0, 1, 3, 2],
+  [1, 2, 0, 3],
+  [1, 0, 2, 3],
+  [2, 1, 0, 3],
+  [0, 1, 2, 3],
+  [1, 0, 3, 2],
+  [1, 2, 0, 3],
+];
+
+function cupScores(rounds: number[][], sides: number): number[] {
+  const scores = Array.from({ length: sides }, () => 0);
+  for (const order of rounds) order.forEach((side, place) => (scores[side]! += CUP_POINTS[place]!));
+  return scores;
+}
+
 export function buildTrackmania() {
   const tid = "tm-cup-finals-2026";
   const ids = tmPlayers.map((x) => x.id);
@@ -58,9 +80,14 @@ export function buildTrackmania() {
           ? {
               label: TRACKS[i]!,
               status: "live",
-              scores: [100, 120, 75, 40],
-              detail: "Round 9",
-              cup: { limit: 120, round: 9, finalists: [1] },
+              scores: cupScores(QF_A_ROUNDS, g.length),
+              detail: `Round ${QF_A_ROUNDS.length + 1}`,
+              cup: {
+                limit: CUP_LIMIT,
+                round: QF_A_ROUNDS.length + 1,
+                finalists: [1],
+                rounds: QF_A_ROUNDS,
+              },
             }
           : { label: TRACKS[i]!, status: "scheduled" },
       ],
@@ -125,7 +152,7 @@ export function buildTrackmania() {
         start: "2026-11-15",
         end: "2026-11-16",
         explainer:
-          "Four players race each match on the same track. Every round awards points by finishing position; reach the point limit, then win one more round to finish first. The top two in each match advance.",
+          "Four players race each match on the same track. Every round awards points by finishing position: 10, 6, 4 and 3. Reach 60 points, then win one more round to win the match. The top two in each match advance.",
         rules: { advancePerMatch: 2 },
         rounds: [
           {

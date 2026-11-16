@@ -1,5 +1,5 @@
-import type { Match, Team, Tournament } from "../model.ts";
-import { SAMPLE_PROVENANCE, addMinutes, cet, scheduled } from "./kit.ts";
+import type { GameEvent, GameResult, Match, Team, Tournament } from "../model.ts";
+import { SAMPLE_PROVENANCE, addMinutes, cet, rng, scheduled, type Rand } from "./kit.ts";
 
 const team = (
   id: string,
@@ -102,6 +102,130 @@ export function buildRocketLeague() {
         end: "2026-11-29",
         explainer: "Eight qualified teams, single elimination. Best-of-seven throughout.",
         rounds: [],
+      },
+    ],
+  };
+  return { tournament, matches };
+}
+
+/** A finished game: five minutes, goals at their moments, and overtime when it was level. */
+function rlGame(r: Rand, label: string, winner: number): GameResult {
+  const overtime = r() < 0.2;
+  const loserGoals = Math.floor(r() * 3);
+  const winnerGoals = overtime ? loserGoals + 1 : loserGoals + 1 + Math.floor(r() * 3);
+  const sides: number[] = [
+    ...Array.from({ length: overtime ? winnerGoals - 1 : winnerGoals }, () => winner),
+    ...Array.from({ length: loserGoals }, () => 1 - winner),
+  ];
+  const events: GameEvent[] = sides
+    .map((side) => ({ at: 8 + Math.floor(r() * 288), side, kind: "goal" as const }))
+    .sort((a, b) => a.at - b.at);
+  let clock = 300;
+  if (overtime) {
+    clock = 300 + 12 + Math.floor(r() * 140);
+    events.push({ at: clock, side: winner, kind: "goal" });
+  }
+  const scores = [0, 0];
+  for (const e of events) scores[e.side]!++;
+  return {
+    label,
+    status: "finished",
+    winner,
+    scores,
+    clock,
+    events,
+    detail: overtime ? "Overtime" : undefined,
+  };
+}
+
+/**
+ * A four-team online event whose final is being played now, so the sample has Rocket League that
+ * is live and Rocket League that is over.
+ */
+export function buildRocketLeagueOpen() {
+  const r = rng(20261114);
+  const tid = "rl-winter-open-2026";
+  const label = (i: number) => `Game ${i + 1}`;
+  const finished = (id: string, at: string, a: string, b: string, winners: number[]): Match => ({
+    id,
+    tournamentId: tid,
+    stageId: "playoffs",
+    roundId: "po-sf",
+    scheduledAt: at,
+    bestOf: 7,
+    status: "finished",
+    sides: [{ competitorId: a }, { competitorId: b }],
+    games: winners.map((w, i) => rlGame(r, label(i), w)),
+    next: { winner: `${tid}-final` },
+    stream: { label: "Stream", url: "#" },
+  });
+  const matches: Match[] = [
+    finished(`${tid}-sf1`, cet("2026-11-14", "18:00"), "rl-kc", "rl-vitality", [0, 1, 0, 0, 1, 0]),
+    finished(`${tid}-sf2`, cet("2026-11-14", "20:00"), "rl-falcons", "rl-gm", [1, 1, 0, 1, 1]),
+    {
+      id: `${tid}-final`,
+      tournamentId: tid,
+      stageId: "playoffs",
+      roundId: "po-final",
+      scheduledAt: cet("2026-11-15", "19:00"),
+      bestOf: 7,
+      status: "live",
+      sides: [{ competitorId: "rl-kc" }, { competitorId: "rl-gm" }],
+      games: [
+        ...[0, 1, 0].map((w, i) => rlGame(r, label(i), w)),
+        {
+          label: label(3),
+          status: "live",
+          scores: [3, 2],
+          clock: 228,
+          events: (
+            [
+              [42, 0],
+              [90, 1],
+              [135, 0],
+              [183, 0],
+              [216, 1],
+            ] as const
+          ).map(([at, side]) => ({ at, side, kind: "goal" as const })),
+        },
+        ...[4, 5, 6].map((i): GameResult => ({ label: label(i), status: "scheduled" })),
+      ],
+      stream: { label: "Stream", url: "#" },
+    },
+  ];
+  const tournament: Tournament = {
+    id: tid,
+    discipline: "rocket-league",
+    name: "Winter Open 2026",
+    short: "Winter Open",
+    tier: "A",
+    organizer: "Sample Esports",
+    location: null,
+    start: "2026-11-14",
+    end: "2026-11-15",
+    prize: { amount: 50_000, currency: "USD" },
+    colors: { primary: "#3d8bff", secondary: "#060c1a" },
+    participantIds: ["rl-kc", "rl-vitality", "rl-falcons", "rl-gm"],
+    provenance: SAMPLE_PROVENANCE,
+    blurb: "Four invited teams, played online over one weekend.",
+    placements: [
+      { place: "1st", rank: 1, prize: 25_000, competitorIds: [] },
+      { place: "2nd", rank: 2, prize: 12_500, competitorIds: [] },
+      { place: "3rd–4th", rank: 3, prize: 6_250, competitorIds: ["rl-vitality", "rl-falcons"] },
+    ],
+    stages: [
+      {
+        id: "playoffs",
+        name: "Playoffs",
+        format: "single-elim",
+        start: "2026-11-14",
+        end: "2026-11-15",
+        explainer:
+          "Four teams, single elimination. Every series is best-of-seven: the first team to win four games goes through.",
+        rounds: [
+          { id: "po-sf", name: "Semifinals", short: "SF", matchIds: [`${tid}-sf1`, `${tid}-sf2`] },
+          { id: "po-final", name: "Final", short: "F", matchIds: [`${tid}-final`] },
+        ],
       },
     ],
   };

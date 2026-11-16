@@ -1,16 +1,17 @@
-import type { Competitor, World } from "../model.ts";
+import type { Competitor, Follow, World } from "../model.ts";
 import { buildChess, chessPlayers } from "./chess.ts";
 import { buildCs2, cs2Players, cs2Stints, cs2Teams } from "./cs2.ts";
 import { disciplines, organizations } from "./disciplines.ts";
 import { fillPlacements, otherEvents, rankings } from "./events.ts";
 import { SAMPLE_NOW } from "./kit.ts";
 import { buildLol, lolPlayers, lolStints, lolTeams } from "./lol.ts";
-import { buildRocketLeague, rlTeams } from "./rocket-league.ts";
+import { buildRocketLeague, buildRocketLeagueOpen, rlTeams } from "./rocket-league.ts";
 import { cs2Rosters, lolRosters, rlRosters } from "./rosters.ts";
 import { decorateCs2, decorateLol, rosterIndex } from "./stats.ts";
 import { buildTrackmania, tmPlayers } from "./trackmania.ts";
 
-export { SAMPLE_NOW, SAMPLE_PROVENANCE } from "./kit.ts";
+export { SAMPLE_NOW, SAMPLE_PROVENANCE, rng, type Rand } from "./kit.ts";
+export { advance } from "./play.ts";
 
 const BLURBS: Record<string, string> = {
   "cs2-copenhagen-masters-2026":
@@ -23,6 +24,14 @@ const BLURBS: Record<string, string> = {
   "rl-open-major-paris-2026":
     "Sixteen teams from five regions; Swiss stage, then a best-of-seven playoff.",
 };
+
+/** What the sample's viewer follows, so that a first look shows a personal page. */
+export const SAMPLE_FOLLOWS: Follow[] = [
+  { kind: "organization", id: "vitality" },
+  { kind: "team", id: "lol-t1" },
+  { kind: "player", id: "chess-carlsen" },
+  { kind: "tournament", id: "tm-cup-finals-2026" },
+];
 
 /** One entity per id: a player who moved teams appears once. */
 function unique<T extends { id: string }>(list: T[]): T[] {
@@ -37,6 +46,7 @@ export function buildSampleWorld(): World {
   const chess = buildChess();
   const tm = buildTrackmania();
   const rl = buildRocketLeague();
+  const rlOpen = buildRocketLeagueOpen();
   const competitors: Competitor[] = unique([
     ...cs2Teams,
     ...cs2Players,
@@ -66,6 +76,7 @@ export function buildSampleWorld(): World {
     tm.tournament,
     lol.tournament,
     rl.tournament,
+    rlOpen.tournament,
     ...otherEvents(),
   ];
   for (const t of tournaments) t.blurb ??= BLURBS[t.id];
@@ -77,13 +88,15 @@ export function buildSampleWorld(): World {
     competitors,
     stints,
     tournaments,
-    matches: [...cs2.matches, ...lol.matches, ...chess.matches, ...tm.matches, ...rl.matches],
-    follows: [
-      { kind: "organization", id: "vitality" },
-      { kind: "team", id: "lol-t1" },
-      { kind: "player", id: "chess-carlsen" },
-      { kind: "tournament", id: "tm-cup-finals-2026" },
+    matches: [
+      ...cs2.matches,
+      ...lol.matches,
+      ...chess.matches,
+      ...tm.matches,
+      ...rl.matches,
+      ...rlOpen.matches,
     ],
+    follows: SAMPLE_FOLLOWS,
     rankings: [],
   };
   fillPlacements(world);

@@ -1,4 +1,4 @@
-import type { Match, PlayerLine, RoundRecord, Stint } from "../model.ts";
+import type { GameEvent, Match, PlayerLine, RoundRecord, Stint } from "../model.ts";
 import { IMPACT } from "./rosters.ts";
 import { rng, shuffle, type Rand } from "./kit.ts";
 
@@ -143,6 +143,34 @@ const KILL_SHARE = [0.19, 0.2, 0.26, 0.3, 0.05];
 const DEATH_SHARE = [0.21, 0.2, 0.18, 0.18, 0.23];
 const GOLD_SHARE = [0.21, 0.19, 0.23, 0.25, 0.12];
 
+/** Put a game's objective counts on its clock: towers throughout, dragons every five minutes, barons late. */
+function lolEvents(
+  r: Rand,
+  o: { towers: number[]; dragons: number[]; barons: number[] },
+  seconds: number,
+): GameEvent[] {
+  const out: GameEvent[] = [];
+  const spread = (kind: GameEvent["kind"], counts: number[], from: number, to: number) => {
+    const sides = shuffle(r, [
+      ...Array(counts[0]).fill(0),
+      ...Array(counts[1]).fill(1),
+    ] as number[]);
+    sides.forEach((side, i) => {
+      const slot = (to - from) / sides.length;
+      out.push({ at: Math.round(from + slot * (i + 0.15 + r() * 0.7)), side, kind });
+    });
+  };
+  spread("tower", o.towers, 7 * 60, seconds - 20);
+  spread(
+    "dragon",
+    o.dragons,
+    5 * 60,
+    Math.min(seconds - 60, 5 * 60 + 300 * (o.dragons[0]! + o.dragons[1]!)),
+  );
+  spread("baron", o.barons, 20 * 60, seconds - 90);
+  return out.sort((a, b) => a.at - b.at);
+}
+
 export function decorateLol(matches: Match[], rosters: Map<string, string[]>) {
   const r = rng(5151);
   for (const m of matches) {
@@ -165,6 +193,9 @@ export function decorateLol(matches: Match[], rosters: Map<string, string[]>) {
       gold[w] = 62_000 + Math.floor(r() * 12_000);
       gold[1 - w] = gold[w]! - (4_000 + Math.floor(r() * 9_000));
       g.objectives = { towers, dragons, barons, gold };
+      const [min, sec] = (g.detail ?? "32:00").split(":").map(Number) as [number, number];
+      g.clock = min * 60 + sec;
+      g.events = lolEvents(r, g.objectives, g.clock);
       if (sideRosters.some((x) => !x || x.length < 5)) continue;
       const lines: PlayerLine[] = [];
       sideRosters.forEach((roster, side) => {

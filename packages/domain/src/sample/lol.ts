@@ -1,4 +1,4 @@
-import type { Match, Player, Stint, Team, Tournament } from "../model.ts";
+import type { GameResult, Match, Player, Stint, Team, Tournament } from "../model.ts";
 import { SAMPLE_PROVENANCE, cet, rng, scheduled, series, type Rand } from "./kit.ts";
 
 const team = (
@@ -69,7 +69,7 @@ export const lolStints: Stint[] = [
 
 function gameScore(r: Rand, w: number) {
   const winnerKills = 14 + Math.floor(r() * 16);
-  const loserKills = Math.floor(r() * (winnerKills - 3));
+  const loserKills = 3 + Math.floor(r() * (winnerKills - 6));
   const minutes = 26 + Math.floor(r() * 14);
   const seconds = Math.floor(r() * 60);
   return {
@@ -121,17 +121,51 @@ export function buildLol() {
     });
   });
   const gameLabel = (i: number) => `Game ${i + 1}`;
+  // Semifinal 1 is being played now: three games done, the fourth 27 minutes in.
+  const sf1Games: GameResult[] = [0, 1, 0].map((w, i) => ({
+    label: gameLabel(i),
+    status: "finished",
+    winner: w,
+    firstSide: i % 2,
+    ...gameScore(r, w),
+  }));
+  sf1Games.push(
+    {
+      label: gameLabel(3),
+      status: "live",
+      firstSide: 1,
+      scores: [14, 9],
+      clock: 27 * 60 + 12,
+      objectives: { towers: [5, 2], dragons: [2, 1], barons: [1, 0], gold: [51_400, 46_900] },
+      events: (
+        [
+          [3, 0, "tower"],
+          [6, 1, "dragon"],
+          [9, 0, "tower"],
+          [12, 0, "dragon"],
+          [14, 1, "tower"],
+          [15, 0, "tower"],
+          [17, 0, "tower"],
+          [19, 1, "tower"],
+          [22, 0, "dragon"],
+          [24, 0, "tower"],
+          [26, 0, "baron"],
+        ] as const
+      ).map(([min, side, kind]) => ({ at: min * 60 + ((min * 37) % 60), side, kind })),
+    },
+    { label: gameLabel(4), status: "scheduled", firstSide: 0 },
+  );
   matches.push(
     {
       id: `${tid}-sf1`,
       tournamentId: tid,
       stageId: "knockouts",
       roundId: "ko-sf",
-      scheduledAt: cet("2026-11-21", "09:00"),
+      scheduledAt: cet("2026-11-15", "17:00"),
       bestOf: 5,
-      status: "scheduled",
+      status: "live",
       sides: [{ competitorId: winners[0]! }, { competitorId: winners[1]! }],
-      games: scheduled(5, gameLabel),
+      games: sf1Games,
       next: { winner: `${tid}-final` },
       stream: { label: "Broadcast", url: "#" },
     },
