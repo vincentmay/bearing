@@ -179,6 +179,46 @@ const POSITIONS: Record<string, { full: string; faint?: string }> = {
   },
 };
 
+let byName: Map<string, string> | undefined;
+
+/** The two-letter code of a country given by its code or by its English name. */
+function countryCode(country: string): string | undefined {
+  if (/^[A-Za-z]{2}$/.test(country)) return country.toLowerCase();
+  if (!byName) {
+    byName = new Map();
+    try {
+      const names = new Intl.DisplayNames(["en"], { type: "region" });
+      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      for (const x of letters)
+        for (const y of letters) {
+          const name = names.of(x + y);
+          if (name && name !== x + y) byName.set(name.toLowerCase(), (x + y).toLowerCase());
+        }
+    } catch {
+      // Without the list of names, only codes are known.
+    }
+  }
+  return byName.get(country.toLowerCase());
+}
+
+/**
+ * A country's flag, small, before its name. Nothing where it is not a country; with `keep`, an
+ * empty place of the same size, so that names in a column still line up.
+ */
+export function Flag({ country, keep }: { country: string | undefined; keep?: boolean }) {
+  const code = country ? countryCode(country) : undefined;
+  if (!code) return keep ? <span className="bx-flag" data-none="" /> : null;
+  return (
+    <img
+      className="bx-flag"
+      src={`https://flagcdn.com/${code}.svg`}
+      alt=""
+      loading="lazy"
+      decoding="async"
+    />
+  );
+}
+
 /** The position a role names, if it is one of League's five. */
 export function positionOf(role: string | undefined): string | undefined {
   const key = (role ?? "").toLowerCase();

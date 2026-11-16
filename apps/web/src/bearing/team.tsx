@@ -15,7 +15,7 @@ import { ScheduleRow } from "./lists";
 import { type Dot, type SideView, sideOf } from "./model";
 import { type LineStop, StopLine } from "./stages";
 import { ResultRow } from "./today";
-import { Disc, Dots, FollowStar, Problem, Role, Section, positionOf } from "./ui";
+import { Disc, Dots, Flag, FollowStar, Problem, Role, Section, positionOf } from "./ui";
 
 /** A team's matches as dots: filled for a win, open for a loss, the open ring for one being played. */
 function resultDots(matches: Match[], id: string): Dot[] {
@@ -271,6 +271,7 @@ export function TeamPage({ teamId }: { teamId: string }) {
         <div>
           <h1 className="bx-display">{team.name}</h1>
           <p className="bx-sub" style={{ margin: "6px 0 0", fontSize: 13 }}>
+            <Flag country={team.country} />
             {[
               d.name,
               team.region,

@@ -7,6 +7,7 @@ import {
   dateRange,
   money,
   tournamentStatus,
+  winnerOf,
 } from "@bearing/domain";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
@@ -20,29 +21,59 @@ import { Bracket } from "./bracket";
 import { CrossTable, Heat } from "./stages";
 import { SwissFlow } from "./swiss";
 import { until } from "./time";
-import { Disc, FollowStar, Ping, Problem, Section, Segmented } from "./ui";
+import { Disc, Flag, FollowStar, Ping, Problem, Section, Segmented } from "./ui";
 
 /** A pairing on one line, for rounds with many games: who played whom, and how it stands. */
 function PairRow({ match, board }: { match: Match; board: Board }) {
   const view = board.view(match);
-  const move = view.game?.chess?.move;
+  const solo = view.discipline.competitor === "player";
+  const single = match.bestOf === 1;
+  const game = match.games[0];
+  // A single game of chess is written the way chess writes it: White first.
+  const first = solo && single ? (game?.firstSide ?? 0) : 0;
+  const order = [first, 1 - first];
+  const won = match.status === "finished" ? winnerOf(match) : undefined;
+  const move = view.game?.chess?.move ?? game?.chess?.move;
+  const result =
+    won === undefined
+      ? scoreLine(match)
+      : !single
+        ? scoreLine(match)
+        : won === "draw"
+          ? "½–½"
+          : won === first
+            ? "1–0"
+            : "0–1";
+  const side = (index: number, mirror: boolean) => {
+    const s = view.sides[index];
+    const player = s?.id ? board.atlas.player(s.id) : undefined;
+    return (
+      <span
+        className="bx-pair-side"
+        data-mirror={mirror ? "" : undefined}
+        data-lost={typeof won === "number" && won !== index ? "" : undefined}
+      >
+        {solo ? <Flag country={player?.country} keep /> : s ? <Disc side={s} size={18} /> : null}
+        <b>{s?.name ?? "TBD"}</b>
+        {player?.title ? <i>{player.title}</i> : null}
+        {player?.rating ? <span className="bx-pair-elo">{player.rating.value}</span> : null}
+      </span>
+    );
+  };
   return (
     <Link to="/match/$matchId" params={{ matchId: match.id }} className="bx-pair">
-      <b>{view.sides.map((s) => s.name).join(" v ")}</b>
-      <span
-        className="bx-right"
-        data-live={view.live ? "" : undefined}
-        data-half={match.status === "finished" && scoreLine(match).includes("½") ? "" : undefined}
-      >
+      {side(order[0]!, false)}
+      <span className="bx-pair-mid" data-live={view.live ? "" : undefined}>
         {view.live ? <Ping /> : null}
         {view.live
           ? move
             ? `move ${move}`
             : "live"
           : match.status === "finished"
-            ? scoreLine(match)
+            ? result
             : board.times.clock(match.scheduledAt)}
       </span>
+      {side(order[1]!, true)}
     </Link>
   );
 }
@@ -242,7 +273,10 @@ export function TournamentPage({ tournamentId }: { tournamentId: string }) {
         {where ? (
           <div>
             <dt className="bx-label">Where</dt>
-            <dd>{where}</dd>
+            <dd>
+              <Flag country={t.location?.country} />
+              {where}
+            </dd>
           </div>
         ) : null}
         {t.organizer ? (

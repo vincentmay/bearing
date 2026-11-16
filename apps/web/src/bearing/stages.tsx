@@ -12,7 +12,7 @@ import type { Board } from "./board";
 import { Go } from "./links";
 import { heat } from "./model";
 import { until } from "./time";
-import { Disc, Ping } from "./ui";
+import { Disc, Flag, Ping } from "./ui";
 
 /** One stop on a line: an event in a team's year, a team in a player's career. */
 export interface LineStop {
@@ -95,6 +95,7 @@ export function CrossTable({
           className="bx-cross-name"
         >
           <span className="bx-mono bx-sub">{rows.indexOf(r) + 1}</span>
+          <Flag country={atlas.player(r.competitorId)?.country} />
           <b>{atlas.name(r.competitorId)}</b>
         </Go>,
         ...rows.map((o) => {

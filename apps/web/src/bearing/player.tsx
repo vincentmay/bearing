@@ -6,7 +6,7 @@ import { ScheduleRow } from "./lists";
 import { type SideView, plainName, sideOf } from "./model";
 import { type LineStop, StopLine } from "./stages";
 import { ResultRow } from "./today";
-import { Disc, FollowStar, Problem, Role, Section } from "./ui";
+import { Disc, Flag, FollowStar, Problem, Role, Section, positionOf } from "./ui";
 
 function age(born: string | undefined, now: number): string | undefined {
   if (!born) return undefined;
@@ -107,7 +107,16 @@ export function PlayerPage({ playerId }: { playerId: string }) {
   const next = matches.filter((m) => m.status === "scheduled").slice(0, 3);
   const done = matches.filter((m) => m.status === "finished").reverse();
   const career = careerStops(board, player);
-  const mates = team ? atlas.roster(team.id).filter((r) => r.player.id !== player.id) : [];
+  const lane = (role: string) => {
+    const at = ["top", "jungle", "mid", "bot", "support"].indexOf(positionOf(role) ?? "");
+    return at < 0 ? 9 : at;
+  };
+  const mates = team
+    ? atlas
+        .roster(team.id)
+        .filter((r) => r.player.id !== player.id)
+        .sort((x, y) => lane(x.stint.role) - lane(y.stint.role))
+    : [];
   const run = team ? [] : runStops(board, player, side, own);
   const event = own.length
     ? atlas.tournamentOf((own.find((m) => m.status !== "finished") ?? own.at(-1))!)
@@ -128,17 +137,28 @@ export function PlayerPage({ playerId }: { playerId: string }) {
         <div>
           <h1 className="bx-display">{player.handle}</h1>
           <p className="bx-sub" style={{ margin: "6px 0 0", fontSize: 13 }}>
+            <Flag country={player.country} />
             {facts.join(" · ")}
           </p>
         </div>
         <FollowStar follow={{ kind: "player", id: player.id }} name={player.handle} />
       </header>
       {team ? (
-        <p className="bx-note" style={{ margin: "12px 0 0" }}>
-          Plays for <Go to={{ kind: "team", id: team.id }}>{team.name}</Go> in{" "}
-          {atlas.discipline(team.discipline).name}
-          {stint?.from ? `, since ${stint.from.slice(0, 4)}` : ""}.
-        </p>
+        <Go to={{ kind: "team", id: team.id }} className="bx-teamchip">
+          <Disc side={sideOf(atlas, team.id)} size={26} />
+          <span>
+            <b>{team.name}</b>
+            <span className="bx-sub">
+              {[
+                atlas.discipline(team.discipline).name,
+                stint?.role ?? player.role,
+                stint?.from ? `since ${stint.from.slice(0, 4)}` : undefined,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </span>
+          </span>
+        </Go>
       ) : null}
 
       {player.rating || totals ? (
