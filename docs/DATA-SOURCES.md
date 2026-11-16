@@ -61,10 +61,15 @@ What paying would change in Bearing:
   Bearing stays on the free plan; what the free plan lacks is to come from sources that cost
   nothing (the lolesports feed, Liquipedia, start.gg).
 
+Each event's league has a mark (`league.image_url`), shown since 2026-11-16, and each match
+a list of where it is shown (`streams_list`), of which the organiser's English broadcast is
+linked.
+
 The free plan also answers `/teams/<id>/matches` with every finished series of a team, back
 through the years (621 for Vitality on 2026-11-16). Bearing reads up to three hundred of one
 team's for a pair of teams about to meet, keeps the series between the two as their
-head-to-head, and asks again after three days.
+head-to-head, and asks again after three days. The first hundred of each team are also kept
+as that team's own history, which its page shows below the matches the store still has.
 
 Terms that matter: the stats plans are for uses that have nothing to do with betting, which fits.
 The token lives on the Convex deployment as `PANDASCORE_TOKEN`.
@@ -105,6 +110,21 @@ tables: place, points, team, roster.
 - How it is used: once a day. The top sixty are kept; a team Bearing has is linked, the others
   are shown by name. Places gained are against the ranking before.
 - Not used yet, and there: each team's list of counted matches and winnings.
+
+## What Lichess's written games carry
+
+The written games of a broadcast round (`/api/broadcast/round/<id>.pgn`) note beside every
+move how an engine judges the position (`[%eval 0.17]`, `[%eval #-3]`) and the mover's clock
+(`[%clk 1:30:10]`), and name the opening with its code. Bearing reads all of it since
+2026-11-16; before, only the moves. Of forty games of one round, thirty-nine had judgements
+and all had clocks.
+
+After a refusal (429) Lichess asks for a full minute of quiet. All of Bearing's chess jobs
+now keep quiet together for three minutes after one, where before each tried again half a
+minute later.
+
+The chess pieces are Colin M.L. Burnett's set as Lichess publishes it
+(`apps/web/public/pieces`), under GPLv2 or later, which this project's licence can take in.
 
 ## Lichess's list of FIDE players
 

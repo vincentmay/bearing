@@ -180,6 +180,13 @@ The home screen. Answers questions 1 to 3.
   moves beside it: step, jump, play it through, or pick a move. It stays with a game that is
   still being played. The owner: "for chess i would expect the board in our style with the
   moves so you can view it quickly".
+- **M14 (Agreed on 2026-11-16).** Chess, in full (the owner: "this chess board is absolutely
+  atrocious... what about eval bars"): proper pieces on a board of two quiet greys; the
+  engine's judgement as a bar beside the board and as a graph under it that can be pointed at
+  to go to a move; both clocks as they stood at the move shown; players with face, flag, title
+  and rating; the opening with its code; the board can be turned; a move is seen to travel.
+- **M15 (Agreed on 2026-11-16).** Where nothing is known of the inside of a match's games, the
+  match page does not list them a second time: the room goes to head to head and form.
 - **M12 (Agreed on 2026-11-16).** A match shows how its two sides have done against each
   other before: who won how often, and their latest meetings with event, day and score. For
   teams it reaches back years. The owner: "What about matchups between teams, historic data
@@ -197,6 +204,17 @@ The home screen. Answers questions 1 to 3.
   in the order of their positions (League: top, jungle, mid, bot, support), with substitutes
   and staff in lists of their own. A role is written as its word, then its sign; League's five
   positions use the game's own signs.
+- **G19 (Agreed on 2026-11-16).** How a page arrives. The frame (mark, navigation) is there
+  from the first moment, also while the world is on its way. A visit that follows another
+  draws at once from what the browser kept of the last one, and the store replaces it as it
+  answers. A first visit asks for the world in one trip. Lists carry a match without the
+  inside of its games; a page about one match, team or player asks for those and stands on
+  what the list has until they come. Small discs ask for small pictures. Measured on
+  2026-11-16 on the live site: first visit, frame at 0.3 s and content at 1.0 s (before:
+  blank, then 1.7 s); repeat visit 0.2 s; 0.8 MB of data a load (before 1.7 MB).
+- **G20 (Agreed on 2026-11-16).** An event is shown with its own mark where a source has one.
+  A match says where it can be watched. A bracket too wide for a phone is moved sideways, not
+  squeezed. A running event with nothing on this minute is "under way", not "live".
 - **G18 (Agreed on 2026-11-16).** A game's ranking has a page of its own, with every place the
   source is kept to; Search shows its first ten. A chess player who is in no event can be
   followed, and is listed under Following as not playing at the moment. A mark in a row
