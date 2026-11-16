@@ -67,7 +67,7 @@ export const lolStints: Stint[] = [
   },
 ];
 
-function gameScore(r: Rand, w: number) {
+export function gameScore(r: Rand, w: number) {
   const winnerKills = 14 + Math.floor(r() * 16);
   const loserKills = 3 + Math.floor(r() * (winnerKills - 6));
   const minutes = 26 + Math.floor(r() * 14);

@@ -10,7 +10,15 @@ import {
   type Rand,
 } from "./kit.ts";
 
-const MAP_POOL = ["Ancient", "Anubis", "Dust2", "Inferno", "Mirage", "Nuke", "Train"] as const;
+export const MAP_POOL = [
+  "Ancient",
+  "Anubis",
+  "Dust2",
+  "Inferno",
+  "Mirage",
+  "Nuke",
+  "Train",
+] as const;
 
 const team = (
   id: string,
@@ -159,7 +167,7 @@ function bo5Veto(r: Rand): { games: string[]; veto: Veto[]; picks: (number | und
   return { games: order.slice(2, 7), veto, picks: [0, 1, 0, 1, undefined] };
 }
 
-function mapScore(r: Rand, w: number) {
+export function mapScore(r: Rand, w: number) {
   const ot = r() < 0.12;
   let a: number;
   let b: number;

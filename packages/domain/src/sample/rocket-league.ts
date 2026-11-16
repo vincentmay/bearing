@@ -109,7 +109,7 @@ export function buildRocketLeague() {
 }
 
 /** A finished game: five minutes, goals at their moments, and overtime when it was level. */
-function rlGame(r: Rand, label: string, winner: number): GameResult {
+export function rlGame(r: Rand, label: string, winner: number): GameResult {
   const overtime = r() < 0.2;
   const loserGoals = Math.floor(r() * 3);
   const winnerGoals = overtime ? loserGoals + 1 : loserGoals + 1 + Math.floor(r() * 3);

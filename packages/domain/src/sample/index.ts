@@ -4,6 +4,7 @@ import { buildCs2, cs2Players, cs2Stints, cs2Teams } from "./cs2.ts";
 import { disciplines, organizations } from "./disciplines.ts";
 import { fillPlacements, otherEvents, rankings } from "./events.ts";
 import { SAMPLE_NOW } from "./kit.ts";
+import { playHistory } from "./history.ts";
 import { sampleImage } from "./images.ts";
 import { buildLol, lolPlayers, lolStints, lolTeams } from "./lol.ts";
 import { buildRocketLeague, buildRocketLeagueOpen, rlTeams } from "./rocket-league.ts";
@@ -71,8 +72,12 @@ export function buildSampleWorld(): World {
     ...rlRosters.stints,
   ];
   const rosters = rosterIndex(stints);
-  decorateCs2(cs2.matches, rosters);
-  decorateLol(lol.matches, rosters);
+  // The events that are over get the brackets that led to their final standings.
+  const past = otherEvents();
+  const history = playHistory(past);
+  const of = (prefix: string) => history.filter((m) => m.tournamentId.startsWith(prefix));
+  decorateCs2([...cs2.matches, ...of("cs2-")], rosters);
+  decorateLol([...lol.matches, ...of("lol-")], rosters);
 
   const tournaments = [
     cs2.tournament,
@@ -81,7 +86,7 @@ export function buildSampleWorld(): World {
     lol.tournament,
     rl.tournament,
     rlOpen.tournament,
-    ...otherEvents(),
+    ...past,
   ];
   for (const t of tournaments) t.blurb ??= BLURBS[t.id];
 
@@ -99,6 +104,7 @@ export function buildSampleWorld(): World {
       ...tm.matches,
       ...rl.matches,
       ...rlOpen.matches,
+      ...history,
     ],
     follows: SAMPLE_FOLLOWS,
     rankings: [],
