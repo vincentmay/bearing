@@ -35,11 +35,19 @@ async function get<T>(path: string): Promise<T | null> {
   return (await response.json()) as T;
 }
 
-async function text(path: string): Promise<string> {
-  const response = await fetch(`${BASE}${path}`, {
+const pause = (ms: number) => new Promise((done) => setTimeout(done, ms));
+
+/**
+ * The written games of a round. They are an extra: a board to replay is good to have, but a
+ * schedule must not fail for want of one. So a refusal here is not an error; the caller stops
+ * asking for the rest of its run, and the moves already in the store are kept.
+ */
+async function written(roundId: string): Promise<string | null> {
+  await pause(300);
+  const response = await fetch(`${BASE}/round/${roundId}.pgn`, {
     headers: { "User-Agent": "Bearing (esports schedule viewer)" },
-  });
-  if (response.status === 429) throw new Error("Lichess asked for a pause (429).");
+  }).catch(() => null);
+  if (!response || response.status === 429) return null;
   return response.ok ? response.text() : "";
 }
 
@@ -53,12 +61,17 @@ async function fetchBroadcast(tourId: string): Promise<LichessBroadcast | null> 
   if (!detail) return null;
   const wanted = roundsToFetch(detail.rounds);
   const games: Record<string, LichessGame[]> = {};
+  let refused = false;
   for (const round of wanted) {
+    await pause(300);
     const answer = await get<{ games?: LichessGame[] }>(`/-/-/${round.id}`);
     if (!answer?.games) continue;
-    // The moves are in the round's written games, which is a second address.
-    const written = gamesOfPgn(await text(`/round/${round.id}.pgn`));
-    games[round.id] = answer.games.map((game) => ({ ...game, ...written[game.id] }));
+    // The moves are in the round's written games, which is a second address. Once it asks for
+    // a pause, the rest of this run goes without.
+    const pgn = refused ? null : await written(round.id);
+    if (pgn === null) refused = true;
+    const moves = gamesOfPgn(pgn ?? "");
+    games[round.id] = answer.games.map((game) => ({ ...game, ...moves[game.id] }));
   }
   return { tour: detail.tour, rounds: detail.rounds, games };
 }
@@ -169,8 +182,20 @@ export const store = internalMutation({
         .first();
       const live = m.status === "live";
       const at = Date.parse(m.scheduledAt);
-      if (!row) await ctx.db.insert("matches", { key: m.id, live, at, doc: m });
-      else if (!same(row.doc, m)) await ctx.db.patch("matches", row._id, { live, at, doc: m });
+      if (!row) {
+        await ctx.db.insert("matches", { key: m.id, live, at, doc: m });
+        continue;
+      }
+      // A run that could not read the moves does not take away the ones already here.
+      const doc = {
+        ...m,
+        games: m.games.map((game, i) => {
+          const old = row.doc.games[i];
+          if (game.moves || !old?.moves) return game;
+          return { ...game, moves: old.moves, detail: game.detail ?? old.detail };
+        }),
+      };
+      if (!same(row.doc, doc)) await ctx.db.patch("matches", row._id, { live, at, doc });
     }
   },
 });
