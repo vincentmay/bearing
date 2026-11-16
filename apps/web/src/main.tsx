@@ -49,6 +49,21 @@ declare module "@tanstack/react-router" {
   }
 }
 
+// A page left open across a release may ask for a piece of code that the release replaced.
+// Vite says so with this event; the answer is to load the app afresh, once, and not in a loop
+// if the fresh one cannot be had either.
+window.addEventListener("vite:preloadError", () => {
+  const key = "bearing.reloaded";
+  try {
+    const last = Number(sessionStorage.getItem(key) ?? 0);
+    if (Date.now() - last < 30_000) return;
+    sessionStorage.setItem(key, String(Date.now()));
+  } catch {
+    return;
+  }
+  window.location.reload();
+});
+
 createRoot(document.getElementById("app")!).render(
   <StrictMode>
     <Backend>
