@@ -1,0 +1,3 @@
+# One line ending everywhere, whatever the machine: the formatter writes LF.
+* text=auto eol=lf
+*.png binary
