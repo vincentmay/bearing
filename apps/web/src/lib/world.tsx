@@ -85,7 +85,19 @@ function keep(snapshot: Kept) {
  * first visit asks for all three parts of the world at once: one trip to the store, where
  * there used to be four in a row.
  */
-export async function loadWorld(client: QueryClient): Promise<void> {
+export function loadWorld(client: QueryClient): Promise<void> {
+  // Once for the life of the page. Going from one page to another asks for nothing: the world
+  // is already here and the store keeps it current. A load that failed may be tried again.
+  loaded ??= load(client).catch((error: unknown) => {
+    loaded = undefined;
+    throw error;
+  });
+  return loaded;
+}
+
+let loaded: Promise<void> | undefined;
+
+async function load(client: QueryClient): Promise<void> {
   if (!reader) {
     await client.ensureQueryData(worldQuery);
     return;

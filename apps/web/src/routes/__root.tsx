@@ -18,6 +18,9 @@ function Frame({ children }: { children: React.ReactNode }) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   loader: ({ context }) => loadWorld(context.queryClient),
+  // The world is loaded when the app opens and kept current by the store from then on; no
+  // move between pages is a reason to load it again.
+  staleTime: Infinity,
   // The frame is there from the first moment; a page on its way arrives into it.
   pendingMs: 0,
   pendingMinMs: 0,

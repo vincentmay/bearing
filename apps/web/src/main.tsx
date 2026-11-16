@@ -30,8 +30,17 @@ const router = createRouter({
   context: { queryClient },
   defaultPreload: "intent",
   scrollRestoration: true,
-  // One page leaves as the next arrives, where the browser can do that.
-  defaultViewTransition: true,
+  // One page gives way to the next, where the browser can do that, and how depends on the
+  // move: between tabs it is a plain, quick change; going into a page and coming back out
+  // have a direction.
+  defaultViewTransition: {
+    types: ({ fromLocation, toLocation }) => {
+      const tab = (path: string | undefined) =>
+        path === "/" || path === "/schedule" || path === "/following" || path === "/search";
+      if (tab(fromLocation?.pathname) && tab(toLocation.pathname)) return ["tab"];
+      return [tab(toLocation.pathname) ? "out" : "in"];
+    },
+  },
 });
 
 declare module "@tanstack/react-router" {

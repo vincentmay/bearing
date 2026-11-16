@@ -10,8 +10,11 @@
 const NAME = "bearing";
 const STORE = "kept";
 const KEY = "world";
-/** Raised whenever what is kept changes shape, so that an older copy is not read as a newer. */
-const VERSION = 2;
+/**
+ * What was kept by another build of the app is not read by this one: the shape of the world
+ * may have changed between them, and nothing has to remember to say so.
+ */
+const VERSION = __BUILD__;
 /** Older than this, the last visit says too little about now. */
 const FRESH = 12 * 60 * 60 * 1000;
 
@@ -22,7 +25,7 @@ export interface Snapshot<Frame, Match> {
 }
 
 interface Kept<Frame, Match> extends Snapshot<Frame, Match> {
-  version: number;
+  version: string;
   at: number;
   /** Which store it was read from: a copy from another one is nobody's last visit. */
   from: string;
