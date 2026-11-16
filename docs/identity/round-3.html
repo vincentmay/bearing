@@ -1,0 +1,2748 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bearing identity, round 3</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Figtree:wght@400..800&family=Geist:wght@400..700&family=Geist+Mono:wght@400;500&family=Hanken+Grotesk:wght@400..800&family=Inter:wght@400..700&family=Inter+Tight:wght@500..800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      .id {
+        font-family: var(--font-sans, system-ui, sans-serif);
+        color: var(--foreground, #111);
+      }
+      .id *,
+      .id *::before,
+      .id *::after {
+        box-sizing: border-box;
+      }
+      .intro {
+        font-size: 14px;
+        line-height: 1.55;
+        color: var(--muted-foreground, #666);
+        margin: 0 0 26px;
+        max-width: 66ch;
+      }
+      .route {
+        margin: 0 0 44px;
+      }
+      .route:last-of-type {
+        margin-bottom: 8px;
+      }
+      .rhead {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 0 0 12px;
+      }
+      .rletter {
+        font-family: var(--font-mono, monospace);
+        font-size: 12px;
+        padding: 2px 8px;
+        border: 1px solid var(--border, #ccc);
+        border-radius: 999px;
+        color: var(--muted-foreground, #666);
+      }
+      .rname {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .rline {
+        font-size: 14px;
+        color: var(--muted-foreground, #666);
+        flex: 1 1 260px;
+      }
+      .board {
+        border-radius: var(--radius, 12px);
+        padding: 16px;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .tile {
+        border-radius: 14px;
+        padding: 16px;
+        min-width: 0;
+        position: relative;
+        overflow: hidden;
+      }
+      .s3 {
+        grid-column: span 3;
+      }
+      .s6 {
+        grid-column: span 6;
+      }
+      .hero {
+        container-type: inline-size;
+        isolation: isolate;
+      }
+      .cap {
+        font-size: 10.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin: 0 0 12px;
+        color: var(--mute);
+        font-family: var(--mono);
+      }
+      .mono {
+        font-family: var(--mono);
+      }
+      .row {
+        display: flex;
+        align-items: center;
+      }
+      .btw {
+        justify-content: space-between;
+      }
+      .lock {
+        gap: 14px;
+        margin: 14px 0 20px;
+        flex-wrap: wrap;
+      }
+      .wm {
+        font-size: 44px;
+        line-height: 1;
+      }
+      .icons {
+        display: flex;
+        align-items: flex-end;
+        gap: 12px;
+      }
+      .ico {
+        display: grid;
+        place-items: center;
+        flex: none;
+        overflow: hidden;
+      }
+      .i64 {
+        width: 64px;
+        height: 64px;
+        border-radius: 15px;
+      }
+      .i28 {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+      }
+      .i16 {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+      }
+      .tnum {
+        font-variant-numeric: tabular-nums;
+      }
+      .sub {
+        color: var(--ink2);
+        font-size: 11px;
+      }
+      .spec {
+        margin-top: 18px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(128, 128, 128, 0.22);
+      }
+      .spec .small {
+        font-size: 12.5px;
+        line-height: 1.45;
+        color: var(--ink2);
+        margin-top: 8px;
+      }
+      /* Live without a colour: a dot that sends out a ring. */
+      .ping {
+        position: relative;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        display: inline-block;
+        flex: none;
+      }
+      .ping::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 1.5px solid currentColor;
+        animation: ping 1.8s ease-out infinite;
+      }
+      @keyframes ping {
+        0% {
+          transform: scale(1);
+          opacity: 0.9;
+        }
+        100% {
+          transform: scale(3);
+          opacity: 0;
+        }
+      }
+      .pulse {
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        50% {
+          opacity: 0.25;
+        }
+      }
+      /* Rounds as balls. V and A are the two teams, 0 is still to play, n is the round being played. */
+      .balls {
+        display: flex;
+        align-items: center;
+        gap: var(--bg, 3px);
+      }
+      .b {
+        display: block;
+        flex: 1 1 0;
+        max-width: var(--bs, 12px);
+        aspect-ratio: 1;
+        border-radius: 50%;
+      }
+      .b.ht {
+        margin-left: var(--bh, 8px);
+      }
+      .b0 {
+        box-shadow: inset 0 0 0 1.5px rgba(128, 128, 128, 0.35);
+      }
+      .bn {
+        box-shadow: inset 0 0 0 2px currentColor;
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+      .phone {
+        width: 100%;
+        max-width: 292px;
+        height: 600px;
+        border-radius: 40px;
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
+      }
+      .tab {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 54px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        font-size: 10.5px;
+        padding: 0 8px 4px;
+      }
+      .notes {
+        font-size: 13.5px;
+        line-height: 1.5;
+      }
+      .notes h4 {
+        font-size: 10.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin: 14px 0 3px;
+        font-weight: 600;
+        color: var(--mute);
+        font-family: var(--mono);
+      }
+      .notes h4:first-of-type {
+        margin-top: 0;
+      }
+      .notes p {
+        margin: 0;
+      }
+      @media (max-width: 600px) {
+        .board {
+          grid-template-columns: minmax(0, 1fr);
+          padding: 12px;
+        }
+        .s3,
+        .s6 {
+          grid-column: auto;
+        }
+        .wm {
+          font-size: 38px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .id *,
+        .id *::after {
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="id">
+      <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+        <defs>
+          <radialGradient id="gV" cx="0.34" cy="0.3" r="0.8">
+            <stop offset="0" stop-color="#fff7bf" />
+            <stop offset="0.45" stop-color="#ffd400" />
+            <stop offset="1" stop-color="#b08c00" />
+          </radialGradient>
+          <radialGradient id="gA" cx="0.34" cy="0.3" r="0.8">
+            <stop offset="0" stop-color="#c4f7f3" />
+            <stop offset="0.45" stop-color="#12b5ae" />
+            <stop offset="1" stop-color="#076b66" />
+          </radialGradient>
+          <radialGradient id="gSteel" cx="0.34" cy="0.28" r="0.85">
+            <stop offset="0" stop-color="#ffffff" />
+            <stop offset="0.35" stop-color="#dfe3e8" />
+            <stop offset="0.75" stop-color="#8d95a0" />
+            <stop offset="1" stop-color="#b9c0c9" />
+          </radialGradient>
+          <linearGradient id="gDuo" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0.5" stop-color="#ffd400" />
+            <stop offset="0.5" stop-color="#12b5ae" />
+          </linearGradient>
+        </defs>
+        <symbol id="m-ring" viewBox="0 0 32 32">
+          <path
+            d="M26.34 14.18 A10.5 10.5 0 1 1 17.82 5.66"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="5"
+            stroke-linecap="round"
+          />
+          <circle cx="23.42" cy="8.58" r="2.7" fill="var(--ball, currentColor)" />
+        </symbol>
+        <symbol id="m-lit" viewBox="0 0 32 32">
+          <rect x="6.6" y="3" width="4.8" height="26" rx="2.4" fill="currentColor" />
+          <circle cx="19.4" cy="22" r="7" fill="var(--ball, currentColor)" />
+        </symbol>
+        <symbol id="m-stack" viewBox="0 0 32 32">
+          <circle cx="16" cy="18" r="11.4" fill="none" stroke="currentColor" stroke-width="3.2" />
+          <circle
+            cx="16"
+            cy="15.2"
+            r="6.3"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            opacity="0.5"
+          />
+          <circle cx="16" cy="13.4" r="2.6" fill="var(--ball, currentColor)" />
+        </symbol>
+        <symbol id="m-rule" viewBox="0 0 32 32">
+          <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2.2" />
+          <circle cx="16" cy="16" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2" />
+          <circle cx="23.99" cy="10.41" r="2.5" fill="var(--ball, currentColor)" />
+        </symbol>
+        <symbol id="m-plate" viewBox="0 0 32 32">
+          <rect x="2" y="2" width="28" height="28" rx="7.5" fill="var(--fa, #0c0c0d)" />
+          <path
+            d="M18 2h4.5A7.5 7.5 0 0 1 30 9.5v13a7.5 7.5 0 0 1-7.5 7.5H18z"
+            fill="var(--fb, #3a3d44)"
+          />
+          <circle cx="18" cy="16" r="5.8" fill="url(#gSteel)" />
+        </symbol>
+      </svg>
+
+      <p class="intro">
+        Five new versions, numbered 7 to 11 so they do not clash with the last round. Three things
+        are the same in all of them: the brand owns no accent colour, the teams bring every colour
+        on the page, and a round is a ball. Nothing here is red unless a team is. Each version shows
+        live in its own way and says how.
+      </p>
+
+      <!-- ═════════ 7 · Ring ═════════ -->
+      <section class="route ring">
+        <style>
+          .ring {
+            --ink: #0a0b0e;
+            --ink2: #555b66;
+            --mute: #8e95a1;
+            --mono: "Geist Mono", monospace;
+          }
+          .ring .board {
+            background: #eef0f4;
+            color: var(--ink);
+            font-family: "Inter", system-ui, sans-serif;
+          }
+          .ring .tile {
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 10px 26px -18px rgba(10, 20, 40, 0.3);
+          }
+          .ring .disp {
+            font-family: "Inter Tight", sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.035em;
+            line-height: 1;
+          }
+          .ring .wm {
+            font-family: "Inter Tight", sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.045em;
+          }
+          .ring .light {
+            position: absolute;
+            inset: 0;
+            background: #f4f5f8;
+            overflow: hidden;
+            z-index: -1;
+          }
+          .ring .light i {
+            position: absolute;
+            width: 70%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            filter: blur(44px);
+            opacity: 0.85;
+          }
+          .ring .light i:first-child {
+            left: -24%;
+            top: -34%;
+            background: var(--a);
+            animation: drift 14s ease-in-out infinite;
+          }
+          .ring .light i:last-child {
+            right: -24%;
+            bottom: -44%;
+            background: var(--b);
+            animation: drift 14s ease-in-out infinite reverse;
+          }
+          @keyframes drift {
+            50% {
+              transform: translate(9%, 7%) scale(1.08);
+            }
+          }
+          .ring .glass {
+            background: rgba(255, 255, 255, 0.42);
+            -webkit-backdrop-filter: blur(22px) saturate(180%);
+            backdrop-filter: blur(22px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow:
+              inset 0 1px 0 rgba(255, 255, 255, 0.85),
+              0 12px 30px -14px rgba(10, 20, 40, 0.3);
+          }
+          .ring .brg {
+            position: relative;
+            aspect-ratio: 1;
+            container-type: inline-size;
+            flex: none;
+          }
+          .ring .brg svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+          }
+          .ring .core {
+            position: absolute;
+            inset: 20%;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            text-align: center;
+            background: radial-gradient(
+              circle at 30% 22%,
+              rgba(255, 255, 255, 0.9),
+              rgba(255, 255, 255, 0.3) 62%,
+              rgba(255, 255, 255, 0.55)
+            );
+            -webkit-backdrop-filter: blur(18px) saturate(190%);
+            backdrop-filter: blur(18px) saturate(190%);
+            border: 1.5px solid rgba(255, 255, 255, 0.95);
+            box-shadow:
+              inset 0 -10px 22px rgba(255, 255, 255, 0.35),
+              inset 0 2px 1px #fff,
+              0 18px 34px -14px rgba(10, 20, 40, 0.45);
+          }
+          .ring .core .disp {
+            font-size: 23cqw;
+            display: block;
+          }
+          .ring .core small {
+            display: block;
+            font:
+              500 max(7px, 3.7cqw) "Geist Mono",
+              monospace;
+            letter-spacing: 0.08em;
+            color: var(--ink2);
+          }
+          .ring .hg {
+            position: relative;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            align-items: center;
+            gap: 12px;
+            padding: 10px 24px 14px;
+          }
+          .ring .hg .brg {
+            width: clamp(180px, 37cqw, 262px);
+          }
+          .ring .hname {
+            font-size: clamp(24px, 6cqw, 44px);
+          }
+          .ring .pillg {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            padding: 7px 13px;
+            border-radius: 999px;
+            font-size: 11.5px;
+            font-weight: 600;
+          }
+          .ring .legend {
+            display: flex;
+            gap: 6px 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            font-size: 11.5px;
+            font-weight: 600;
+          }
+          .ring .legend i {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+            vertical-align: -1px;
+          }
+          .ring .phone {
+            background: #f4f5f8;
+            box-shadow:
+              0 0 0 7px #fff,
+              0 0 0 8px #d6dae1,
+              0 22px 44px -18px rgba(10, 20, 40, 0.45);
+          }
+          .ring .lr {
+            display: grid;
+            grid-template-columns: 36px 40px minmax(0, 1fr) auto;
+            gap: 9px;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 12.5px;
+            line-height: 1.3;
+            border-top: 1px solid rgba(10, 11, 14, 0.08);
+          }
+          .ring .lr:first-child {
+            border-top: 0;
+          }
+          .ring .duo {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: conic-gradient(var(--ink) calc(var(--p) * 1%), rgba(10, 11, 14, 0.13) 0);
+            display: grid;
+            place-items: center;
+          }
+          .ring .duo::after {
+            content: "";
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, var(--a) 50%, var(--b) 50%);
+            border: 2px solid #fff;
+          }
+          .ring .tab {
+            left: 22px;
+            right: 22px;
+            bottom: 14px;
+            height: 50px;
+            border-radius: 999px;
+            padding: 0 14px;
+            color: var(--ink2);
+            font-weight: 600;
+          }
+          @container (max-width: 520px) {
+            .ring .hg {
+              grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+              padding: 12px 18px 14px;
+            }
+            .ring .hg .brg {
+              grid-column: 1 / -1;
+              grid-row: 2;
+              margin: 4px auto 0;
+              width: min(66cqw, 240px);
+            }
+          }
+        </style>
+        <div class="rhead">
+          <span class="rletter">7</span><span class="rname">Ring</span>
+          <span class="rline"
+            >The scoreboard is a bearing: one ball per round, in the colour of the team that won it,
+            around a glass centre.</span
+          >
+        </div>
+        <div class="board">
+          <div class="tile s6 hero" style="padding: 0; --a: #ffd400; --b: #12b5ae">
+            <div class="light"><i></i><i></i></div>
+            <div
+              style="
+                position: relative;
+                padding: 16px 18px 0;
+                display: flex;
+                justify-content: space-between;
+                gap: 8px;
+                flex-wrap: wrap;
+              "
+            >
+              <span class="glass pillg"><i class="ping"></i>Live · round 17</span
+              ><span class="glass pillg">CS2 · IEM Cologne · Semi-final</span>
+            </div>
+            <div class="hg">
+              <div>
+                <div class="disp hname">Vitality</div>
+                <div
+                  class="sub"
+                  style="font-weight: 600; margin-top: 6px; color: rgba(10, 11, 14, 0.62)"
+                >
+                  1 map · 9 rounds
+                </div>
+              </div>
+              <div class="brg">
+                <svg data-ring viewBox="0 0 240 240"></svg>
+                <div class="core">
+                  <div>
+                    <small>ANUBIS</small><span class="disp tnum">9–7</span
+                    ><small>FIRST TO 13</small>
+                  </div>
+                </div>
+              </div>
+              <div style="text-align: right">
+                <div class="disp hname">Aurora</div>
+                <div
+                  class="sub"
+                  style="font-weight: 600; margin-top: 6px; color: rgba(10, 11, 14, 0.62)"
+                >
+                  0 maps · 7 rounds
+                </div>
+              </div>
+            </div>
+            <div
+              style="
+                position: relative;
+                padding: 0 18px 16px;
+                display: flex;
+                justify-content: center;
+              "
+            >
+              <span class="glass pillg legend" style="border-radius: 18px"
+                ><span><i style="background: url(#gV), #ffd400"></i>Mirage 13–9</span
+                ><span
+                  ><i class="pulse" style="box-shadow: inset 0 0 0 2px #0a0b0e"></i>Anubis, being
+                  played</span
+                ><span style="color: var(--ink2)"
+                  ><i style="background: rgba(10, 11, 14, 0.12)"></i>Inferno</span
+                ></span
+              >
+            </div>
+          </div>
+
+          <div class="tile s3">
+            <div class="phone" style="--a: #ffd400; --b: #12b5ae">
+              <div class="light">
+                <i style="width: 120%; left: -50%; top: -8%"></i
+                ><i style="width: 120%; right: -55%; bottom: 22%"></i>
+              </div>
+              <div style="position: relative; padding: 22px 16px 0">
+                <div class="row btw" style="align-items: baseline; padding: 0 6px 10px">
+                  <span class="disp" style="font-size: 28px">Today</span
+                  ><span class="mono" style="font-size: 10.5px; color: rgba(10, 11, 14, 0.6)"
+                    >MON 16 NOV</span
+                  >
+                </div>
+                <div class="glass" style="border-radius: 28px; padding: 13px 16px 14px">
+                  <div class="row btw" style="font-size: 11px; font-weight: 600">
+                    <span class="row" style="gap: 7px"><i class="ping"></i>Live</span
+                    ><span style="color: var(--ink2)">CS2 · Semi-final</span>
+                  </div>
+                  <div class="brg" style="width: 166px; margin: 6px auto 4px">
+                    <svg data-ring viewBox="0 0 240 240"></svg>
+                    <div class="core">
+                      <div>
+                        <small>ANUBIS</small><span class="disp tnum">9–7</span
+                        ><small>ROUND 17</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row btw">
+                    <span
+                      ><b class="disp" style="font-size: 19px">Vitality</b><br /><span
+                        class="sub"
+                        style="font-weight: 600"
+                        >1 map</span
+                      ></span
+                    >
+                    <span style="text-align: right"
+                      ><b class="disp" style="font-size: 19px">Aurora</b><br /><span
+                        class="sub"
+                        style="font-weight: 600"
+                        >0 maps</span
+                      ></span
+                    >
+                  </div>
+                </div>
+                <div class="glass" style="border-radius: 24px; padding: 4px 14px; margin-top: 10px">
+                  <div class="lr">
+                    <span class="duo" style="--a: #17171a; --b: #e2012d; --p: 72"></span
+                    ><span class="mono tnum" style="font-weight: 500">20:30</span
+                    ><span
+                      ><b style="font-weight: 600">G2 v T1</b><br /><span class="sub"
+                        >LoL · Final</span
+                      ></span
+                    ><span class="sub mono">50m</span>
+                  </div>
+                  <div class="lr">
+                    <span class="duo" style="--a: #19a8ff; --b: #ff5fa2; --p: 47"></span
+                    ><span class="mono tnum" style="font-weight: 500">21:15</span
+                    ><span
+                      ><b style="font-weight: 600">KC v BDS</b><br /><span class="sub"
+                        >Rocket League</span
+                      ></span
+                    ><span class="sub mono">1h35</span>
+                  </div>
+                  <div class="lr">
+                    <span class="duo" style="--a: #00c978; --b: #00c978; --p: 22"></span
+                    ><span class="mono tnum" style="font-weight: 500">22:00</span
+                    ><span
+                      ><b style="font-weight: 600">Cup final</b><br /><span class="sub"
+                        >Trackmania</span
+                      ></span
+                    ><span class="sub mono">2h20</span>
+                  </div>
+                </div>
+              </div>
+              <div class="tab glass">
+                <span style="color: var(--ink)">Today</span><span>Schedule</span
+                ><span>Following</span><span>Search</span>
+              </div>
+            </div>
+          </div>
+          <div class="tile s3 notes">
+            <p class="cap">Mark, type</p>
+            <div class="row lock">
+              <svg width="54" height="54"><use href="#m-ring" /></svg
+              ><span class="wm">bearing</span>
+            </div>
+            <div class="icons">
+              <span class="ico i64" style="background: #0a0b0e; color: #fff; --ball: url(#gSteel)"
+                ><svg width="42" height="42"><use href="#m-ring" /></svg
+              ></span>
+              <span
+                class="ico i64"
+                style="
+                  background: #fff;
+                  box-shadow: 0 8px 18px -10px rgba(10, 20, 40, 0.4);
+                  --ball: url(#gV);
+                "
+                ><svg width="42" height="42"><use href="#m-ring" /></svg
+              ></span>
+              <span class="ico i28" style="background: #0a0b0e; color: #fff"
+                ><svg width="19" height="19"><use href="#m-ring" /></svg
+              ></span>
+              <span class="ico i16" style="background: #0a0b0e; color: #fff"
+                ><svg width="12" height="12"><use href="#m-ring" /></svg
+              ></span>
+            </div>
+            <div class="spec">
+              <div class="disp" style="font-size: 30px">
+                Vitality
+                <span
+                  class="mono"
+                  style="font-weight: 500; font-size: 26px; letter-spacing: -0.04em"
+                  >13–9</span
+                >
+              </div>
+              <div class="small">
+                Inter Tight for names, Inter for text, Geist Mono for the small technical labels.
+              </div>
+            </div>
+            <h4 style="margin-top: 18px">The idea</h4>
+            <p>
+              The name made literal. You see the score in the middle and the whole story of the map
+              around it: who won which round, and the streaks.
+            </p>
+            <h4>Built from</h4>
+            <p>The glass and light of 6, the ring and detail of 1, the team colours of 4.</p>
+            <h4>How live is shown</h4>
+            <p>
+              Light. A live match lights its screen in the teams' colours and its next ball pulses.
+              Everything else stays grey and still.
+            </p>
+            <h4>The risk</h4>
+            <p>
+              Each game needs its own meaning for a ball: rounds in CS2, games in chess, checkpoints
+              in Trackmania.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════ 8 · Lit ═════════ -->
+      <section class="route lit">
+        <style>
+          .lit {
+            --bg: #efefec;
+            --card: #fff;
+            --ink: #0b0b0c;
+            --ink2: #66666b;
+            --mute: #9a9aa0;
+            --rule: #d2d2ce;
+            --mono: "Hanken Grotesk", sans-serif;
+          }
+          .lit .board {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: "Hanken Grotesk", system-ui, sans-serif;
+          }
+          .lit .tile {
+            background: var(--card);
+          }
+          .lit .cap,
+          .lit .notes h4 {
+            font-weight: 700;
+          }
+          .lit .wm {
+            font-weight: 800;
+            letter-spacing: -0.055em;
+          }
+          .lit .bV {
+            background: #ffd400;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14);
+          }
+          .lit .bA {
+            background: #12b5ae;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14);
+          }
+          .lit .glow {
+            position: absolute;
+            z-index: -1;
+            background: linear-gradient(90deg, var(--a), var(--b));
+            filter: blur(36px);
+            opacity: 0.6;
+            border-radius: 50%;
+            animation: breathe 5s ease-in-out infinite;
+          }
+          @keyframes breathe {
+            50% {
+              opacity: 0.38;
+              transform: scale(1.06);
+            }
+          }
+          .lit .meta {
+            gap: 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--ink2);
+            flex-wrap: wrap;
+          }
+          .lit .lh {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            align-items: baseline;
+            gap: 12px;
+            margin: 22px 0 30px;
+          }
+          .lit .hname {
+            font-size: clamp(22px, 7cqw, 50px);
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            line-height: 1;
+          }
+          .lit .hscore {
+            font-size: clamp(22px, 7cqw, 50px);
+            font-weight: 400;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            color: var(--ink2);
+          }
+          .lit .stops {
+            display: grid;
+            grid-template-columns: 0.62fr 2.2fr 0.62fr 0.5fr;
+            position: relative;
+          }
+          .lit .stop {
+            position: relative;
+            padding: 38px 8px 0 0;
+            font-size: clamp(10.5px, 2cqw, 13px);
+            line-height: 1.3;
+          }
+          .lit .stop::before {
+            content: "";
+            position: absolute;
+            top: 9px;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: var(--ink);
+          }
+          .lit .stop::after {
+            content: "";
+            position: absolute;
+            top: 1px;
+            left: 0;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            border: 6px solid var(--ink);
+          }
+          .lit .stop.done::after {
+            background: var(--ink);
+          }
+          .lit .stop.now::before {
+            display: none;
+          }
+          .lit .stop.now::after {
+            width: 30px;
+            height: 30px;
+            top: -2px;
+            left: -3px;
+            border-width: 5px;
+            background: linear-gradient(90deg, var(--a) 50%, var(--b) 50%);
+            box-shadow: 0 0 0 3px #fff;
+          }
+          .lit .stop.now .balls {
+            position: absolute;
+            top: 1px;
+            left: 36px;
+            right: 10px;
+            height: 24px;
+            --bs: 13px;
+            --bg: clamp(1px, 0.5cqw, 4px);
+            --bh: clamp(4px, 1.6cqw, 12px);
+          }
+          .lit .stop.fut::before {
+            background: var(--rule);
+          }
+          .lit .stop.fut::after {
+            border-color: var(--rule);
+          }
+          .lit .stop.end::before {
+            background: repeating-linear-gradient(90deg, var(--rule) 0 8px, transparent 8px 14px);
+            right: 20px;
+          }
+          .lit .stop b {
+            display: block;
+            font-weight: 800;
+            font-size: 1.12em;
+            letter-spacing: -0.02em;
+          }
+          .lit .phone {
+            background: #fff;
+            box-shadow:
+              0 0 0 7px #e2e2df,
+              0 18px 40px -18px rgba(0, 0, 0, 0.35);
+          }
+          .lit .st {
+            display: grid;
+            grid-template-columns: 38px 20px minmax(0, 1fr);
+            gap: 11px;
+            font-size: 12.5px;
+            line-height: 1.3;
+            min-height: 56px;
+            position: relative;
+          }
+          .lit .st .t {
+            font-weight: 700;
+            font-size: 11.5px;
+            text-align: right;
+            padding-top: 2px;
+            font-variant-numeric: tabular-nums;
+          }
+          .lit .st .l {
+            position: relative;
+          }
+          .lit .st .l::before {
+            content: "";
+            position: absolute;
+            left: 7px;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: var(--ink);
+          }
+          .lit .st .l::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, var(--a, #fff) 50%, var(--b, #fff) 50%);
+            border: 4px solid var(--ink);
+          }
+          .lit .st.done .l::after {
+            background: var(--ink);
+          }
+          .lit .st.done {
+            color: var(--ink2);
+          }
+          .lit .st.now .l::before {
+            background: linear-gradient(var(--ink) 0 62%, var(--rule) 62%);
+          }
+          .lit .st.now .l::after {
+            width: 28px;
+            height: 28px;
+            left: -4px;
+            top: -4px;
+            border-width: 5px;
+            box-shadow: 0 0 0 3px #fff;
+          }
+          .lit .st.fut .l::before {
+            background: var(--rule);
+          }
+          .lit .st.end .l::before {
+            background: repeating-linear-gradient(var(--rule) 0 6px, transparent 6px 11px);
+          }
+          .lit .st b {
+            font-weight: 800;
+            letter-spacing: -0.02em;
+          }
+          .lit .tab {
+            border-top: 2px solid var(--ink);
+            background: #fff;
+            color: var(--mute);
+            font-weight: 700;
+            font-size: 11px;
+          }
+        </style>
+        <div class="rhead">
+          <span class="rletter">8</span><span class="rname">Lit</span>
+          <span class="rline"
+            >The black line of route 2, with one rule added: a match is black and white until it is
+            live, then it lights up.</span
+          >
+        </div>
+        <div class="board">
+          <div class="tile s6 hero" style="padding: 20px 22px 24px; --a: #ffd400; --b: #12b5ae">
+            <div class="row meta">
+              <span class="row" style="gap: 8px; font-weight: 800; color: var(--ink)"
+                ><i class="ping"></i>Live</span
+              ><span>Counter-Strike 2</span
+              ><span style="margin-left: auto">IEM Cologne · Semi-final</span>
+            </div>
+            <div class="lh">
+              <div class="hname">Vitality</div>
+              <div class="hscore tnum">1 – 0</div>
+              <div class="hname" style="text-align: right">Aurora</div>
+            </div>
+            <div class="stops">
+              <div class="stop done">
+                <b>Mirage</b><span class="sub" style="font-size: 1em">13–9</span>
+              </div>
+              <div class="stop now">
+                <i class="glow" style="left: -6%; right: 30%; top: -34px; height: 96px"></i>
+                <div class="balls" data-balls></div>
+                <b>Anubis <span style="font-weight: 400">9–7</span></b
+                ><span style="font-weight: 700">Round 17, first to 13</span>
+              </div>
+              <div class="stop fut">
+                <b>Inferno</b><span class="sub" style="font-size: 1em">if needed</span>
+              </div>
+              <div class="stop fut end">
+                <b>Final</b><span class="sub" style="font-size: 1em">Sun 18:00</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tile s3">
+            <div class="phone">
+              <div style="padding: 22px 18px 0">
+                <div class="row btw" style="align-items: baseline; margin-bottom: 18px">
+                  <span style="font-size: 28px; font-weight: 800; letter-spacing: -0.05em"
+                    >Today</span
+                  ><span style="font-size: 11.5px; font-weight: 600; color: var(--ink2)"
+                    >Mon 16 Nov</span
+                  >
+                </div>
+                <div class="st done">
+                  <span class="t">13:00</span><span class="l"></span
+                  ><span
+                    ><b>NAVI 2–1 FaZe</b><br /><span class="sub">CS2 · Quarter-final</span></span
+                  >
+                </div>
+                <div class="st done">
+                  <span class="t">16:00</span><span class="l"></span
+                  ><span
+                    ><b>Carlsen ½–½ Nakamura</b><br /><span class="sub">Chess · Game 4</span></span
+                  >
+                </div>
+                <div class="st now" style="min-height: 128px; --a: #ffd400; --b: #12b5ae">
+                  <i class="glow" style="left: 30px; right: -10px; top: -6px; height: 104px"></i>
+                  <span class="t">Live</span><span class="l"></span>
+                  <span>
+                    <b style="font-size: 17px">Vitality 1–0 Aurora</b><br /><span
+                      style="font-weight: 700; font-size: 12px"
+                      >Anubis 9–7 · round 17</span
+                    >
+                    <span
+                      class="balls"
+                      data-balls="0-12"
+                      style="margin-top: 9px; --bs: 11px; --bg: 3px"
+                    ></span>
+                    <span
+                      class="balls"
+                      data-balls="12-24"
+                      style="margin-top: 4px; --bs: 11px; --bg: 3px; --bh: 0px"
+                    ></span>
+                    <span class="sub" style="display: block; margin-top: 7px"
+                      >CS2 · Semi-final</span
+                    >
+                  </span>
+                </div>
+                <div class="st fut" style="--a: #17171a; --b: #e2012d">
+                  <span class="t">20:30</span><span class="l"></span
+                  ><span
+                    ><b>G2 v T1</b><br /><span class="sub">League of Legends · Final</span></span
+                  >
+                </div>
+                <div class="st fut" style="--a: #19a8ff; --b: #ff5fa2">
+                  <span class="t">21:15</span><span class="l"></span
+                  ><span><b>KC v BDS</b><br /><span class="sub">Rocket League · Final</span></span>
+                </div>
+                <div class="st fut" style="--a: #00c978; --b: #00c978">
+                  <span class="t">22:00</span><span class="l"></span
+                  ><span><b>Cup final</b><br /><span class="sub">Trackmania</span></span>
+                </div>
+                <div class="st fut end" style="--a: #1d2b53; --b: #d6002a; min-height: 44px">
+                  <span class="t" style="color: var(--mute)">Tue</span><span class="l"></span
+                  ><span style="color: var(--ink2)"
+                    ><b>Spirit v MOUZ</b><br /><span class="sub">CS2 · Final · 18:00</span></span
+                  >
+                </div>
+              </div>
+              <div class="tab">
+                <span style="color: var(--ink)">Today</span><span>Schedule</span
+                ><span>Following</span><span>Search</span>
+              </div>
+            </div>
+          </div>
+          <div class="tile s3 notes">
+            <p class="cap">Mark, type</p>
+            <div class="row lock">
+              <svg width="54" height="54"><use href="#m-lit" /></svg><span class="wm">bearing</span>
+            </div>
+            <div class="icons">
+              <span class="ico i64" style="background: var(--ink); color: #fff"
+                ><svg width="44" height="44"><use href="#m-lit" /></svg
+              ></span>
+              <span
+                class="ico i64"
+                style="background: #fff; border: 1px solid var(--rule); --ball: url(#gDuo)"
+                ><svg width="44" height="44"><use href="#m-lit" /></svg
+              ></span>
+              <span class="ico i28" style="background: var(--ink); color: #fff"
+                ><svg width="20" height="20"><use href="#m-lit" /></svg
+              ></span>
+              <span class="ico i16" style="background: var(--ink); color: #fff"
+                ><svg width="12" height="12"><use href="#m-lit" /></svg
+              ></span>
+            </div>
+            <div class="spec">
+              <div
+                style="font-size: 32px; font-weight: 800; letter-spacing: -0.05em; line-height: 1"
+              >
+                Vitality <span style="font-weight: 400; color: var(--ink2)">13–9</span>
+              </div>
+              <div class="small">
+                Hanken Grotesk only. The mark is black; its ball takes the colours of whatever is
+                live for you.
+              </div>
+            </div>
+            <h4 style="margin-top: 18px">The idea</h4>
+            <p>
+              A strict black-and-white timetable where colour is the event. Each stop carries its
+              two teams as a small bead; the line of the map being played breaks up into its rounds.
+            </p>
+            <h4>Built from</h4>
+            <p>The line and type of 2, the light of 6, the team colours of 4.</p>
+            <h4>How live is shown</h4>
+            <p>
+              Glow. The live stop is bigger, sits in a pool of its teams' light and sends out a
+              ring. Finished stops turn solid black.
+            </p>
+            <h4>The risk</h4>
+            <p>
+              The calmest of the five. On a quiet day with nothing live, the page is almost entirely
+              black and white.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════ 9 · Stack ═════════ -->
+      <section class="route stack">
+        <style>
+          .stack {
+            --ink: #0f1115;
+            --ink2: #636973;
+            --mute: #969ca6;
+            --mono: "Figtree", sans-serif;
+          }
+          .stack .board {
+            background: linear-gradient(180deg, #eceef2, #d9dde4);
+            color: var(--ink);
+            font-family: "Figtree", system-ui, sans-serif;
+          }
+          .stack .tile {
+            background: rgba(255, 255, 255, 0.6);
+            box-shadow:
+              inset 0 1px 0 rgba(255, 255, 255, 0.9),
+              0 12px 26px -16px rgba(20, 28, 45, 0.3);
+          }
+          .stack .cap,
+          .stack .notes h4 {
+            font-weight: 700;
+          }
+          .stack .wm {
+            font-weight: 700;
+            letter-spacing: -0.045em;
+          }
+          .stack .bV {
+            background: radial-gradient(circle at 34% 30%, #fff7bf, #ffd400 45%, #b08c00);
+          }
+          .stack .bA {
+            background: radial-gradient(circle at 34% 30%, #c4f7f3, #12b5ae 45%, #076b66);
+          }
+          .stack .card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow:
+              0 1px 1px rgba(16, 24, 40, 0.05),
+              0 6px 14px -4px rgba(16, 24, 40, 0.12),
+              0 28px 46px -18px rgba(16, 24, 40, 0.32);
+          }
+          /* Team light inside a card: one pool at each end. --k is how strongly it is lit. */
+          .stack .tint {
+            background:
+              radial-gradient(
+                48% 140% at 0% 50%,
+                color-mix(in srgb, var(--a) var(--k, 46%), transparent),
+                transparent 72%
+              ),
+              radial-gradient(
+                48% 140% at 100% 50%,
+                color-mix(in srgb, var(--b) var(--k, 46%), transparent),
+                transparent 72%
+              ),
+              #fff;
+          }
+          .stack .stage {
+            padding: 22px 22px 26px;
+            background: linear-gradient(180deg, #e3e6ec, #cfd4dd);
+          }
+          .stack .dback {
+            margin: 0 auto;
+            height: 46px;
+            border-radius: 16px 16px 0 0;
+            font-size: 10.5px;
+            font-weight: 600;
+            text-align: center;
+            padding-top: 5px;
+            color: var(--ink2);
+            white-space: nowrap;
+            overflow: hidden;
+          }
+          .stack .b2 {
+            width: 76%;
+            opacity: 0.55;
+            filter: blur(0.6px);
+            --k: 30%;
+          }
+          .stack .b1 {
+            width: 88%;
+            opacity: 0.85;
+            margin-top: -24px;
+            box-shadow: 0 -6px 14px -8px rgba(16, 24, 40, 0.18);
+            --k: 38%;
+          }
+          .stack .dfront {
+            position: relative;
+            margin-top: -22px;
+            padding: 18px 20px;
+            animation: sfloat 7s ease-in-out infinite;
+          }
+          @keyframes sfloat {
+            50% {
+              transform: translateY(-4px);
+            }
+          }
+          .stack .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 11px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.75);
+            box-shadow: 0 1px 2px rgba(16, 24, 40, 0.12);
+          }
+          .stack .dg {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            align-items: center;
+            gap: 10px;
+            margin: 18px 0 18px;
+          }
+          .stack .orb {
+            width: clamp(38px, 9cqw, 58px);
+            aspect-ratio: 1;
+            border-radius: 50%;
+            display: inline-grid;
+            place-items: center;
+            font-size: 11px;
+            font-weight: 800;
+            box-shadow:
+              inset 0 2px 3px rgba(255, 255, 255, 0.55),
+              inset 0 -6px 10px rgba(0, 0, 0, 0.14),
+              0 10px 16px -6px rgba(16, 24, 40, 0.4);
+            flex: none;
+          }
+          .stack .hname {
+            font-size: clamp(17px, 4.6cqw, 30px);
+            font-weight: 700;
+            letter-spacing: -0.035em;
+            line-height: 1.05;
+          }
+          .stack .hscore {
+            font-size: clamp(36px, 10cqw, 68px);
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            line-height: 1;
+          }
+          .stack .chips {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            font-size: 11px;
+            font-weight: 600;
+          }
+          .stack .chips span {
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.8);
+            color: var(--ink2);
+            white-space: nowrap;
+            box-shadow: 0 1px 2px rgba(16, 24, 40, 0.1);
+          }
+          .stack .phone {
+            background: linear-gradient(180deg, #e9ecf1 0%, #d3d8e0 100%);
+            box-shadow:
+              0 0 0 7px #f4f5f7,
+              0 0 0 8px #cfd3da,
+              0 22px 44px -18px rgba(16, 24, 40, 0.45);
+          }
+          .stack .pc {
+            position: absolute;
+            left: 18px;
+            right: 18px;
+            transform-origin: 50% 0;
+            transform: scale(var(--s));
+            opacity: var(--o);
+            filter: blur(var(--bl, 0));
+            padding: 11px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+          }
+          .stack .pc b {
+            font-weight: 700;
+            letter-spacing: -0.02em;
+          }
+          .stack .pc .t {
+            font-weight: 800;
+            width: 40px;
+            font-variant-numeric: tabular-nums;
+            flex: none;
+          }
+          .stack .tab {
+            left: 22px;
+            right: 22px;
+            bottom: 14px;
+            height: 50px;
+            border-radius: 999px;
+            background: #fff;
+            box-shadow: 0 10px 24px -10px rgba(16, 24, 40, 0.4);
+            padding: 0 14px;
+            color: var(--mute);
+            font-weight: 700;
+          }
+        </style>
+        <div class="rhead">
+          <span class="rletter">9</span><span class="rname">Stack</span>
+          <span class="rline"
+            >Route 5 with the teams let in: now is the front card, and each card is lit from inside
+            by its two teams.</span
+          >
+        </div>
+        <div class="board">
+          <div class="tile s6 hero stage">
+            <div class="card tint dback b2" style="--a: #19a8ff; --b: #ff5fa2">
+              21:15 · KC v BDS · Rocket League
+            </div>
+            <div class="card tint dback b1" style="--a: #17171a; --b: #e2012d">
+              20:30 · G2 v T1 · League of Legends · in 50 min
+            </div>
+            <div class="card tint dfront" style="--a: #ffd400; --b: #12b5ae">
+              <div class="row btw" style="gap: 10px; flex-wrap: wrap">
+                <span class="pill"><i class="ping"></i>Live · round 17</span
+                ><span class="sub" style="font-weight: 600; color: var(--ink)"
+                  >CS2 · IEM Cologne · Semi-final</span
+                >
+              </div>
+              <div class="dg">
+                <div class="row" style="gap: 12px">
+                  <span class="orb" style="background: #f5d000">VIT</span
+                  ><span class="hname">Vitality</span>
+                </div>
+                <div class="hscore tnum">9–7</div>
+                <div class="row" style="gap: 12px; justify-content: flex-end">
+                  <span class="hname">Aurora</span
+                  ><span class="orb" style="background: #0f9a94; color: #fff">AUR</span>
+                </div>
+              </div>
+              <div class="row" style="gap: 12px 18px; flex-wrap: wrap">
+                <span
+                  class="balls"
+                  data-balls
+                  style="flex: 1 1 250px; --bs: 13px; --bg: 3px"
+                ></span>
+                <span class="chips"
+                  ><span>Anubis · maps 1–0</span
+                  ><span style="background: #0f1115; color: #fff">Open match</span></span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="tile s3">
+            <div class="phone">
+              <div class="row btw" style="padding: 22px 22px 0; align-items: baseline">
+                <span style="font-size: 19px; font-weight: 800; letter-spacing: -0.04em">Today</span
+                ><span style="font-size: 10.5px; font-weight: 700; color: var(--ink2)"
+                  >later ↑</span
+                >
+              </div>
+              <div
+                class="card tint pc"
+                style="
+                  top: 62px;
+                  --s: 0.72;
+                  --o: 0.45;
+                  --bl: 1.1px;
+                  --k: 26%;
+                  --a: #1d2b53;
+                  --b: #d6002a;
+                "
+              >
+                <span class="t">Tue</span><span><b>Spirit v MOUZ</b></span>
+              </div>
+              <div
+                class="card tint pc"
+                style="
+                  top: 92px;
+                  --s: 0.79;
+                  --o: 0.62;
+                  --bl: 0.7px;
+                  --k: 30%;
+                  --a: #00c978;
+                  --b: #00c978;
+                "
+              >
+                <span class="t">22:00</span
+                ><span><b>Cup final</b> <span class="sub">Trackmania</span></span>
+              </div>
+              <div
+                class="card tint pc"
+                style="
+                  top: 124px;
+                  --s: 0.86;
+                  --o: 0.82;
+                  --bl: 0.3px;
+                  --k: 34%;
+                  --a: #19a8ff;
+                  --b: #ff5fa2;
+                "
+              >
+                <span class="t">21:15</span
+                ><span><b>KC v BDS</b> <span class="sub">Rocket League</span></span>
+              </div>
+              <div
+                class="card tint pc"
+                style="top: 159px; --s: 0.93; --o: 0.96; --k: 38%; --a: #17171a; --b: #e2012d"
+              >
+                <span class="t">20:30</span
+                ><span><b>G2 v T1</b> <span class="sub">LoL · in 50 min</span></span>
+              </div>
+              <div
+                class="card tint pc"
+                style="
+                  top: 198px;
+                  --s: 1;
+                  --o: 1;
+                  display: block;
+                  padding: 16px;
+                  border-radius: 22px;
+                  --k: 50%;
+                  --a: #ffd400;
+                  --b: #12b5ae;
+                "
+              >
+                <div class="row btw">
+                  <span class="pill"><i class="ping"></i>Live</span
+                  ><span class="sub" style="font-weight: 600; color: var(--ink)"
+                    >CS2 · Semi-final</span
+                  >
+                </div>
+                <div class="row btw" style="margin: 16px 4px 6px">
+                  <span class="orb" style="width: 46px; background: #f5d000">VIT</span>
+                  <span
+                    style="
+                      font-size: 46px;
+                      font-weight: 800;
+                      letter-spacing: -0.05em;
+                      line-height: 1;
+                    "
+                    class="tnum"
+                    >9–7</span
+                  >
+                  <span class="orb" style="width: 46px; background: #0f9a94; color: #fff">AUR</span>
+                </div>
+                <div class="row btw" style="font-size: 13px; font-weight: 700; margin: 0 0 12px">
+                  <span>Vitality</span
+                  ><span class="sub" style="font-weight: 600">Anubis · map 2</span
+                  ><span>Aurora</span>
+                </div>
+                <span
+                  class="balls"
+                  data-balls="0-12"
+                  style="--bs: 12px; --bg: 4px; justify-content: center"
+                ></span>
+                <span
+                  class="balls"
+                  data-balls="12-24"
+                  style="--bs: 12px; --bg: 4px; --bh: 0px; justify-content: center; margin-top: 4px"
+                ></span>
+              </div>
+              <div
+                style="
+                  position: absolute;
+                  left: 22px;
+                  right: 22px;
+                  top: 452px;
+                  font-size: 10.5px;
+                  font-weight: 700;
+                  color: var(--ink2);
+                  display: flex;
+                  justify-content: space-between;
+                "
+              >
+                <span>earlier ↓</span><span>2 results today</span>
+              </div>
+              <div
+                class="card"
+                style="
+                  position: absolute;
+                  left: 34px;
+                  right: 34px;
+                  top: 474px;
+                  height: 60px;
+                  border-radius: 16px 16px 0 0;
+                  opacity: 0.55;
+                  padding: 9px 14px;
+                  font-size: 11px;
+                  font-weight: 600;
+                  line-height: 1.4;
+                  color: var(--ink2);
+                "
+              >
+                NAVI 2–1 FaZe<br />Carlsen ½–½ Nakamura
+              </div>
+              <div class="tab">
+                <span style="color: var(--ink)">Today</span><span>Schedule</span
+                ><span>Following</span><span>Search</span>
+              </div>
+            </div>
+          </div>
+          <div class="tile s3 notes">
+            <p class="cap">Mark, type</p>
+            <div class="row lock">
+              <svg width="54" height="54"><use href="#m-stack" /></svg
+              ><span class="wm">bearing</span>
+            </div>
+            <div class="icons">
+              <span
+                class="ico i64"
+                style="
+                  background: linear-gradient(180deg, #23262d, #0f1115);
+                  color: #fff;
+                  --ball: url(#gSteel);
+                  box-shadow: 0 10px 18px -8px rgba(16, 24, 40, 0.6);
+                "
+                ><svg width="44" height="44"><use href="#m-stack" /></svg
+              ></span>
+              <span
+                class="ico i64"
+                style="
+                  background: #fff;
+                  --ball: url(#gV);
+                  box-shadow: 0 10px 18px -8px rgba(16, 24, 40, 0.35);
+                "
+                ><svg width="44" height="44"><use href="#m-stack" /></svg
+              ></span>
+              <span class="ico i28" style="background: #0f1115; color: #fff"
+                ><svg width="20" height="20"><use href="#m-stack" /></svg
+              ></span>
+              <span class="ico i16" style="background: #0f1115; color: #fff"
+                ><svg width="12" height="12"><use href="#m-stack" /></svg
+              ></span>
+            </div>
+            <div class="spec">
+              <div
+                style="font-size: 32px; font-weight: 800; letter-spacing: -0.045em; line-height: 1"
+              >
+                Vitality 13–9
+              </div>
+              <div class="small">
+                Figtree. Distance is shown by size, sharpness and shadow; colour is shown by how
+                close a match is to starting.
+              </div>
+            </div>
+            <h4 style="margin-top: 18px">The idea</h4>
+            <p>
+              The evening stands in a queue in front of you. Each card glows faintly in its teams'
+              colours and gets brighter and sharper as it comes forward.
+            </p>
+            <h4>Built from</h4>
+            <p>The depth of 5, the light of 6, the team colours of 4.</p>
+            <h4>How live is shown</h4>
+            <p>
+              Position. Live is the card at the front, fully lit, with its rounds on it. Nothing
+              else is ever in that place.
+            </p>
+            <h4>The risk</h4>
+            <p>
+              Two matches live at once need an answer: side by side, or one behind the other. And it
+              wants real 3D motion to feel right.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════ 10 · Rule ═════════ -->
+      <section class="route rule">
+        <style>
+          .rule {
+            --paper: #f4f2ee;
+            --card: #fbfaf7;
+            --ink: #14171c;
+            --ink2: #5a616b;
+            --mute: #9199a3;
+            --line: #dcd8d0;
+            --mono: "Geist Mono", monospace;
+          }
+          .rule .board {
+            background: var(--paper);
+            color: var(--ink);
+            font-family: "Geist", system-ui, sans-serif;
+          }
+          .rule .tile {
+            background: var(--card);
+            border: 1px solid var(--line);
+          }
+          .rule .wm {
+            font-weight: 600;
+            letter-spacing: -0.045em;
+          }
+          .rule .hbar,
+          .rule .hfoot {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            padding: 12px 20px;
+            font-size: 11px;
+            letter-spacing: 0.04em;
+            color: var(--ink2);
+            flex-wrap: wrap;
+          }
+          .rule .hbar {
+            border-bottom: 1px solid var(--line);
+          }
+          .rule .hfoot {
+            border-top: 1px solid var(--line);
+            justify-content: center;
+            gap: 22px;
+          }
+          .rule .hgrid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            align-items: center;
+            gap: 10px;
+            padding: 20px 20px 10px;
+          }
+          .rule .crest {
+            display: inline-grid;
+            place-items: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            font:
+              600 11px "Geist Mono",
+              monospace;
+            box-shadow: inset 0 0 0 1px rgba(20, 23, 28, 0.16);
+          }
+          .rule .hname {
+            font-size: clamp(17px, 4.6cqw, 30px);
+            font-weight: 600;
+            letter-spacing: -0.035em;
+            line-height: 1.1;
+            margin-top: 10px;
+          }
+          .rule .score {
+            font:
+              500 clamp(40px, 11cqw, 76px) / 1 "Geist Mono",
+              monospace;
+            letter-spacing: -0.06em;
+            text-align: center;
+          }
+          .rule .score small {
+            display: block;
+            font-size: 9.5px;
+            letter-spacing: 0.1em;
+            color: var(--ink2);
+            margin-top: 8px;
+          }
+          .rule .chart {
+            display: grid;
+            grid-template-columns: 30px repeat(12, minmax(0, 1fr)) clamp(8px, 2.4cqw, 20px) repeat(
+                12,
+                minmax(0, 1fr)
+              );
+            align-items: center;
+            padding: 8px 20px 16px;
+            row-gap: 5px;
+            font:
+              500 8.5px "Geist Mono",
+              monospace;
+            color: var(--ink2);
+          }
+          .rule .chart .c {
+            display: grid;
+            place-items: center;
+            align-self: stretch;
+          }
+          .rule .chart .c.cur {
+            background: linear-gradient(var(--ink), var(--ink)) center / 1px 100% no-repeat;
+          }
+          .rule .chart .m {
+            width: min(100% - 3px, 17px);
+            aspect-ratio: 1;
+            border-radius: 50%;
+            box-shadow: inset 0 0 0 1px rgba(20, 23, 28, 0.2);
+          }
+          .rule .chart .ax {
+            height: 8px;
+            border-top: 1.5px solid var(--ink);
+            border-left: 1px solid var(--ink);
+            position: relative;
+            align-self: start;
+          }
+          .rule .chart .ax.gap {
+            border-left: 1px solid var(--ink);
+            border-top-style: dashed;
+          }
+          .rule .chart .ax.end {
+            border-right: 1px solid var(--ink);
+          }
+          .rule .chart .ax.cur::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: -1px;
+            width: 11px;
+            height: 11px;
+            margin: -5.5px 0 0 -5.5px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 3px solid var(--ink);
+            animation: pulse 1.6s ease-in-out infinite;
+          }
+          .rule .chart .n {
+            text-align: center;
+          }
+          .rule .phone {
+            background: var(--paper);
+            border: 1px solid var(--line);
+            box-shadow:
+              0 0 0 7px #e9e6e0,
+              0 18px 40px -18px rgba(20, 23, 28, 0.35);
+          }
+          .rule .day {
+            position: relative;
+            height: 468px;
+            margin-top: 12px;
+            --h: 52px;
+            background:
+              repeating-linear-gradient(var(--line) 0 1px, transparent 1px var(--h)) 40px 0 /
+                calc(100% - 40px) 100% no-repeat,
+              repeating-linear-gradient(var(--ink) 0 1px, transparent 1px calc(var(--h) / 2)) 34px
+                0 / 6px 100% no-repeat;
+          }
+          .rule .day .hr {
+            position: absolute;
+            left: 0;
+            width: 28px;
+            text-align: right;
+            font:
+              500 9.5px "Geist Mono",
+              monospace;
+            color: var(--ink2);
+            top: calc((var(--t) - 15) * var(--h) - 6px);
+          }
+          .rule .blk {
+            position: absolute;
+            left: 47px;
+            right: 0;
+            top: calc((var(--s) - 15) * var(--h) + 1px);
+            height: calc((var(--e) - var(--s)) * var(--h) - 3px);
+            border: 1px solid var(--ink);
+            border-radius: 7px;
+            background: var(--card);
+            padding: 6px 8px 6px 13px;
+            font-size: 11.5px;
+            line-height: 1.25;
+            overflow: hidden;
+          }
+          .rule .blk::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: linear-gradient(var(--a) 50%, var(--b) 50%);
+            border-right: 1px solid var(--ink);
+          }
+          .rule .blk.c0 {
+            right: calc(50% - 20px);
+          }
+          .rule .blk.c1 {
+            left: calc(50% + 26px);
+          }
+          .rule .blk.done {
+            border-style: dashed;
+            border-color: var(--mute);
+            color: var(--ink2);
+            background: transparent;
+          }
+          .rule .blk.done::before {
+            display: none;
+          }
+          .rule .blk.live {
+            padding: 0;
+            border-width: 1.5px;
+            background: linear-gradient(90deg, var(--a) 50%, var(--b) 50%);
+          }
+          .rule .blk.live::before {
+            display: none;
+          }
+          .rule .blk.live .proj {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: 41%;
+            background: repeating-linear-gradient(
+              135deg,
+              rgba(251, 250, 247, 0.55) 0 3px,
+              transparent 3px 7px
+            );
+            border-top: 1px dashed var(--ink);
+          }
+          .rule .blk b {
+            font-weight: 600;
+          }
+          .rule .nowl {
+            position: absolute;
+            left: 34px;
+            right: 0;
+            top: calc((19.667 - 15) * var(--h));
+            border-top: 1.5px solid var(--ink);
+            z-index: 2;
+          }
+          .rule .nowl::before {
+            content: "";
+            position: absolute;
+            left: -5px;
+            top: -6.5px;
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: var(--card);
+            border: 3px solid var(--ink);
+          }
+          .rule .nowl span {
+            position: absolute;
+            right: 0;
+            top: -15px;
+            font:
+              500 9.5px "Geist Mono",
+              monospace;
+            background: var(--ink);
+            color: var(--paper);
+            padding: 1px 5px;
+            border-radius: 3px;
+          }
+          .rule .tab {
+            background: var(--card);
+            border-top: 1px solid var(--line);
+            color: var(--mute);
+            font-family: "Geist Mono", monospace;
+          }
+        </style>
+        <div class="rhead">
+          <span class="rletter">10</span><span class="rname">Rule</span>
+          <span class="rline"
+            >Route 1's precision on route 2's line: everything is drawn to scale, and the only ink
+            that is not black belongs to a team.</span
+          >
+        </div>
+        <div class="board">
+          <div class="tile s6 hero" style="padding: 0">
+            <div class="hbar mono">
+              <span class="row" style="gap: 8px; color: var(--ink)"><i class="ping"></i>LIVE</span
+              ><span>CS2 · IEM Cologne · Semi-final · Bo3</span
+              ><span style="margin-left: auto">ROUND 17</span>
+            </div>
+            <div class="hgrid">
+              <div>
+                <span class="crest" style="background: #ffd400">VIT</span>
+                <div class="hname">Vitality</div>
+                <div class="mono sub" style="margin-top: 4px">1 map</div>
+              </div>
+              <div class="score tnum">9–7<small>ANUBIS · MAP 2</small></div>
+              <div style="text-align: right">
+                <span class="crest" style="background: #12b5ae">AUR</span>
+                <div class="hname">Aurora</div>
+                <div class="mono sub" style="margin-top: 4px">0 maps</div>
+              </div>
+            </div>
+            <div class="chart" id="rule-chart"></div>
+            <div class="hfoot mono">
+              <span>Mirage 13–9</span><span style="color: var(--ink)">Anubis 9–7</span
+              ><span style="color: var(--mute)">Inferno</span>
+            </div>
+          </div>
+
+          <div class="tile s3">
+            <div class="phone">
+              <div style="padding: 22px 16px 0">
+                <div class="row btw">
+                  <span style="font-size: 19px; font-weight: 600; letter-spacing: -0.03em"
+                    >Today</span
+                  ><span class="mono" style="font-size: 10.5px; color: var(--ink2)"
+                    >MON 16 NOV</span
+                  >
+                </div>
+                <div class="day">
+                  <span class="hr" style="--t: 15; top: 0">15</span
+                  ><span class="hr" style="--t: 16">16</span
+                  ><span class="hr" style="--t: 17">17</span
+                  ><span class="hr" style="--t: 18">18</span
+                  ><span class="hr" style="--t: 19">19</span
+                  ><span class="hr" style="--t: 20">20</span
+                  ><span class="hr" style="--t: 21">21</span
+                  ><span class="hr" style="--t: 22">22</span
+                  ><span class="hr" style="--t: 23">23</span>
+                  <div class="blk done" style="--s: 16; --e: 18">
+                    <b>Carlsen ½–½ Nakamura</b><br /><span class="mono" style="font-size: 9.5px"
+                      >CHESS · GAME 4 · 16:00</span
+                    >
+                  </div>
+                  <div class="blk live c0" style="--s: 18.75; --e: 21; --a: #ffd400; --b: #12b5ae">
+                    <div class="proj"></div>
+                    <div
+                      class="row btw mono"
+                      style="
+                        position: relative;
+                        padding: 6px 8px;
+                        font-size: 10px;
+                        font-weight: 500;
+                      "
+                    >
+                      <span>VIT</span><span>AUR</span>
+                    </div>
+                    <div style="position: relative; text-align: center; margin-top: -5px">
+                      <span
+                        class="mono tnum"
+                        style="
+                          display: inline-block;
+                          background: var(--card);
+                          border: 1.5px solid var(--ink);
+                          border-radius: 999px;
+                          padding: 1px 9px;
+                          font-size: 14px;
+                          font-weight: 500;
+                          letter-spacing: -0.04em;
+                        "
+                        >9–7</span
+                      >
+                    </div>
+                    <div
+                      class="mono"
+                      style="
+                        position: absolute;
+                        left: 0;
+                        right: 0;
+                        bottom: 6px;
+                        text-align: center;
+                        font-size: 8.5px;
+                        letter-spacing: 0.06em;
+                      "
+                    >
+                      UNTIL ABOUT 21:00
+                    </div>
+                  </div>
+                  <div class="blk c1" style="--s: 20.5; --e: 21.92; --a: #17171a; --b: #e2012d">
+                    <b>G2 v T1</b><br /><span class="sub">LoL · Final</span><br /><span
+                      class="mono"
+                      style="font-size: 9.5px"
+                      >20:30</span
+                    >
+                  </div>
+                  <div class="blk c0" style="--s: 21.25; --e: 22.67; --a: #19a8ff; --b: #ff5fa2">
+                    <b>KC v BDS</b><br /><span class="sub">Rocket League</span><br /><span
+                      class="mono"
+                      style="font-size: 9.5px"
+                      >21:15</span
+                    >
+                  </div>
+                  <div class="blk c1" style="--s: 22; --e: 23.3; --a: #00c978; --b: #00c978">
+                    <b>Cup final</b><br /><span class="sub">Trackmania</span><br /><span
+                      class="mono"
+                      style="font-size: 9.5px"
+                      >22:00</span
+                    >
+                  </div>
+                  <div class="nowl"><span>19:40</span></div>
+                </div>
+              </div>
+              <div class="tab">
+                <span style="color: var(--ink)">Today</span><span>Schedule</span
+                ><span>Following</span><span>Search</span>
+              </div>
+            </div>
+          </div>
+          <div class="tile s3 notes">
+            <p class="cap">Mark, type</p>
+            <div class="row lock">
+              <svg width="54" height="54"><use href="#m-rule" /></svg
+              ><span class="wm">bearing</span>
+            </div>
+            <div class="icons">
+              <span class="ico i64" style="background: var(--ink); color: var(--paper)"
+                ><svg width="44" height="44"><use href="#m-rule" /></svg
+              ></span>
+              <span
+                class="ico i64"
+                style="background: var(--card); border: 1px solid var(--line); --ball: #ffd400"
+                ><svg width="44" height="44"><use href="#m-rule" /></svg
+              ></span>
+              <span class="ico i28" style="background: var(--ink); color: var(--paper)"
+                ><svg width="20" height="20"><use href="#m-rule" /></svg
+              ></span>
+              <span class="ico i16" style="background: var(--ink); color: var(--paper)"
+                ><svg width="12" height="12"><use href="#m-rule" /></svg
+              ></span>
+            </div>
+            <div class="spec">
+              <div
+                style="font-size: 30px; font-weight: 600; letter-spacing: -0.04em; line-height: 1"
+              >
+                Vitality
+                <span class="mono" style="font-weight: 500; letter-spacing: -0.04em">13–9</span>
+              </div>
+              <div class="small">
+                Geist and Geist Mono on warm paper, as in route 1, with the red taken out.
+              </div>
+            </div>
+            <h4 style="margin-top: 18px">The idea</h4>
+            <p>
+              An instrument, not a feed. A map is plotted round by round, Vitality above the line
+              and Aurora below. The day is drawn to scale, so you can see that two finals overlap.
+            </p>
+            <h4>Built from</h4>
+            <p>The paper and detail of 1, the line of 2, the team colours of 4.</p>
+            <h4>How live is shown</h4>
+            <p>
+              Fill. A live match is the only block filled with colour, and the now-line runs through
+              it. The hatched part is how long it will probably still take.
+            </p>
+            <h4>The risk</h4>
+            <p>It is the least emotional of the five. It informs better than it excites.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════ 11 · Plate ═════════ -->
+      <section class="route plate">
+        <style>
+          .plate {
+            --ink: #0c0c0d;
+            --ink2: #5c5c61;
+            --mute: #98989d;
+            --mono: "Archivo", sans-serif;
+          }
+          .plate .board {
+            background: #e4e4e0;
+            color: var(--ink);
+            font-family: "Archivo", system-ui, sans-serif;
+          }
+          .plate .tile {
+            background: #f5f5f2;
+          }
+          .plate .cap,
+          .plate .notes h4 {
+            font-weight: 700;
+          }
+          .plate .wm {
+            font-weight: 800;
+            letter-spacing: -0.05em;
+          }
+          .plate .bV {
+            background: radial-gradient(circle at 34% 30%, #fff7bf, #ffd400 45%, #b08c00);
+          }
+          .plate .bA {
+            background: radial-gradient(circle at 34% 30%, #9be4df, #0a8a86 45%, #05524f);
+          }
+          /* A plate: two matte halves. --p is where they meet, and it moves with the score. */
+          .plate .pl {
+            position: relative;
+            border-radius: 22px;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: var(--p, 50%) minmax(0, 1fr);
+            background: linear-gradient(
+              90deg,
+              var(--a) 0 var(--p, 50%),
+              var(--b) var(--p, 50%) 100%
+            );
+            box-shadow:
+              inset 0 1px 0 rgba(255, 255, 255, 0.4),
+              inset 0 -1px 0 rgba(0, 0, 0, 0.16),
+              0 1px 1px rgba(0, 0, 0, 0.1),
+              0 16px 26px -14px rgba(0, 0, 0, 0.45);
+          }
+          .plate .pl::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: var(--p, 50%);
+            width: 12px;
+            margin-left: -6px;
+            background: linear-gradient(
+              90deg,
+              transparent,
+              rgba(0, 0, 0, 0.14) 46%,
+              rgba(255, 255, 255, 0.25) 54%,
+              transparent
+            );
+          }
+          .plate .pl > span,
+          .plate .pl > div.side {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 13px;
+          }
+          .plate .pl > :nth-child(1) {
+            color: var(--ac, #0c0c0d);
+          }
+          .plate .pl > :nth-child(2) {
+            color: var(--bc, #fff);
+            text-align: right;
+            align-items: flex-end;
+          }
+          .plate .pb {
+            position: absolute;
+            left: var(--p, 50%);
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            text-align: center;
+            color: #0c0c0d;
+            background: radial-gradient(circle at 34% 26%, #fff 0, #f4f4f1 42%, #cbcbc5 100%);
+            box-shadow:
+              0 8px 14px -5px rgba(0, 0, 0, 0.5),
+              0 1px 2px rgba(0, 0, 0, 0.25),
+              inset 0 -4px 8px rgba(0, 0, 0, 0.08);
+            z-index: 1;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+          }
+          .plate .stage {
+            padding: 22px 22px 20px;
+            background: #dcdcd7;
+          }
+          .plate .back {
+            margin: 0 auto;
+            height: 46px;
+            border-radius: 16px 16px 0 0;
+            font-size: 10.5px;
+            font-weight: 700;
+          }
+          .plate .back > span {
+            justify-content: flex-start;
+            padding-top: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+          }
+          .plate .k2 {
+            width: 76%;
+            opacity: 0.6;
+            filter: blur(0.6px) saturate(0.8);
+          }
+          .plate .k1 {
+            width: 88%;
+            opacity: 0.92;
+            margin-top: -24px;
+          }
+          .plate .front {
+            margin-top: -22px;
+            min-height: clamp(210px, 42cqw, 286px);
+          }
+          .plate .pl.front > div.side {
+            justify-content: space-between;
+            padding: 18px 20px;
+          }
+          .plate .hmeta {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+          }
+          .plate .hname {
+            font-size: clamp(22px, 7.6cqw, 54px);
+            font-weight: 800;
+            letter-spacing: -0.045em;
+            line-height: 0.95;
+          }
+          .plate .hb {
+            width: clamp(96px, 23cqw, 164px);
+            aspect-ratio: 1;
+            animation: roll 5s ease-in-out infinite;
+          }
+          @keyframes roll {
+            50% {
+              transform: translate(-50%, -50%) translateX(4px);
+            }
+          }
+          .plate .hb .num {
+            font-size: clamp(30px, 8cqw, 56px);
+            display: block;
+            line-height: 1;
+            letter-spacing: -0.05em;
+          }
+          .plate .hb small {
+            display: block;
+            font-size: clamp(7.5px, 1.5cqw, 10px);
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: var(--ink2);
+          }
+          .plate .track {
+            margin-top: 14px;
+            background: #f8f8f5;
+            border-radius: 999px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow:
+              inset 0 1px 3px rgba(0, 0, 0, 0.22),
+              0 1px 0 rgba(255, 255, 255, 0.8);
+            font-size: 10.5px;
+            font-weight: 700;
+            color: var(--ink2);
+            white-space: nowrap;
+          }
+          .plate .phone {
+            background: #f1f1ee;
+            box-shadow:
+              0 0 0 7px #fff,
+              0 0 0 8px #d2d2cd,
+              0 22px 44px -18px rgba(0, 0, 0, 0.45);
+          }
+          .plate .pp {
+            height: 58px;
+            margin-top: 8px;
+            border-radius: 16px;
+          }
+          .plate .pp b {
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+          }
+          .plate .pp small {
+            font-size: 9.5px;
+            font-weight: 600;
+            opacity: 0.78;
+            margin-top: 2px;
+          }
+          .plate .pp .pb {
+            width: 40px;
+            height: 40px;
+            font-size: 11px;
+          }
+          .plate .lbl {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            margin: 14px 4px 0;
+            color: var(--ink2);
+          }
+          .plate .tab {
+            background: #fff;
+            box-shadow: 0 -8px 18px -12px rgba(0, 0, 0, 0.3);
+            color: var(--mute);
+            font-weight: 700;
+            font-size: 11px;
+          }
+          @container (max-width: 520px) {
+            .plate .track > span:last-child {
+              display: none;
+            }
+          }
+        </style>
+        <div class="rhead">
+          <span class="rletter">11</span><span class="rname">Plate</span>
+          <span class="rline"
+            >Route 4 made solid: a match is a two-colour plate with a ball on the seam, and the seam
+            moves with the score.</span
+          >
+        </div>
+        <div class="board">
+          <div class="tile s6 hero stage">
+            <div
+              class="pl back k2"
+              style="--a: #19a8ff; --ac: #0c0c0d; --b: #ff5fa2; --bc: #0c0c0d"
+            >
+              <span>21:15 · KC</span><span>BDS · Rocket League</span>
+            </div>
+            <div class="pl back k1" style="--a: #17171a; --ac: #fff; --b: #e2012d">
+              <span>20:30 · G2</span><span>T1 · League of Legends</span>
+            </div>
+            <div class="pl front" style="--a: #ffd400; --b: #0a8a86; --p: 56.25%">
+              <div class="side">
+                <div class="hmeta"><i class="ping"></i>Live · CS2</div>
+                <div>
+                  <div class="hmeta" style="margin-bottom: 8px">1 map</div>
+                  <div class="hname">Vitality</div>
+                </div>
+              </div>
+              <div class="side">
+                <div class="hmeta">IEM Cologne · Semi-final</div>
+                <div>
+                  <div class="hmeta" style="margin-bottom: 8px; justify-content: flex-end">
+                    0 maps
+                  </div>
+                  <div class="hname">Aurora</div>
+                </div>
+              </div>
+              <div class="pb hb">
+                <div><small>ANUBIS</small><span class="num">9–7</span><small>ROUND 17</small></div>
+              </div>
+            </div>
+            <div class="track">
+              <span>Rounds</span
+              ><span
+                class="balls"
+                data-balls
+                style="
+                  flex: 1;
+                  --bs: 13px;
+                  --bg: clamp(1px, 0.5cqw, 4px);
+                  --bh: clamp(4px, 1.6cqw, 12px);
+                  color: var(--ink);
+                "
+              ></span
+              ><span>first to 13</span>
+            </div>
+          </div>
+
+          <div class="tile s3">
+            <div class="phone">
+              <div style="padding: 22px 14px 0">
+                <div class="row btw" style="align-items: baseline; padding: 0 4px 4px">
+                  <span style="font-size: 28px; font-weight: 800; letter-spacing: -0.05em"
+                    >Today</span
+                  ><span style="font-size: 10.5px; font-weight: 700; color: var(--ink2)"
+                    >Mon 16 Nov</span
+                  >
+                </div>
+                <div
+                  class="pl"
+                  style="--a: #ffd400; --b: #0a8a86; --p: 56.25%; height: 150px; margin-top: 6px"
+                >
+                  <span style="justify-content: space-between; padding: 12px 13px"
+                    ><small
+                      style="
+                        font-size: 10.5px;
+                        font-weight: 800;
+                        display: flex;
+                        gap: 7px;
+                        align-items: center;
+                      "
+                      ><i class="ping" style="width: 7px; height: 7px"></i>Live</small
+                    ><b
+                      style="
+                        font-size: 22px;
+                        font-weight: 800;
+                        letter-spacing: -0.04em;
+                        line-height: 1;
+                      "
+                      >Vitality<small
+                        style="
+                          display: block;
+                          font-size: 10px;
+                          font-weight: 600;
+                          letter-spacing: 0;
+                          margin-top: 4px;
+                        "
+                        >1 map</small
+                      ></b
+                    ></span
+                  >
+                  <span style="justify-content: space-between; padding: 12px 13px"
+                    ><small style="font-size: 10.5px; font-weight: 700">CS2</small
+                    ><b
+                      style="
+                        font-size: 22px;
+                        font-weight: 800;
+                        letter-spacing: -0.04em;
+                        line-height: 1;
+                      "
+                      >Aurora<small
+                        style="
+                          display: block;
+                          font-size: 10px;
+                          font-weight: 600;
+                          letter-spacing: 0;
+                          margin-top: 4px;
+                        "
+                        >0 maps</small
+                      ></b
+                    ></span
+                  >
+                  <b class="pb" style="width: 76px; height: 76px"
+                    ><span
+                      ><span
+                        style="
+                          font-size: 27px;
+                          display: block;
+                          line-height: 1;
+                          letter-spacing: -0.05em;
+                        "
+                        >9–7</span
+                      ><span style="font-size: 7.5px; letter-spacing: 0.1em; color: var(--ink2)"
+                        >ANUBIS</span
+                      ></span
+                    ></b
+                  >
+                </div>
+                <div class="lbl">NEXT</div>
+                <div class="pl pp" style="--a: #17171a; --ac: #fff; --b: #e2012d">
+                  <span><b>G2</b><small>LoL · Final</small></span
+                  ><span><b>T1</b><small>in 50 min</small></span
+                  ><b class="pb">20:30</b>
+                </div>
+                <div class="pl pp" style="--a: #19a8ff; --ac: #0c0c0d; --b: #ff5fa2; --bc: #0c0c0d">
+                  <span><b>KC</b><small>Rocket League</small></span
+                  ><span><b>BDS</b><small>Final</small></span
+                  ><b class="pb">21:15</b>
+                </div>
+                <div
+                  class="pl pp"
+                  style="--a: #00c978; --ac: #0c0c0d; --b: #00c978; --bc: #0c0c0d; --p: 78%"
+                >
+                  <span><b>Cup final</b><small>Trackmania · 16 drivers</small></span
+                  ><span></span><b class="pb">22:00</b>
+                </div>
+                <div class="lbl">EARLIER</div>
+                <div
+                  class="pl pp"
+                  style="
+                    --a: #f2d500;
+                    --ac: #0c0c0d;
+                    --b: #d8d8d3;
+                    --bc: #5c5c61;
+                    --p: 64%;
+                    height: 46px;
+                    filter: saturate(0.55);
+                    opacity: 0.8;
+                    box-shadow: none;
+                  "
+                >
+                  <span><b style="font-size: 13.5px">NAVI</b></span
+                  ><span><b style="font-size: 13.5px">FaZe</b></span
+                  ><b
+                    class="pb"
+                    style="
+                      width: 32px;
+                      height: 32px;
+                      font-size: 10.5px;
+                      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+                    "
+                    >2–1</b
+                  >
+                </div>
+              </div>
+              <div class="tab">
+                <span style="color: var(--ink)">Today</span><span>Schedule</span
+                ><span>Following</span><span>Search</span>
+              </div>
+            </div>
+          </div>
+          <div class="tile s3 notes">
+            <p class="cap">Mark, type</p>
+            <div class="row lock">
+              <svg width="54" height="54"><use href="#m-plate" /></svg
+              ><span class="wm">bearing</span>
+            </div>
+            <div class="icons">
+              <svg width="64" height="64"><use href="#m-plate" /></svg>
+              <svg width="64" height="64" style="--fa: #ffd400; --fb: #0a8a86">
+                <use href="#m-plate" />
+              </svg>
+              <svg width="28" height="28"><use href="#m-plate" /></svg>
+              <svg width="16" height="16"><use href="#m-plate" /></svg>
+            </div>
+            <div class="spec">
+              <div
+                style="font-size: 32px; font-weight: 800; letter-spacing: -0.05em; line-height: 1"
+              >
+                Vitality 13–9
+              </div>
+              <div class="small">
+                Archivo in sentence case, calmer than the capitals of route 4. Matte colour, real
+                shadows, one steel ball.
+              </div>
+            </div>
+            <h4 style="margin-top: 18px">The idea</h4>
+            <p>
+              You read who is ahead from across the room: the leading team's colour takes more of
+              the plate, and the ball sits on the seam with the score.
+            </p>
+            <h4>Built from</h4>
+            <p>The colour halves of 4, the stacking and shadows of 5, the ball of every route.</p>
+            <h4>How live is shown</h4>
+            <p>
+              Movement. A live seam is off-centre and the ball rolls on it. A match that has not
+              started rests at exactly half and half.
+            </p>
+            <h4>The risk</h4>
+            <p>
+              It is the loudest. Two teams in similar colours need a rule, and a full day is a lot
+              of colour on one screen.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <script>
+        (function () {
+          var NS = "http://www.w3.org/2000/svg";
+          var SEQ = "VVAVAAVVVAAVAVAV"; // Anubis so far: 16 rounds, Vitality 9, Aurora 7
+          function el(t, a, p) {
+            var e = document.createElementNS(NS, t);
+            for (var k in a) e.setAttribute(k, a[k]);
+            if (p) p.appendChild(e);
+            return e;
+          }
+          function pt(cx, cy, r, d) {
+            var a = ((d - 90) * Math.PI) / 180;
+            return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+          }
+
+          // Rows of balls. data-balls="from-to" limits the range (for two rows of twelve).
+          document.querySelectorAll("[data-balls]").forEach(function (n) {
+            var r = (n.getAttribute("data-balls") || "0-24").split("-"),
+              from = +r[0] || 0,
+              to = +r[1] || 24;
+            for (var i = from; i < to; i++) {
+              var s = document.createElement("i");
+              s.className =
+                "b " +
+                (i < SEQ.length ? (SEQ[i] === "V" ? "bV" : "bA") : i === SEQ.length ? "bn" : "b0") +
+                (i === 12 && from < 12 ? " ht" : "");
+              n.appendChild(s);
+            }
+          });
+
+          // Route 10: a map plotted round by round, Vitality above the rule and Aurora below.
+          var ch = document.getElementById("rule-chart");
+          if (ch) {
+            var add = function (cls, txt, style) {
+              var n = document.createElement("span");
+              n.className = cls;
+              if (txt) n.textContent = txt;
+              if (style) n.style.cssText = style;
+              ch.appendChild(n);
+              return n;
+            };
+            var marks = function (team, label, color) {
+              add("", label);
+              for (var i = 0; i < 24; i++) {
+                if (i === 12) add("");
+                var c = add("c" + (i === SEQ.length ? " cur" : ""));
+                if (SEQ[i] === team) {
+                  var m = document.createElement("i");
+                  m.className = "m";
+                  m.style.background = color;
+                  c.appendChild(m);
+                } else c.style.minHeight = "8px";
+              }
+            };
+            marks("V", "VIT", "#ffd400");
+            add("");
+            for (var i = 0; i < 24; i++) {
+              if (i === 12) add("ax gap");
+              add("ax" + (i === 23 ? " end" : "") + (i === SEQ.length ? " cur" : ""));
+            }
+            marks("A", "AUR", "#12b5ae");
+            add("");
+            for (var j = 0; j < 24; j++) {
+              if (j === 12) add("n", "HT");
+              add(
+                "n",
+                j === 0 || j === 11 || j === 12 || j === 23 || j === SEQ.length
+                  ? String(j + 1)
+                  : "",
+                j === SEQ.length ? "color:#14171c;font-weight:500" : "",
+              );
+            }
+          }
+
+          // Route 7: the bearing. 24 slots, round 1 just right of the top, running clockwise.
+          document.querySelectorAll("svg[data-ring]").forEach(function (g) {
+            var C = 120,
+              R = 96,
+              dark = g.hasAttribute("data-dark"),
+              INK = dark ? "#fff" : "#0a0b0e";
+            el(
+              "circle",
+              {
+                cx: C,
+                cy: C,
+                r: R,
+                fill: "none",
+                stroke: dark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.62)",
+                "stroke-width": 25,
+              },
+              g,
+            );
+            [R + 12.5, R - 12.5].forEach(function (r) {
+              el(
+                "circle",
+                {
+                  cx: C,
+                  cy: C,
+                  r: r,
+                  fill: "none",
+                  stroke: dark ? "rgba(255,255,255,0.2)" : "rgba(10,11,14,0.1)",
+                  "stroke-width": 1,
+                },
+                g,
+              );
+            });
+            [0, 180].forEach(function (d) {
+              var a = pt(C, C, R - 12.5, d),
+                b = pt(C, C, R + 12.5, d);
+              el(
+                "line",
+                {
+                  x1: a[0],
+                  y1: a[1],
+                  x2: b[0],
+                  y2: b[1],
+                  stroke: dark ? "rgba(255,255,255,0.3)" : "rgba(10,11,14,0.22)",
+                  "stroke-width": 1,
+                },
+                g,
+              );
+            });
+            for (var i = 0; i < 24; i++) {
+              var p = pt(C, C, R, 7.5 + i * 15);
+              if (i < SEQ.length) {
+                el("circle", { cx: p[0], cy: p[1] + 1.6, r: 8.6, fill: "rgba(10,20,40,0.2)" }, g);
+                el(
+                  "circle",
+                  { cx: p[0], cy: p[1], r: 8.6, fill: SEQ[i] === "V" ? "url(#gV)" : "url(#gA)" },
+                  g,
+                );
+              } else if (i === SEQ.length) {
+                el(
+                  "circle",
+                  {
+                    cx: p[0],
+                    cy: p[1],
+                    r: 7.4,
+                    fill: "none",
+                    stroke: INK,
+                    "stroke-width": 1.8,
+                    class: "pulse",
+                  },
+                  g,
+                );
+                el("circle", { cx: p[0], cy: p[1], r: 2.2, fill: INK }, g);
+              } else {
+                el(
+                  "circle",
+                  {
+                    cx: p[0],
+                    cy: p[1],
+                    r: 5,
+                    fill: dark ? "rgba(255,255,255,0.14)" : "rgba(10,11,14,0.09)",
+                  },
+                  g,
+                );
+              }
+            }
+            [
+              [0, "1"],
+              [11, "12"],
+              [12, "13"],
+              [23, "24"],
+            ].forEach(function (l) {
+              var q = pt(C, C, R + 21.5, 7.5 + l[0] * 15);
+              var t = el(
+                "text",
+                {
+                  x: q[0],
+                  y: q[1],
+                  "text-anchor": "middle",
+                  "dominant-baseline": "central",
+                  "font-family": "Geist Mono, monospace",
+                  "font-size": 7.5,
+                  fill: dark ? "rgba(255,255,255,0.6)" : "rgba(10,11,14,0.55)",
+                },
+                g,
+              );
+              t.textContent = l[1];
+            });
+          });
+        })();
+      </script>
+    </div>
+  </body>
+</html>

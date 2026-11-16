@@ -1,0 +1,1495 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bearing identity, round 4</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400..800&family=Geist:wght@400..800&family=Geist+Mono:wght@400;500&family=Hanken+Grotesk:wght@400..800&family=Instrument+Sans:wght@400..700&family=Inter+Tight:wght@400..800&family=Schibsted+Grotesk:wght@400..800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      .id {
+        --face: "Hanken Grotesk";
+        --dw: 800;
+        --dt: -0.05em;
+        --ink: #0a0b0e;
+        --ink2: #555b66;
+        --mute: #8e95a1;
+        --mono: "Geist Mono", monospace;
+        font-family: var(--font-sans, system-ui, sans-serif);
+        color: var(--foreground, #111);
+      }
+      .id *,
+      .id *::before,
+      .id *::after {
+        box-sizing: border-box;
+      }
+      .intro {
+        font-size: 14px;
+        line-height: 1.55;
+        color: var(--muted-foreground, #666);
+        margin: 0 0 18px;
+        max-width: 66ch;
+      }
+      .faces {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin: 0 0 26px;
+        font-size: 12.5px;
+        color: var(--muted-foreground, #666);
+      }
+      .faces button {
+        font: inherit;
+        color: var(--foreground, #111);
+        background: transparent;
+        border: 1px solid var(--border, #ccc);
+        border-radius: 999px;
+        padding: 5px 12px;
+        cursor: pointer;
+      }
+      .faces button.on {
+        background: var(--foreground, #111);
+        color: var(--background, #fff);
+        border-color: var(--foreground, #111);
+      }
+      .sec {
+        margin: 0 0 40px;
+      }
+      .sec:last-of-type {
+        margin-bottom: 8px;
+      }
+      .rhead {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 0 0 12px;
+      }
+      .rletter {
+        font-family: var(--font-mono, monospace);
+        font-size: 12px;
+        padding: 2px 8px;
+        border: 1px solid var(--border, #ccc);
+        border-radius: 999px;
+        color: var(--muted-foreground, #666);
+      }
+      .rname {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .rline {
+        font-size: 14px;
+        color: var(--muted-foreground, #666);
+        flex: 1 1 260px;
+      }
+      .board {
+        border-radius: var(--radius, 12px);
+        padding: 16px;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 12px;
+        background: #eef0f4;
+        color: var(--ink);
+        font-family: var(--face), system-ui, sans-serif;
+      }
+      .tile {
+        border-radius: 18px;
+        padding: 16px;
+        min-width: 0;
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.95);
+        box-shadow: 0 10px 26px -18px rgba(10, 20, 40, 0.3);
+      }
+      .s2 {
+        grid-column: span 2;
+      }
+      .s3 {
+        grid-column: span 3;
+      }
+      .s6 {
+        grid-column: span 6;
+      }
+      .col {
+        display: grid;
+        gap: 12px;
+        align-content: start;
+        min-width: 0;
+      }
+      .hero {
+        container-type: inline-size;
+      }
+      .cap {
+        font: 500 10.5px var(--mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin: 0 0 12px;
+        color: var(--mute);
+      }
+      .mono {
+        font-family: var(--mono);
+      }
+      .dsp {
+        font-weight: var(--dw);
+        letter-spacing: var(--dt);
+        line-height: 1;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+      }
+      .btw {
+        justify-content: space-between;
+      }
+      .tnum {
+        font-variant-numeric: tabular-nums;
+      }
+      .sub {
+        color: var(--ink2);
+        font-size: 11px;
+      }
+      .ping {
+        position: relative;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        display: inline-block;
+        flex: none;
+      }
+      .ping::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 1.5px solid currentColor;
+        animation: ping 1.8s ease-out infinite;
+      }
+      @keyframes ping {
+        0% {
+          transform: scale(1);
+          opacity: 0.9;
+        }
+        100% {
+          transform: scale(3);
+          opacity: 0;
+        }
+      }
+      .pulse {
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        50% {
+          opacity: 0.25;
+        }
+      }
+
+      /* The one rule: a dot is one unit of play, in the colour of whoever took it. Always flat. */
+      .dots {
+        display: flex;
+        align-items: center;
+        gap: var(--dg, 3px);
+        min-width: 0;
+      }
+      .dots i {
+        flex: 0 1 var(--ds, 12px);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        min-width: 0;
+        box-shadow: inset 0 0 0 1px rgba(10, 11, 14, 0.16);
+      }
+      .dots .a {
+        background: var(--a);
+      }
+      .dots .b {
+        background: var(--b);
+      }
+      .dots .h {
+        background: linear-gradient(90deg, var(--a) 50%, var(--b) 50%);
+      }
+      .dots .m {
+        flex-basis: calc(var(--ds, 12px) * 1.5);
+      }
+      .dots .l {
+        flex-basis: calc(var(--ds, 12px) * 2.1);
+      }
+      .dots .o {
+        box-shadow: inset 0 0 0 1.5px rgba(10, 11, 14, 0.2);
+      }
+      .dots .n {
+        box-shadow: inset 0 0 0 2px var(--ink);
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+      .dots .g {
+        flex: 0 1 var(--dh, 8px);
+        aspect-ratio: auto;
+        box-shadow: none;
+      }
+      .dots .p1 {
+        background: #00c978;
+      }
+      .dots .p2 {
+        background: #ff8a00;
+      }
+      .dots .p3 {
+        background: #7a5cff;
+      }
+      .dots .p4 {
+        background: #19a8ff;
+      }
+
+      /* Light and glass, both flat: no bevels, no highlights. */
+      .light {
+        position: absolute;
+        inset: 0;
+        background: #f4f5f8;
+        overflow: hidden;
+        z-index: -1;
+      }
+      .light i {
+        position: absolute;
+        width: 70%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        filter: blur(44px);
+        opacity: 0.85;
+      }
+      .light i:first-child {
+        left: -24%;
+        top: -34%;
+        background: var(--a);
+        animation: drift 14s ease-in-out infinite;
+      }
+      .light i:last-child {
+        right: -24%;
+        bottom: -44%;
+        background: var(--b);
+        animation: drift 14s ease-in-out infinite reverse;
+      }
+      @keyframes drift {
+        50% {
+          transform: translate(9%, 7%) scale(1.08);
+        }
+      }
+      .glass {
+        background: rgba(255, 255, 255, 0.5);
+        -webkit-backdrop-filter: blur(22px) saturate(180%);
+        backdrop-filter: blur(22px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        box-shadow: 0 10px 28px -14px rgba(10, 20, 40, 0.3);
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        white-space: nowrap;
+      }
+      .lit {
+        background:
+          radial-gradient(
+            46% 140% at 0% 50%,
+            color-mix(in srgb, var(--a) var(--k, 46%), transparent),
+            transparent 72%
+          ),
+          radial-gradient(
+            46% 140% at 100% 50%,
+            color-mix(in srgb, var(--b) var(--k, 46%), transparent),
+            transparent 72%
+          ),
+          #fff;
+      }
+
+      /* Live header, row form */
+      .stage {
+        padding: 22px 22px 24px;
+        background: linear-gradient(180deg, #e6e9ee, #d9dde4);
+        border: 0;
+      }
+      .bk {
+        margin: 0 auto;
+        height: 46px;
+        border-radius: 16px 16px 0 0;
+        font-size: 10.5px;
+        font-weight: 600;
+        text-align: center;
+        padding-top: 5px;
+        color: var(--ink2);
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .bk2 {
+        width: 76%;
+        opacity: 0.55;
+        --k: 30%;
+      }
+      .bk1 {
+        width: 88%;
+        opacity: 0.92;
+        margin-top: -24px;
+        --k: 38%;
+        box-shadow: 0 -6px 14px -8px rgba(16, 24, 40, 0.18);
+      }
+      .front {
+        position: relative;
+        margin-top: -22px;
+        border-radius: 22px;
+        padding: 18px 22px 22px;
+        box-shadow:
+          0 1px 1px rgba(16, 24, 40, 0.05),
+          0 6px 14px -4px rgba(16, 24, 40, 0.12),
+          0 28px 46px -18px rgba(16, 24, 40, 0.32);
+      }
+      .lh {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: baseline;
+        gap: 12px;
+        margin: 24px 0 30px;
+      }
+      .hname {
+        font-size: clamp(22px, 7cqw, 50px);
+      }
+      .hscore {
+        font-size: clamp(22px, 7cqw, 50px);
+        font-weight: 400;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .stops {
+        display: grid;
+        grid-template-columns: 0.62fr 2.2fr 0.62fr 0.5fr;
+        position: relative;
+      }
+      .stop {
+        position: relative;
+        padding: 38px 8px 0 0;
+        font-size: clamp(10.5px, 2cqw, 13px);
+        line-height: 1.3;
+      }
+      .stop::before {
+        content: "";
+        position: absolute;
+        top: 9px;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: var(--ink);
+      }
+      .stop::after {
+        content: "";
+        position: absolute;
+        top: 1px;
+        left: 0;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #fff;
+        border: 6px solid var(--ink);
+      }
+      .stop.done::after {
+        background: var(--ink);
+      }
+      .stop.now::before {
+        display: none;
+      }
+      .stop.now::after {
+        width: 30px;
+        height: 30px;
+        top: -2px;
+        left: -3px;
+        border-width: 5px;
+        background: linear-gradient(90deg, var(--a) 50%, var(--b) 50%);
+      }
+      .stop.now .dots {
+        position: absolute;
+        top: 1px;
+        left: 36px;
+        right: 10px;
+        height: 24px;
+        --ds: 13px;
+        --dg: clamp(1px, 0.5cqw, 4px);
+        --dh: clamp(4px, 1.6cqw, 12px);
+      }
+      .stop.fut::before {
+        background: rgba(10, 11, 14, 0.14);
+      }
+      .stop.fut::after {
+        border-color: #c9cdd4;
+      }
+      .stop.end::before {
+        background: repeating-linear-gradient(
+          90deg,
+          rgba(10, 11, 14, 0.16) 0 8px,
+          transparent 8px 14px
+        );
+        right: 20px;
+      }
+      .stop b {
+        display: block;
+        font-weight: var(--dw);
+        font-size: 1.12em;
+        letter-spacing: -0.02em;
+      }
+
+      /* Ring form */
+      .brg {
+        position: relative;
+        aspect-ratio: 1;
+        container-type: inline-size;
+        flex: none;
+        --trk: rgba(10, 11, 14, 0.14);
+        --emp: rgba(10, 11, 14, 0.2);
+        --edge: rgba(10, 11, 14, 0.16);
+        --lab: rgba(10, 11, 14, 0.55);
+        --cur: #0a0b0e;
+      }
+      .brg svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+      .brg .ra {
+        fill: var(--a);
+        stroke: var(--edge);
+      }
+      .brg .rb {
+        fill: var(--b);
+        stroke: var(--edge);
+      }
+      .core {
+        position: absolute;
+        inset: 22%;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        text-align: center;
+      }
+      .core .dsp {
+        font-size: 22cqw;
+        display: block;
+      }
+      .core small {
+        display: block;
+        font: 500 max(7px, 3.6cqw) var(--mono);
+        letter-spacing: 0.08em;
+        color: var(--ink2);
+      }
+
+      /* Phone */
+      .phone {
+        width: 100%;
+        max-width: 292px;
+        height: 600px;
+        border-radius: 40px;
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
+        background: #f4f5f8;
+        box-shadow:
+          0 0 0 7px #fff,
+          0 0 0 8px #d6dae1,
+          0 22px 44px -18px rgba(10, 20, 40, 0.45);
+      }
+      .lr {
+        display: grid;
+        grid-template-columns: 36px 40px minmax(0, 1fr) auto;
+        gap: 9px;
+        align-items: center;
+        padding: 8px 0;
+        font-size: 12.5px;
+        line-height: 1.3;
+        border-top: 1px solid rgba(10, 11, 14, 0.08);
+      }
+      .lr:first-child {
+        border-top: 0;
+      }
+      .duo {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: conic-gradient(var(--ink) calc(var(--p) * 1%), rgba(10, 11, 14, 0.13) 0);
+        display: grid;
+        place-items: center;
+      }
+      .duo::after {
+        content: "";
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: linear-gradient(90deg, var(--a) 50%, var(--b) 50%);
+        border: 2px solid #fff;
+      }
+      .tab {
+        position: absolute;
+        left: 22px;
+        right: 22px;
+        bottom: 14px;
+        height: 50px;
+        border-radius: 999px;
+        padding: 0 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 10.5px;
+        font-weight: 600;
+        color: var(--ink2);
+      }
+
+      /* Dark */
+      .dark {
+        background: #0a0b0e;
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.08);
+        --ink: #fff;
+        --ink2: #aab0bb;
+      }
+      .dark .light {
+        background: #0a0b0e;
+      }
+      .dark .light i {
+        opacity: 0.42;
+      }
+      .dark .pill,
+      .dark .glass {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.16);
+      }
+      .dark .dots i {
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+      }
+      .dark .dots .o {
+        box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.3);
+      }
+      .dark .dots .n {
+        box-shadow: inset 0 0 0 2px #fff;
+      }
+      .dark .dots .g {
+        box-shadow: none;
+      }
+
+      /* Games sheet */
+      .grow {
+        display: grid;
+        grid-template-columns: 190px minmax(0, 1fr) auto;
+        gap: 10px 22px;
+        align-items: center;
+        padding: 16px 0;
+        border-top: 1px solid rgba(10, 11, 14, 0.09);
+      }
+      .grow:first-of-type {
+        border-top: 0;
+        padding-top: 4px;
+      }
+      .grow h3 {
+        margin: 0 0 3px;
+        font-size: 16px;
+        font-weight: var(--dw);
+        letter-spacing: -0.03em;
+      }
+      .grow p {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.4;
+        color: var(--ink2);
+      }
+      .grow .res {
+        font-size: 12.5px;
+        font-weight: 600;
+        text-align: right;
+        white-space: nowrap;
+      }
+      .tl {
+        position: relative;
+        height: 34px;
+      }
+      .tl::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 16px;
+        height: 2px;
+        background: rgba(10, 11, 14, 0.85);
+      }
+      .tl i {
+        position: absolute;
+        top: 10px;
+        width: 14px;
+        height: 14px;
+        margin-left: -7px;
+        border-radius: 50%;
+        box-shadow: inset 0 0 0 1px rgba(10, 11, 14, 0.16);
+      }
+      .tl span {
+        position: absolute;
+        top: 24px;
+        font: 500 8.5px var(--mono);
+        color: var(--ink2);
+        transform: translateX(-50%);
+      }
+
+      /* Logos */
+      .lg {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .lg .wm {
+        font-size: 30px;
+        font-weight: var(--dw);
+        letter-spacing: var(--dt);
+        line-height: 1;
+      }
+      .lg p {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.45;
+        color: var(--ink2);
+      }
+      .ico {
+        display: grid;
+        place-items: center;
+        flex: none;
+        overflow: hidden;
+      }
+      .i48 {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+      }
+      .i16 {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+      }
+      .pick {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        font: 500 9.5px var(--mono);
+        letter-spacing: 0.06em;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: #fff;
+      }
+
+      /* Type specimens */
+      .ty {
+        cursor: pointer;
+      }
+      .ty.on {
+        outline: 2px solid var(--ink);
+        outline-offset: -2px;
+      }
+      .ty h3 {
+        margin: 0;
+        font: 500 10.5px var(--mono);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--mute);
+      }
+      .ty .big {
+        font-size: 34px;
+        line-height: 1;
+        margin: 14px 0 8px;
+      }
+      .ty .num {
+        font-size: 20px;
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+      }
+      .ty p {
+        margin: 8px 0 0;
+        font-size: 12.5px;
+        line-height: 1.45;
+        color: var(--ink2);
+      }
+
+      @container (max-width: 520px) {
+        .stage {
+          padding: 14px 12px 16px;
+        }
+        .front {
+          padding: 14px 14px 18px;
+        }
+      }
+      @media (max-width: 600px) {
+        .board {
+          grid-template-columns: minmax(0, 1fr);
+          padding: 12px;
+        }
+        .s2,
+        .s3,
+        .s6 {
+          grid-column: auto;
+        }
+        .grow {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .grow .res {
+          text-align: left;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .id *,
+        .id *::after {
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="id" id="bearing-r4">
+      <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+        <symbol id="l-arc" viewBox="0 0 32 32">
+          <path
+            d="M26.34 14.18 A10.5 10.5 0 1 1 17.82 5.66"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="5"
+            stroke-linecap="round"
+          />
+          <circle cx="23.42" cy="8.58" r="2.8" fill="var(--d1, currentColor)" />
+        </symbol>
+        <symbol id="l-rings" viewBox="0 0 32 32">
+          <circle cx="16" cy="16" r="12.6" fill="none" stroke="currentColor" stroke-width="2.8" />
+          <circle cx="16" cy="16" r="5.6" fill="none" stroke="currentColor" stroke-width="2.8" />
+          <circle cx="23.45" cy="10.78" r="2.5" fill="var(--d1, currentColor)" />
+        </symbol>
+        <symbol id="l-stem" viewBox="0 0 32 32">
+          <rect x="6.6" y="3" width="4.8" height="26" rx="2.4" fill="currentColor" />
+          <circle cx="19.4" cy="22" r="7" fill="var(--d1, currentColor)" />
+        </symbol>
+        <symbol id="l-dots" viewBox="0 0 32 32">
+          <circle cx="16" cy="5" r="2.7" fill="var(--d1, currentColor)" />
+          <circle cx="23.78" cy="8.22" r="2" fill="none" stroke="currentColor" stroke-width="1.5" />
+          <circle cx="27" cy="16" r="2.7" fill="var(--d2, currentColor)" />
+          <circle cx="23.78" cy="23.78" r="2.7" fill="var(--d1, currentColor)" />
+          <circle cx="16" cy="27" r="2.7" fill="var(--d2, currentColor)" />
+          <circle cx="8.22" cy="23.78" r="2.7" fill="var(--d1, currentColor)" />
+          <circle cx="5" cy="16" r="2.7" fill="var(--d1, currentColor)" />
+          <circle cx="8.22" cy="8.22" r="2.7" fill="var(--d2, currentColor)" />
+        </symbol>
+        <symbol id="l-dotb" viewBox="0 0 32 32">
+          <circle cx="8.6" cy="5.4" r="2.5" fill="var(--d2, currentColor)" />
+          <circle cx="8.6" cy="12.3" r="2.5" fill="var(--d1, currentColor)" />
+          <circle cx="8.6" cy="19.2" r="2.5" fill="var(--d2, currentColor)" />
+          <circle cx="8.6" cy="26.1" r="2.5" fill="var(--d1, currentColor)" />
+          <circle cx="20.4" cy="21.6" r="7" fill="currentColor" />
+        </symbol>
+      </svg>
+
+      <p class="intro">
+        One direction now, not five. It is route 7 with everything made flat: no shaded balls, no
+        lens, no paper. The live headers you liked in 8 and 9 are merged into one, and 7's floating
+        navigation stays. Below it are the three open questions worked through: every game, the
+        logo, the typeface.
+      </p>
+      <div class="faces" role="group" aria-label="Typeface">
+        <span>Typeface on this page:</span>
+        <button data-face="Hanken Grotesk" data-dw="800" data-dt="-0.05em" class="on">
+          Hanken Grotesk
+        </button>
+        <button data-face="Inter Tight" data-dw="700" data-dt="-0.035em">Inter Tight</button>
+        <button data-face="Figtree" data-dw="800" data-dt="-0.045em">Figtree</button>
+        <button data-face="Geist" data-dw="700" data-dt="-0.045em">Geist</button>
+        <button data-face="Schibsted Grotesk" data-dw="800" data-dt="-0.045em">
+          Schibsted Grotesk
+        </button>
+        <button data-face="Instrument Sans" data-dw="700" data-dt="-0.04em">Instrument Sans</button>
+      </div>
+
+      <!-- ═════════ 1 · The direction ═════════ -->
+      <section class="sec">
+        <div class="rhead">
+          <span class="rletter">1</span><span class="rname">The direction</span>
+          <span class="rline"
+            >White, glass and the teams' own light. A round is a flat dot. Live is the thing that is
+            lit and moving.</span
+          >
+        </div>
+        <div class="board">
+          <div class="tile s6 hero stage">
+            <div class="bk bk2 lit" style="--a: #19a8ff; --b: #ff5fa2">
+              21:15 · KC v BDS · Rocket League
+            </div>
+            <div class="bk bk1 lit" style="--a: #17171a; --b: #e2012d">
+              20:30 · G2 v T1 · League of Legends · in 50 min
+            </div>
+            <div class="front lit" style="--a: #ffd400; --b: #12b5ae">
+              <div class="row btw" style="gap: 8px; flex-wrap: wrap">
+                <span class="pill"><i class="ping"></i>Live · round 17</span
+                ><span class="pill">CS2 · IEM Cologne · Semi-final</span>
+              </div>
+              <div class="lh">
+                <div class="dsp hname">Vitality</div>
+                <div class="hscore tnum">9 – 7</div>
+                <div class="dsp hname" style="text-align: right">Aurora</div>
+              </div>
+              <div class="stops">
+                <div class="stop done">
+                  <b>Mirage</b><span class="sub" style="font-size: 1em">13–9</span>
+                </div>
+                <div class="stop now">
+                  <div class="dots" data-dots="cs"></div>
+                  <b>Anubis</b><span style="font-weight: 600">Round 17, first to 13</span>
+                </div>
+                <div class="stop fut">
+                  <b>Inferno</b><span class="sub" style="font-size: 1em">if needed</span>
+                </div>
+                <div class="stop fut end">
+                  <b>Final</b><span class="sub" style="font-size: 1em">Sun 18:00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tile s3">
+            <div class="phone" style="--a: #ffd400; --b: #12b5ae">
+              <div class="light">
+                <i style="width: 120%; left: -50%; top: -8%"></i
+                ><i style="width: 120%; right: -55%; bottom: 22%"></i>
+              </div>
+              <div style="position: relative; padding: 22px 16px 0">
+                <div class="row btw" style="align-items: baseline; padding: 0 6px 10px">
+                  <span class="dsp" style="font-size: 28px">Today</span
+                  ><span class="mono" style="font-size: 10.5px; color: rgba(10, 11, 14, 0.6)"
+                    >MON 16 NOV</span
+                  >
+                </div>
+                <div class="glass" style="border-radius: 28px; padding: 13px 16px 14px">
+                  <div class="row btw" style="font-size: 11px; font-weight: 600">
+                    <span class="row" style="gap: 7px"><i class="ping"></i>Live</span
+                    ><span style="color: var(--ink2)">CS2 · Semi-final</span>
+                  </div>
+                  <div class="brg" style="width: 166px; margin: 6px auto 4px">
+                    <svg data-ring viewBox="0 0 240 240"></svg>
+                    <div class="core">
+                      <div>
+                        <small>ANUBIS</small><span class="dsp tnum">9–7</span
+                        ><small>ROUND 17</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row btw">
+                    <span
+                      ><b class="dsp" style="font-size: 19px">Vitality</b><br /><span
+                        class="sub"
+                        style="font-weight: 600"
+                        >1 map</span
+                      ></span
+                    >
+                    <span style="text-align: right"
+                      ><b class="dsp" style="font-size: 19px">Aurora</b><br /><span
+                        class="sub"
+                        style="font-weight: 600"
+                        >0 maps</span
+                      ></span
+                    >
+                  </div>
+                </div>
+                <div class="glass" style="border-radius: 24px; padding: 4px 14px; margin-top: 10px">
+                  <div class="lr">
+                    <span class="duo" style="--a: #17171a; --b: #e2012d; --p: 72"></span
+                    ><span class="mono tnum" style="font-weight: 500">20:30</span
+                    ><span
+                      ><b style="font-weight: 600">G2 v T1</b><br /><span class="sub"
+                        >LoL · Final</span
+                      ></span
+                    ><span class="sub mono">50m</span>
+                  </div>
+                  <div class="lr">
+                    <span class="duo" style="--a: #19a8ff; --b: #ff5fa2; --p: 47"></span
+                    ><span class="mono tnum" style="font-weight: 500">21:15</span
+                    ><span
+                      ><b style="font-weight: 600">KC v BDS</b><br /><span class="sub"
+                        >Rocket League</span
+                      ></span
+                    ><span class="sub mono">1h35</span>
+                  </div>
+                  <div class="lr">
+                    <span class="duo" style="--a: #00c978; --b: #00c978; --p: 22"></span
+                    ><span class="mono tnum" style="font-weight: 500">22:00</span
+                    ><span
+                      ><b style="font-weight: 600">Cup final</b><br /><span class="sub"
+                        >Trackmania</span
+                      ></span
+                    ><span class="sub mono">2h20</span>
+                  </div>
+                </div>
+              </div>
+              <div class="tab glass">
+                <span style="color: var(--ink)">Today</span><span>Schedule</span
+                ><span>Following</span><span>Search</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="col s3">
+            <div class="tile hero" style="padding: 0; --a: #ffd400; --b: #12b5ae">
+              <div class="light"><i></i><i></i></div>
+              <div class="row btw" style="padding: 14px 14px 0; gap: 8px; flex-wrap: wrap">
+                <span class="pill"><i class="ping"></i>Live</span
+                ><span class="pill">Match page, ring form</span>
+              </div>
+              <div class="row btw" style="padding: 16px 18px 0; align-items: baseline">
+                <span
+                  ><b class="dsp" style="font-size: 26px">Vitality</b><br /><span
+                    class="sub"
+                    style="font-weight: 600; color: rgba(10, 11, 14, 0.62)"
+                    >1 map</span
+                  ></span
+                >
+                <span style="text-align: right"
+                  ><b class="dsp" style="font-size: 26px">Aurora</b><br /><span
+                    class="sub"
+                    style="font-weight: 600; color: rgba(10, 11, 14, 0.62)"
+                    >0 maps</span
+                  ></span
+                >
+              </div>
+              <div class="brg" style="width: min(72cqw, 250px); margin: 2px auto 18px">
+                <svg data-ring viewBox="0 0 240 240"></svg>
+                <div class="core">
+                  <div>
+                    <small>ANUBIS</small><span class="dsp tnum">9–7</span><small>FIRST TO 13</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="tile dark" style="padding: 14px 16px 76px; --a: #ffd400; --b: #12b5ae">
+              <div class="light"><i></i><i></i></div>
+              <div class="row btw">
+                <span class="pill"><i class="ping"></i>Live · round 17</span
+                ><span class="mono" style="font-size: 10px; color: #aab0bb; letter-spacing: 0.08em"
+                  >DARK MODE</span
+                >
+              </div>
+              <div class="row btw" style="margin: 18px 0 14px; align-items: baseline">
+                <b class="dsp" style="font-size: 24px">Vitality</b
+                ><span class="tnum" style="font-size: 24px; letter-spacing: -0.03em">9 – 7</span
+                ><b class="dsp" style="font-size: 24px">Aurora</b>
+              </div>
+              <div
+                class="dots"
+                data-dots="cs"
+                style="--ds: 11px; --dg: 2px; --dh: 7px; justify-content: center"
+              ></div>
+              <div class="tab glass" style="color: #aab0bb">
+                <span style="color: #fff">Today</span><span>Schedule</span><span>Following</span
+                ><span>Search</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════ 2 · Every game ═════════ -->
+      <section class="sec">
+        <div class="rhead">
+          <span class="rletter">2</span><span class="rname">Every game, one rule</span>
+          <span class="rline"
+            >A dot is one thing won, in the colour of whoever won it, in the order it
+            happened.</span
+          >
+        </div>
+        <div class="board">
+          <div class="tile s6" style="padding: 14px 20px 8px">
+            <div class="grow" style="--a: #ffd400; --b: #12b5ae">
+              <div>
+                <h3>Counter-Strike 2</h3>
+                <p>A dot is a round. The gap is half-time.</p>
+              </div>
+              <div class="dots" data-dots="cs" style="--ds: 14px; --dh: 12px"></div>
+              <div class="res">Vitality 9–7 Aurora</div>
+            </div>
+            <div class="grow" style="--a: #17171a; --b: #e2012d">
+              <div>
+                <h3>League of Legends</h3>
+                <p>A dot is an objective. Bigger matters more: tower, dragon, baron.</p>
+              </div>
+              <div
+                class="dots"
+                data-dots="a b a am b a bm a am a al b a n"
+                style="--ds: 11px; --dg: 4px"
+              ></div>
+              <div class="res">G2 9–4 T1 · 27:10</div>
+            </div>
+            <div class="grow" style="--a: #19a8ff; --b: #ff5fa2">
+              <div>
+                <h3>Rocket League</h3>
+                <p>A dot is a goal, placed at the moment it was scored.</p>
+              </div>
+              <div class="tl">
+                <i style="left: 14%; background: var(--a)"></i
+                ><i style="left: 30%; background: var(--b)"></i
+                ><i style="left: 45%; background: var(--a)"></i
+                ><i style="left: 61%; background: var(--a)"></i
+                ><i style="left: 72%; background: var(--b)"></i>
+                <i
+                  class="pulse"
+                  style="left: 76%; background: transparent; box-shadow: inset 0 0 0 2px #0a0b0e"
+                ></i>
+                <span style="left: 0; transform: none">5:00</span><span style="left: 50%">2:30</span
+                ><span style="left: 100%; transform: translateX(-100%)">0:00</span>
+              </div>
+              <div class="res">KC 3–2 BDS · 1:12 left</div>
+            </div>
+            <div class="grow" style="--a: #0a0b0e; --b: #fff">
+              <div>
+                <h3>Chess</h3>
+                <p>
+                  A dot is a game. A draw is shared. Players have no colours, so they get black and
+                  white.
+                </p>
+              </div>
+              <div class="dots" data-dots="h a h h n o" style="--ds: 18px; --dg: 6px"></div>
+              <div class="res">Carlsen 2½–1½ Nakamura</div>
+            </div>
+            <div class="grow">
+              <div>
+                <h3>Trackmania</h3>
+                <p>A dot is a round, in the colour of the driver who won it.</p>
+              </div>
+              <div>
+                <div
+                  class="dots"
+                  data-dots="p1 p2 p1 p3 p1 p4 p2 n o o"
+                  style="--ds: 16px; --dg: 5px"
+                ></div>
+                <div
+                  class="dots"
+                  style="
+                    --ds: 8px;
+                    --dg: 5px;
+                    margin-top: 9px;
+                    font-size: 11px;
+                    color: var(--ink2);
+                    flex-wrap: wrap;
+                    row-gap: 4px;
+                  "
+                >
+                  <i class="p1" style="flex: none; width: 8px"></i>Affi 3&nbsp;&nbsp;<i
+                    class="p2"
+                    style="flex: none; width: 8px"
+                  ></i
+                  >Mudda 2&nbsp;&nbsp;<i class="p3" style="flex: none; width: 8px"></i>Otaaaq
+                  1&nbsp;&nbsp;<i class="p4" style="flex: none; width: 8px"></i>Bren 1
+                </div>
+              </div>
+              <div class="res">Cup final · round 8</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════ 3 · Logo ═════════ -->
+      <section class="sec">
+        <div class="rhead">
+          <span class="rletter">3</span><span class="rname">Logo</span>
+          <span class="rline"
+            >Five candidates, all flat and all black. Each is shown with the name, as an app icon,
+            lit by a live match, and at 16 pixels.</span
+          >
+        </div>
+        <div class="board">
+          <div class="tile s2 lg">
+            <span class="pick">MY PICK</span>
+            <p class="cap" style="margin: 0">A · Arc</p>
+            <div class="row" style="gap: 10px">
+              <svg width="40" height="40"><use href="#l-arc" /></svg><span class="wm">bearing</span>
+            </div>
+            <div class="row" style="gap: 10px; align-items: flex-end">
+              <span class="ico i48" style="background: #0a0b0e; color: #fff"
+                ><svg width="32" height="32"><use href="#l-arc" /></svg
+              ></span>
+              <span
+                class="ico i48"
+                style="
+                  background: #fff;
+                  --d1: #ffd400;
+                  box-shadow: 0 6px 14px -8px rgba(10, 20, 40, 0.4);
+                "
+                ><svg width="32" height="32"><use href="#l-arc" /></svg
+              ></span>
+              <span class="ico i16" style="background: #0a0b0e; color: #fff"
+                ><svg width="12" height="12"><use href="#l-arc" /></svg
+              ></span>
+            </div>
+            <p>
+              The ring of rounds with one dot on it: the round being played. The one from route 7,
+              and the boldest at small sizes.
+            </p>
+          </div>
+          <div class="tile s2 lg">
+            <p class="cap" style="margin: 0">B · Rings</p>
+            <div class="row" style="gap: 10px">
+              <svg width="40" height="40"><use href="#l-rings" /></svg
+              ><span class="wm">bearing</span>
+            </div>
+            <div class="row" style="gap: 10px; align-items: flex-end">
+              <span class="ico i48" style="background: #0a0b0e; color: #fff"
+                ><svg width="34" height="34"><use href="#l-rings" /></svg
+              ></span>
+              <span
+                class="ico i48"
+                style="
+                  background: #fff;
+                  --d1: #12b5ae;
+                  box-shadow: 0 6px 14px -8px rgba(10, 20, 40, 0.4);
+                "
+                ><svg width="34" height="34"><use href="#l-rings" /></svg
+              ></span>
+              <span class="ico i16" style="background: #0a0b0e; color: #fff"
+                ><svg width="12" height="12"><use href="#l-rings" /></svg
+              ></span>
+            </div>
+            <p>
+              A real bearing seen from the side, the one you called not too bad. Drawn heavier here.
+              It thins out most at 16 pixels.
+            </p>
+          </div>
+          <div class="tile s2 lg">
+            <p class="cap" style="margin: 0">C · Stem</p>
+            <div class="row" style="gap: 10px">
+              <svg width="40" height="40"><use href="#l-stem" /></svg
+              ><span class="wm">bearing</span>
+            </div>
+            <div class="row" style="gap: 10px; align-items: flex-end">
+              <span class="ico i48" style="background: #0a0b0e; color: #fff"
+                ><svg width="34" height="34"><use href="#l-stem" /></svg
+              ></span>
+              <span
+                class="ico i48"
+                style="
+                  background: #fff;
+                  --d1: #ffd400;
+                  box-shadow: 0 6px 14px -8px rgba(10, 20, 40, 0.4);
+                "
+                ><svg width="34" height="34"><use href="#l-stem" /></svg
+              ></span>
+              <span class="ico i16" style="background: #0a0b0e; color: #fff"
+                ><svg width="12" height="12"><use href="#l-stem" /></svg
+              ></span>
+            </div>
+            <p>
+              A letter b made of a line and a ball. The simplest and the most like a letter; it says
+              the least about scores.
+            </p>
+          </div>
+          <div class="tile s3 lg">
+            <p class="cap" style="margin: 0">D · Dot ring</p>
+            <div class="row" style="gap: 10px">
+              <svg width="40" height="40"><use href="#l-dots" /></svg
+              ><span class="wm">bearing</span>
+            </div>
+            <div class="row" style="gap: 10px; align-items: flex-end">
+              <span class="ico i48" style="background: #0a0b0e; color: #fff"
+                ><svg width="34" height="34"><use href="#l-dots" /></svg
+              ></span>
+              <span
+                class="ico i48"
+                style="
+                  background: #fff;
+                  --d1: #ffd400;
+                  --d2: #12b5ae;
+                  box-shadow: 0 6px 14px -8px rgba(10, 20, 40, 0.4);
+                "
+                ><svg width="34" height="34"><use href="#l-dots" /></svg
+              ></span>
+              <span class="ico i16" style="background: #0a0b0e; color: #fff"
+                ><svg width="12" height="12"><use href="#l-dots" /></svg
+              ></span>
+            </div>
+            <p>
+              The scoreboard itself: eight rounds, one still open. It carries two team colours best,
+              but it can be mistaken for a loading spinner and nearly disappears at 16 pixels.
+            </p>
+          </div>
+          <div class="tile s3 lg">
+            <p class="cap" style="margin: 0">E · Dotted b</p>
+            <div class="row" style="gap: 10px">
+              <svg width="40" height="40"><use href="#l-dotb" /></svg
+              ><span class="wm">bearing</span>
+            </div>
+            <div class="row" style="gap: 10px; align-items: flex-end">
+              <span class="ico i48" style="background: #0a0b0e; color: #fff"
+                ><svg width="34" height="34"><use href="#l-dotb" /></svg
+              ></span>
+              <span
+                class="ico i48"
+                style="
+                  background: #fff;
+                  --d1: #ffd400;
+                  --d2: #12b5ae;
+                  box-shadow: 0 6px 14px -8px rgba(10, 20, 40, 0.4);
+                "
+                ><svg width="34" height="34"><use href="#l-dotb" /></svg
+              ></span>
+              <span class="ico i16" style="background: #0a0b0e; color: #fff"
+                ><svg width="12" height="12"><use href="#l-dotb" /></svg
+              ></span>
+            </div>
+            <p>
+              A letter b whose stem is a row of rounds. It joins the name and the dot rule in one
+              sign. It is the most unusual and the busiest.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════ 4 · Typeface ═════════ -->
+      <section class="sec">
+        <div class="rhead">
+          <span class="rletter">4</span><span class="rname">Typeface</span>
+          <span class="rline"
+            >Six candidates, all free and open. Click one, or a button at the top, and the whole
+            page above is set in it.</span
+          >
+        </div>
+        <div class="board">
+          <div
+            class="tile s2 ty on"
+            data-face="Hanken Grotesk"
+            data-dw="800"
+            data-dt="-0.05em"
+            style="font-family: &quot;Hanken Grotesk&quot;, sans-serif"
+          >
+            <h3>Hanken Grotesk</h3>
+            <div class="big" style="font-weight: 800; letter-spacing: -0.05em">Vitality</div>
+            <div class="num">9–7 · 20:30 · 2½–1½</div>
+            <p>
+              The type of routes 2 and 8. Strong and plain; the heaviest contrast between names and
+              numbers.
+            </p>
+          </div>
+          <div
+            class="tile s2 ty"
+            data-face="Inter Tight"
+            data-dw="700"
+            data-dt="-0.035em"
+            style="font-family: &quot;Inter Tight&quot;, sans-serif"
+          >
+            <h3>Inter Tight</h3>
+            <div class="big" style="font-weight: 700; letter-spacing: -0.035em">Vitality</div>
+            <div class="num">9–7 · 20:30 · 2½–1½</div>
+            <p>
+              The type of routes 6 and 7. Closest to Apple's own; very safe, and used by a great
+              many apps.
+            </p>
+          </div>
+          <div
+            class="tile s2 ty"
+            data-face="Figtree"
+            data-dw="800"
+            data-dt="-0.045em"
+            style="font-family: &quot;Figtree&quot;, sans-serif"
+          >
+            <h3>Figtree</h3>
+            <div class="big" style="font-weight: 800; letter-spacing: -0.045em">Vitality</div>
+            <div class="num">9–7 · 20:30 · 2½–1½</div>
+            <p>
+              The type of routes 5 and 9. Rounder and friendlier; the round letters echo the dots.
+            </p>
+          </div>
+          <div
+            class="tile s2 ty"
+            data-face="Geist"
+            data-dw="700"
+            data-dt="-0.045em"
+            style="font-family: &quot;Geist&quot;, sans-serif"
+          >
+            <h3>Geist</h3>
+            <div class="big" style="font-weight: 700; letter-spacing: -0.045em">Vitality</div>
+            <div class="num">9–7 · 20:30 · 2½–1½</div>
+            <p>
+              The type of routes 1 and 10. Technical and precise, with a matching mono for small
+              labels.
+            </p>
+          </div>
+          <div
+            class="tile s2 ty"
+            data-face="Schibsted Grotesk"
+            data-dw="800"
+            data-dt="-0.045em"
+            style="font-family: &quot;Schibsted Grotesk&quot;, sans-serif"
+          >
+            <h3>Schibsted Grotesk</h3>
+            <div class="big" style="font-weight: 800; letter-spacing: -0.045em">Vitality</div>
+            <div class="num">9–7 · 20:30 · 2½–1½</div>
+            <p>New here. Made for a news publisher: more character in the letters, still sober.</p>
+          </div>
+          <div
+            class="tile s2 ty"
+            data-face="Instrument Sans"
+            data-dw="700"
+            data-dt="-0.04em"
+            style="font-family: &quot;Instrument Sans&quot;, sans-serif"
+          >
+            <h3>Instrument Sans</h3>
+            <div class="big" style="font-weight: 700; letter-spacing: -0.04em">Vitality</div>
+            <div class="num">9–7 · 20:30 · 2½–1½</div>
+            <p>
+              New here. Slightly narrow and elegant; the lightest of the six, with no extra-bold
+              weight.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <script>
+        (function () {
+          var root = document.getElementById("bearing-r4");
+          var NS = "http://www.w3.org/2000/svg";
+          var SEQ = "VVAVAAVVVAAVAVAV"; // Anubis so far: 16 rounds, Vitality 9, Aurora 7
+          function el(t, a, p) {
+            var e = document.createElementNS(NS, t);
+            for (var k in a) e.setAttribute(k, a[k]);
+            if (p) p.appendChild(e);
+            return e;
+          }
+          function pt(cx, cy, r, d) {
+            var a = ((d - 90) * Math.PI) / 180;
+            return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+          }
+
+          // Dot rows. "cs" is the CS2 map above; otherwise a list of tokens:
+          // a/b team, am/al medium/large, h shared, n being played, o still to play, p1..p4 drivers.
+          root.querySelectorAll("[data-dots]").forEach(function (n) {
+            var spec = n.getAttribute("data-dots"),
+              tokens = [];
+            if (spec === "cs") {
+              for (var i = 0; i < 24; i++) {
+                if (i === 12) tokens.push("g");
+                tokens.push(
+                  i < SEQ.length ? (SEQ[i] === "V" ? "a" : "b") : i === SEQ.length ? "n" : "o",
+                );
+              }
+            } else tokens = spec.split(" ");
+            tokens.forEach(function (t) {
+              var s = document.createElement("i");
+              s.className =
+                t.length === 2 && (t[0] === "a" || t[0] === "b") ? t[0] + " " + t[1] : t;
+              n.appendChild(s);
+            });
+          });
+
+          // Ring form: the same 24 dots on a circle, round 1 just right of the top, running clockwise.
+          root.querySelectorAll("svg[data-ring]").forEach(function (g) {
+            var C = 120,
+              R = 98;
+            el(
+              "circle",
+              { cx: C, cy: C, r: R, fill: "none", stroke: "var(--trk)", "stroke-width": 1.5 },
+              g,
+            );
+            [0, 180].forEach(function (d) {
+              var a = pt(C, C, R - 9, d),
+                b = pt(C, C, R + 9, d);
+              el(
+                "line",
+                {
+                  x1: a[0],
+                  y1: a[1],
+                  x2: b[0],
+                  y2: b[1],
+                  stroke: "var(--trk)",
+                  "stroke-width": 1.5,
+                },
+                g,
+              );
+            });
+            for (var i = 0; i < 24; i++) {
+              var p = pt(C, C, R, 7.5 + i * 15);
+              if (i < SEQ.length)
+                el(
+                  "circle",
+                  {
+                    cx: p[0],
+                    cy: p[1],
+                    r: 8.4,
+                    class: SEQ[i] === "V" ? "ra" : "rb",
+                    "stroke-width": 1,
+                  },
+                  g,
+                );
+              else if (i === SEQ.length)
+                el(
+                  "circle",
+                  {
+                    cx: p[0],
+                    cy: p[1],
+                    r: 7.2,
+                    fill: "#fff",
+                    stroke: "var(--cur)",
+                    "stroke-width": 2.4,
+                    class: "pulse",
+                  },
+                  g,
+                );
+              else el("circle", { cx: p[0], cy: p[1], r: 3.4, fill: "var(--emp)" }, g);
+            }
+            [
+              [0, "1"],
+              [11, "12"],
+              [12, "13"],
+              [23, "24"],
+            ].forEach(function (l) {
+              var q = pt(C, C, R + 19, 7.5 + l[0] * 15);
+              var t = el(
+                "text",
+                {
+                  x: q[0],
+                  y: q[1],
+                  "text-anchor": "middle",
+                  "dominant-baseline": "central",
+                  "font-family": "Geist Mono, monospace",
+                  "font-size": 7.5,
+                  fill: "var(--lab)",
+                },
+                g,
+              );
+              t.textContent = l[1];
+            });
+          });
+
+          // Typeface switch: the buttons at the top and the specimen tiles both set it.
+          function setFace(src) {
+            root.style.setProperty("--face", '"' + src.getAttribute("data-face") + '"');
+            root.style.setProperty("--dw", src.getAttribute("data-dw"));
+            root.style.setProperty("--dt", src.getAttribute("data-dt"));
+            root.querySelectorAll("[data-face]").forEach(function (b) {
+              b.classList.toggle(
+                "on",
+                b.getAttribute("data-face") === src.getAttribute("data-face"),
+              );
+            });
+          }
+          root.querySelectorAll("[data-face]").forEach(function (b) {
+            b.addEventListener("click", function () {
+              setFace(b);
+            });
+          });
+        })();
+      </script>
+    </div>
+  </body>
+</html>

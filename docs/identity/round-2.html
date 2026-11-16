@@ -1,0 +1,2711 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bearing identity, round 2</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Figtree:wght@400..800&family=Geist:wght@400..700&family=Geist+Mono:wght@400;500&family=Hanken+Grotesk:wght@400..800&family=Instrument+Sans:wght@400..700&family=Instrument+Serif:ital@0;1&family=Inter:wght@400..700&family=Inter+Tight:wght@500..800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      .id {
+        font-family: var(--font-sans, system-ui, sans-serif);
+        color: var(--foreground, #111);
+      }
+      .id *,
+      .id *::before,
+      .id *::after {
+        box-sizing: border-box;
+      }
+      .intro {
+        font-size: 14px;
+        line-height: 1.55;
+        color: var(--muted-foreground, #666);
+        margin: 0 0 26px;
+        max-width: 64ch;
+      }
+      .route {
+        margin: 0 0 44px;
+      }
+      .route:last-of-type {
+        margin-bottom: 8px;
+      }
+      .rhead {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 0 0 12px;
+      }
+      .rletter {
+        font-family: var(--font-mono, monospace);
+        font-size: 12px;
+        padding: 2px 8px;
+        border: 1px solid var(--border, #ccc);
+        border-radius: 999px;
+        color: var(--muted-foreground, #666);
+      }
+      .rname {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .rline {
+        font-size: 14px;
+        color: var(--muted-foreground, #666);
+        flex: 1 1 260px;
+      }
+      .board {
+        border-radius: var(--radius, 12px);
+        padding: 16px;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .tile {
+        border-radius: 14px;
+        padding: 16px;
+        min-width: 0;
+        position: relative;
+        overflow: hidden;
+      }
+      .s3 {
+        grid-column: span 3;
+      }
+      .s6 {
+        grid-column: span 6;
+      }
+      .hero {
+        container-type: inline-size;
+      }
+      .cap {
+        font-size: 10.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin: 0 0 12px;
+        color: var(--mute);
+        font-family: var(--mono);
+      }
+      .mono {
+        font-family: var(--mono);
+      }
+      .sw {
+        display: flex;
+        gap: 6px;
+      }
+      .sw i {
+        flex: 1;
+        height: 32px;
+        border-radius: 8px;
+        display: block;
+      }
+      .swl {
+        font-size: 10.5px;
+        color: var(--ink2);
+        margin: 7px 0 0;
+        line-height: 1.4;
+      }
+      .spec {
+        margin-top: 18px;
+      }
+      .spec .small {
+        font-size: 12.5px;
+        line-height: 1.45;
+        color: var(--ink2);
+        margin-top: 8px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+      }
+      .lock {
+        gap: 14px;
+        margin: 16px 0 26px;
+        flex-wrap: wrap;
+      }
+      .wm {
+        font-size: 44px;
+        line-height: 1;
+      }
+      .icons {
+        display: flex;
+        align-items: flex-end;
+        gap: 12px;
+      }
+      .ico {
+        display: grid;
+        place-items: center;
+        flex: none;
+        overflow: hidden;
+      }
+      .i64 {
+        width: 64px;
+        height: 64px;
+        border-radius: 15px;
+      }
+      .i28 {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+      }
+      .i16 {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+      }
+      .tnum {
+        font-variant-numeric: tabular-nums;
+      }
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--live);
+        display: inline-block;
+        flex: none;
+      }
+      .live {
+        color: var(--live);
+      }
+      .sub {
+        color: var(--ink2);
+        font-size: 11px;
+      }
+      .pulse {
+        animation: pulse 1.8s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        50% {
+          opacity: 0.3;
+        }
+      }
+      .phone {
+        width: 100%;
+        max-width: 292px;
+        height: 600px;
+        border-radius: 40px;
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+      }
+      .tab {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 54px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        font-size: 10.5px;
+        padding: 0 8px 4px;
+      }
+      .notes {
+        font-size: 13.5px;
+        line-height: 1.5;
+      }
+      .notes h4 {
+        font-size: 10.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin: 16px 0 3px;
+        font-weight: 600;
+        color: var(--mute);
+        font-family: var(--mono);
+      }
+      .notes h4:first-of-type {
+        margin-top: 0;
+      }
+      .notes p {
+        margin: 0;
+      }
+      .alt {
+        margin-top: 18px;
+        border-radius: 12px;
+        padding: 14px;
+        font-size: 12px;
+      }
+      @media (max-width: 600px) {
+        .board {
+          grid-template-columns: minmax(0, 1fr);
+          padding: 12px;
+        }
+        .s3,
+        .s6 {
+          grid-column: auto;
+        }
+        .wm {
+          font-size: 38px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .id * {
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="id">
+      <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+        <symbol id="m-dial" viewBox="0 0 32 32">
+          <circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2.2" />
+          <circle cx="16" cy="16" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2" />
+          <circle cx="23.99" cy="10.41" r="2.3" fill="var(--live)" />
+        </symbol>
+        <symbol id="m-line" viewBox="0 0 32 32">
+          <rect x="6.6" y="3" width="4.8" height="26" rx="2.4" fill="currentColor" />
+          <circle cx="20" cy="22.8" r="6.2" fill="var(--live)" />
+        </symbol>
+        <symbol id="m-field" viewBox="0 0 32 32">
+          <rect x="2" y="2" width="28" height="28" rx="7.5" fill="var(--fa, #0c0c0d)" />
+          <path
+            d="M16 2h6.5A7.5 7.5 0 0 1 30 9.5v13a7.5 7.5 0 0 1-7.5 7.5H16z"
+            fill="var(--fb, #3a3d44)"
+          />
+          <circle cx="16" cy="16" r="5.6" fill="var(--ball, #fff)" />
+        </symbol>
+        <symbol id="m-depth" viewBox="0 0 32 32">
+          <circle cx="16" cy="18" r="11.4" fill="none" stroke="currentColor" stroke-width="3.2" />
+          <circle
+            cx="16"
+            cy="15.2"
+            r="6.3"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            opacity="0.5"
+          />
+          <circle cx="16" cy="13.4" r="2.5" fill="var(--live)" />
+        </symbol>
+        <symbol id="m-lens" viewBox="0 0 32 32">
+          <path
+            d="M26.34 14.18 A10.5 10.5 0 1 1 17.82 5.66"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="5"
+            stroke-linecap="round"
+          />
+          <circle cx="23.42" cy="8.58" r="2.6" fill="var(--live)" />
+        </symbol>
+      </svg>
+
+      <p class="intro">
+        Six routes between A and C. Each one starts from a different idea of what the home screen
+        is, so the logo, the type and the layout change with it. Route 1 is A pushed further and
+        route 6 is C pushed further; 2 to 5 are new. All six show the same evening: Vitality v
+        Aurora live, three matches still to come.
+      </p>
+
+      <!-- ═════════ 1 · Dial ═════════ -->
+      <section class="route dial">
+        <style>
+          .dial {
+            --paper: #f4f2ee;
+            --card: #fbfaf7;
+            --ink: #14171c;
+            --ink2: #5a616b;
+            --mute: #9199a3;
+            --line: #dcd8d0;
+            --live: #f0452b;
+            --mono: "Geist Mono", monospace;
+          }
+          .dial .board {
+            background: var(--paper);
+            color: var(--ink);
+            font-family: "Geist", system-ui, sans-serif;
+          }
+          .dial .tile {
+            background: var(--card);
+            border: 1px solid var(--line);
+          }
+          .dial .wm {
+            font-weight: 600;
+            letter-spacing: -0.045em;
+          }
+          .dial .hbar,
+          .dial .hfoot {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            padding: 12px 18px;
+            font-size: 11px;
+            letter-spacing: 0.04em;
+            color: var(--ink2);
+            flex-wrap: wrap;
+          }
+          .dial .hbar {
+            border-bottom: 1px solid var(--line);
+          }
+          .dial .hfoot {
+            border-top: 1px solid var(--line);
+            justify-content: center;
+            gap: 22px;
+          }
+          .dial .hgrid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) min(34cqw, 210px) minmax(0, 1fr);
+            align-items: center;
+            gap: 8px;
+            padding: 14px 20px;
+          }
+          .dial .crest {
+            display: inline-grid;
+            place-items: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            font:
+              600 11px "Geist Mono",
+              monospace;
+          }
+          .dial .hname {
+            font-size: clamp(17px, 4.6cqw, 30px);
+            font-weight: 600;
+            letter-spacing: -0.035em;
+            line-height: 1.1;
+            margin-top: 10px;
+          }
+          .dial .phone {
+            background: var(--paper);
+            border: 1px solid var(--line);
+            box-shadow:
+              0 0 0 7px #e9e6e0,
+              0 18px 40px -18px rgba(20, 23, 28, 0.35);
+          }
+          .dial .prow {
+            display: grid;
+            grid-template-columns: 44px minmax(0, 1fr) auto;
+            gap: 8px;
+            align-items: center;
+            padding: 7px 0;
+            border-top: 1px solid var(--line);
+            font-size: 12.5px;
+            line-height: 1.3;
+          }
+          .dial .tab {
+            background: var(--card);
+            border-top: 1px solid var(--line);
+            color: var(--mute);
+            font-family: "Geist Mono", monospace;
+          }
+        </style>
+        <div class="rhead">
+          <span class="rletter">1</span><span class="rname">Dial</span>
+          <span class="rline"
+            >The day is a circle. Route A, pushed further: every number is read off a ring.</span
+          >
+        </div>
+        <div class="board">
+          <div class="tile s3">
+            <p class="cap">Mark</p>
+            <div class="row lock">
+              <svg width="60" height="60"><use href="#m-dial" /></svg
+              ><span class="wm">bearing</span>
+            </div>
+            <div class="icons">
+              <span class="ico i64" style="background: var(--ink); color: var(--paper)"
+                ><svg width="44" height="44"><use href="#m-dial" /></svg
+              ></span>
+              <span class="ico i64" style="background: var(--card); border: 1px solid var(--line)"
+                ><svg width="44" height="44"><use href="#m-dial" /></svg
+              ></span>
+              <span class="ico i28" style="background: var(--ink); color: var(--paper)"
+                ><svg width="20" height="20"><use href="#m-dial" /></svg
+              ></span>
+              <span class="ico i16" style="background: var(--ink); color: var(--paper)"
+                ><svg width="12" height="12"><use href="#m-dial" /></svg
+              ></span>
+            </div>
+          </div>
+          <div class="tile s3">
+            <p class="cap">Colour and type</p>
+            <div class="sw">
+              <i style="background: #f4f2ee; border: 1px solid var(--line)"></i
+              ><i style="background: #14171c"></i><i style="background: #5a616b"></i
+              ><i style="background: #dcd8d0"></i><i style="background: #f0452b"></i>
+            </div>
+            <p class="swl mono">Paper · Ink · Graphite · Rule · Vermilion, for live only</p>
+            <div class="spec">
+              <div
+                style="font-size: 30px; font-weight: 600; letter-spacing: -0.04em; line-height: 1"
+              >
+                Vitality
+                <span class="mono" style="font-weight: 500; letter-spacing: -0.04em">13–9</span>
+              </div>
+              <div class="small">
+                Geist for words, Geist Mono for every number, so scores and times line up down the
+                page.
+              </div>
+            </div>
+          </div>
+
+          <div class="tile s6 hero" style="padding: 0">
+            <div class="hbar mono">
+              <span class="row" style="gap: 7px"
+                ><i class="dot pulse"></i><b class="live" style="font-weight: 500">LIVE</b></span
+              >
+              <span>CS2 · IEM Cologne · Semi-final · Bo3</span>
+            </div>
+            <div class="hgrid">
+              <div>
+                <span class="crest" style="background: #f5d000; color: #14171c">VIT</span>
+                <div class="hname">Vitality</div>
+                <div class="mono sub" style="margin-top: 4px">1 map</div>
+              </div>
+              <svg id="dial-gauge" viewBox="0 0 200 200" style="display: block; width: 100%"></svg>
+              <div style="text-align: right">
+                <span class="crest" style="background: #0f9a94; color: #fff">AUR</span>
+                <div class="hname">Aurora</div>
+                <div class="mono sub" style="margin-top: 4px">0 maps</div>
+              </div>
+            </div>
+            <div class="hfoot mono">
+              <span>Mirage 13–9</span><span class="live">Anubis 9–7</span
+              ><span style="color: var(--mute)">Inferno</span>
+            </div>
+          </div>
+
+          <div class="tile s3">
+            <div class="phone">
+              <div style="padding: 22px 18px 0">
+                <div class="row" style="justify-content: space-between">
+                  <span style="font-size: 19px; font-weight: 600; letter-spacing: -0.03em"
+                    >Today</span
+                  >
+                  <span class="mono" style="font-size: 10.5px; color: var(--ink2)">MON 16 NOV</span>
+                </div>
+                <svg
+                  id="dial-day"
+                  viewBox="0 0 230 230"
+                  style="display: block; width: 100%; margin: 4px 0 6px"
+                ></svg>
+                <div class="prow">
+                  <span class="mono live" style="font-size: 11px">LIVE</span
+                  ><span
+                    ><b style="font-weight: 600">Vitality 1–0 Aurora</b><br /><span class="sub"
+                      >CS2 · Anubis 9–7</span
+                    ></span
+                  ><i class="dot pulse"></i>
+                </div>
+                <div class="prow">
+                  <span class="mono tnum">20:30</span
+                  ><span>G2 v T1<br /><span class="sub">League of Legends · Final</span></span
+                  ><span class="mono sub">50 min</span>
+                </div>
+                <div class="prow">
+                  <span class="mono tnum">21:15</span
+                  ><span>KC v BDS<br /><span class="sub">Rocket League · Final</span></span
+                  ><span class="mono sub">1 h 35</span>
+                </div>
+                <div class="prow">
+                  <span class="mono tnum">22:00</span
+                  ><span>Cup final<br /><span class="sub">Trackmania</span></span
+                  ><span class="mono sub">2 h 20</span>
+                </div>
+              </div>
+              <div class="tab">
+                <span style="color: var(--ink)">Today</span><span>Schedule</span
+                ><span>Following</span><span>Search</span>
+              </div>
+            </div>
+          </div>
+          <div class="tile s3 notes">
+            <h4>The idea</h4>
+            <p>
+              Time is a circle. The logo is the dial, the dial is the home screen, and a match is a
+              ring of rounds.
+            </p>
+            <h4>New since A</h4>
+            <p>
+              The match header is a gauge too: one tick per round, each team filling its own side,
+              first to 13.
+            </p>
+            <h4>The risk</h4>
+            <p>
+              Rings suit timed, scored games. Chess and Trackmania need their own readouts, or the
+              idea breaks.
+            </p>
+            <div class="alt" style="background: #101317; color: #f4f2ee">
+              <div class="row" style="gap: 8px">
+                <svg width="22" height="22"><use href="#m-dial" /></svg
+                ><span class="wm" style="font-size: 20px">bearing</span
+                ><span class="mono" style="font-size: 10px; color: #9199a3; margin-left: auto"
+                  >DARK MODE</span
+                >
+              </div>
+              <div
+                class="row"
+                style="gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #2a2f37"
+              >
+                <i class="dot pulse"></i>Vitality v Aurora<span
+                  class="mono"
+                  style="margin-left: auto"
+                  >1–0</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════ 2 · Line ═════════ -->
+      <section class="route line">
+        <style>
+          .line {
+            --bg: #efefec;
+            --card: #fff;
+            --ink: #0b0b0c;
+            --ink2: #66666b;
+            --mute: #9a9aa0;
+            --rule: #d2d2ce;
+            --live: #e5231b;
+            --mono: "Hanken Grotesk", sans-serif;
+          }
+          .line .board {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: "Hanken Grotesk", system-ui, sans-serif;
+          }
+          .line .tile {
+            background: var(--card);
+          }
+          .line .cap,
+          .line .notes h4 {
+            font-weight: 700;
+          }
+          .line .wm {
+            font-weight: 800;
+            letter-spacing: -0.055em;
+          }
+          .line .meta {
+            gap: 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--ink2);
+            flex-wrap: wrap;
+          }
+          .line .lh {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            align-items: baseline;
+            gap: 12px;
+            margin: 22px 0 26px;
+          }
+          .line .hname {
+            font-size: clamp(22px, 7cqw, 50px);
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            line-height: 1;
+          }
+          .line .hscore {
+            font-size: clamp(22px, 7cqw, 50px);
+            font-weight: 400;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            color: var(--ink2);
+          }
+          .line .stops {
+            display: grid;
+            grid-template-columns: 1fr 1.25fr 1fr 0.8fr;
+          }
+          .line .stop {
+            position: relative;
+            padding: 36px 10px 0 0;
+            font-size: clamp(10.5px, 2cqw, 13px);
+            line-height: 1.3;
+          }
+          .line .stop::before {
+            content: "";
+            position: absolute;
+            top: 8px;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: var(--ink);
+          }
+          .line .stop::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #fff;
+            border: 6px solid var(--ink);
+          }
+          .line .stop.done::after {
+            background: var(--ink);
+          }
+          .line .stop.now::before {
+            background: linear-gradient(90deg, var(--ink) 0 46%, var(--rule) 46%);
+          }
+          .line .stop.now::after {
+            border-color: var(--live);
+            box-shadow: 0 0 0 5px rgba(229, 35, 27, 0.18);
+            animation: ringpulse 1.8s ease-in-out infinite;
+          }
+          @keyframes ringpulse {
+            50% {
+              box-shadow: 0 0 0 9px rgba(229, 35, 27, 0);
+            }
+          }
+          .line .stop.fut::before {
+            background: var(--rule);
+          }
+          .line .stop.fut::after {
+            border-color: var(--rule);
+          }
+          .line .stop.end::before {
+            background: repeating-linear-gradient(90deg, var(--rule) 0 8px, transparent 8px 14px);
+            right: 20px;
+          }
+          .line .stop b {
+            display: block;
+            font-weight: 800;
+            font-size: 1.12em;
+            letter-spacing: -0.02em;
+          }
+          .line .phone {
+            background: #fff;
+            box-shadow:
+              0 0 0 7px #e2e2df,
+              0 18px 40px -18px rgba(0, 0, 0, 0.35);
+          }
+          .line .st {
+            display: grid;
+            grid-template-columns: 38px 20px minmax(0, 1fr);
+            gap: 11px;
+            font-size: 12.5px;
+            line-height: 1.3;
+            min-height: 59px;
+          }
+          .line .st .t {
+            font-weight: 700;
+            font-size: 11.5px;
+            text-align: right;
+            padding-top: 2px;
+            font-variant-numeric: tabular-nums;
+          }
+          .line .st .l {
+            position: relative;
+          }
+          .line .st .l::before {
+            content: "";
+            position: absolute;
+            left: 7px;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: var(--ink);
+          }
+          .line .st .l::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            border: 5px solid var(--ink);
+          }
+          .line .st.done .l::after {
+            background: var(--ink);
+          }
+          .line .st.done {
+            color: var(--ink2);
+          }
+          .line .st.now .l::before {
+            background: linear-gradient(var(--ink) 0 58%, var(--rule) 58%);
+          }
+          .line .st.now .l::after {
+            border-color: var(--live);
+            box-shadow: 0 0 0 4px rgba(229, 35, 27, 0.18);
+            animation: ringpulse 1.8s ease-in-out infinite;
+          }
+          .line .st.fut .l::before {
+            background: var(--rule);
+          }
+          .line .st.fut .l::after {
+            border-color: var(--ink);
+          }
+          .line .st.end .l::before {
+            background: repeating-linear-gradient(var(--rule) 0 6px, transparent 6px 11px);
+          }
+          .line .st b {
+            font-weight: 800;
+            letter-spacing: -0.02em;
+          }
+          .line .nowball {
+            position: absolute;
+            left: 24px;
+            top: 58%;
+            width: 13px;
+            height: 13px;
+            margin-top: -6px;
+            border-radius: 50%;
+            background: var(--live);
+          }
+          .line .tab {
+            border-top: 2px solid var(--ink);
+            background: #fff;
+            color: var(--mute);
+            font-weight: 700;
+            font-size: 11px;
+          }
+        </style>
+        <div class="rhead">
+          <span class="rletter">2</span><span class="rname">Line</span>
+          <span class="rline"
+            >The day is a line with stops, read like a transit map. One typeface, black and white,
+            one red.</span
+          >
+        </div>
+        <div class="board">
+          <div class="tile s3">
+            <p class="cap">Mark</p>
+            <div class="row lock">
+              <svg width="60" height="60"><use href="#m-line" /></svg
+              ><span class="wm">bearing</span>
+            </div>
+            <div class="icons">
+              <span class="ico i64" style="background: var(--ink); color: #fff"
+                ><svg width="44" height="44"><use href="#m-line" /></svg
+              ></span>
+              <span class="ico i64" style="background: #fff; border: 1px solid var(--rule)"
+                ><svg width="44" height="44"><use href="#m-line" /></svg
+              ></span>
+              <span class="ico i28" style="background: var(--ink); color: #fff"
+                ><svg width="20" height="20"><use href="#m-line" /></svg
+              ></span>
+              <span class="ico i16" style="background: var(--ink); color: #fff"
+                ><svg width="12" height="12"><use href="#m-line" /></svg
+              ></span>
+            </div>
+          </div>
+          <div class="tile s3">
+            <p class="cap">Colour and type</p>
+            <div class="sw">
+              <i style="background: #fff; border: 1px solid var(--rule)"></i
+              ><i style="background: #0b0b0c"></i><i style="background: #66666b"></i
+              ><i style="background: #d2d2ce"></i><i style="background: #e5231b"></i>
+            </div>
+            <p class="swl">White · Black · Grey · Track ahead · Signal red, for live only</p>
+            <div class="spec">
+              <div
+                style="font-size: 32px; font-weight: 800; letter-spacing: -0.05em; line-height: 1"
+              >
+                Vitality <span style="font-weight: 400; color: var(--ink2)">13–9</span>
+              </div>
+              <div class="small">
+                Hanken Grotesk and nothing else. Weight does the work: heavy for names, regular for
+                numbers.
+              </div>
+            </div>
+          </div>
+
+          <div class="tile s6 hero" style="padding: 20px 22px 22px">
+            <div class="row meta">
+              <span class="row live" style="gap: 6px; font-weight: 800"
+                ><i class="dot pulse"></i>Live</span
+              ><span>Counter-Strike 2</span
+              ><span style="margin-left: auto">IEM Cologne · Semi-final</span>
+            </div>
+            <div class="lh">
+              <div class="hname">Vitality</div>
+              <div class="hscore tnum">1 – 0</div>
+              <div class="hname" style="text-align: right">Aurora</div>
+            </div>
+            <div class="stops">
+              <div class="stop done">
+                <b>Mirage</b><span class="sub" style="font-size: 1em">13–9 Vitality</span>
+              </div>
+              <div class="stop now">
+                <b>Anubis</b><span class="live" style="font-weight: 700">9–7 · round 17</span>
+              </div>
+              <div class="stop fut">
+                <b>Inferno</b><span class="sub" style="font-size: 1em">if needed</span>
+              </div>
+              <div class="stop fut end">
+                <b>Final</b><span class="sub" style="font-size: 1em">Sun 18:00</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tile s3">
+            <div class="phone">
+              <div style="padding: 22px 18px 0">
+                <div
+                  class="row"
+                  style="justify-content: space-between; align-items: baseline; margin-bottom: 18px"
+                >
+                  <span style="font-size: 28px; font-weight: 800; letter-spacing: -0.05em"
+                    >Today</span
+                  ><span style="font-size: 11.5px; font-weight: 600; color: var(--ink2)"
+                    >Mon 16 Nov</span
+                  >
+                </div>
+                <div class="st done">
+                  <span class="t">13:00</span><span class="l"></span
+                  ><span
+                    ><b>NAVI 2–1 FaZe</b><br /><span class="sub">CS2 · Quarter-final</span></span
+                  >
+                </div>
+                <div class="st done">
+                  <span class="t">16:00</span><span class="l"></span
+                  ><span
+                    ><b>Carlsen ½–½ Nakamura</b><br /><span class="sub">Chess · Game 4</span></span
+                  >
+                </div>
+                <div class="st now" style="min-height: 96px; position: relative">
+                  <span class="t live">Live</span><span class="l"></span>
+                  <span>
+                    <b style="font-size: 16px">Vitality 1–0 Aurora</b><br /><span
+                      class="live"
+                      style="font-weight: 700; font-size: 12px"
+                      >Anubis 9–7 · round 17</span
+                    ><br /><span class="sub">CS2 · Semi-final</span>
+                  </span>
+                  <i class="nowball pulse" style="display: none"></i>
+                </div>
+                <div class="st fut">
+                  <span class="t">20:30</span><span class="l"></span
+                  ><span
+                    ><b>G2 v T1</b><br /><span class="sub">League of Legends · Final</span></span
+                  >
+                </div>
+                <div class="st fut">
+                  <span class="t">21:15</span><span class="l"></span
+                  ><span><b>KC v BDS</b><br /><span class="sub">Rocket League · Final</span></span>
+                </div>
+                <div class="st fut">
+                  <span class="t">22:00</span><span class="l"></span
+                  ><span><b>Cup final</b><br /><span class="sub">Trackmania</span></span>
+                </div>
+                <div class="st fut end">
+                  <span class="t" style="color: var(--mute)">Tue</span><span class="l"></span
+                  ><span style="color: var(--ink2)"
+                    ><b>Spirit v MOUZ</b><br /><span class="sub">CS2 · Final · 18:00</span></span
+                  >
+                </div>
+              </div>
+              <div class="tab">
+                <span style="color: var(--ink)">Today</span><span>Schedule</span
+                ><span>Following</span><span>Search</span>
+              </div>
+            </div>
+          </div>
+          <div class="tile s3 notes">
+            <h4>The idea</h4>
+            <p>
+              Everything is a line with stops. Behind you is solid black, ahead is pale, and the
+              stop you are at is red.
+            </p>
+            <h4>Why it could work</h4>
+            <p>
+              People already read line maps without thinking. A day, a best-of-three and a team's
+              path to the final all draw the same way.
+            </p>
+            <h4>The risk</h4>
+            <p>
+              It is the plainest route. It lives on perfect type and spacing, and it has no
+              spectacle until the line moves.
+            </p>
+            <div class="alt" style="background: #0b0b0c; color: #fff">
+              <div class="row" style="gap: 8px">
+                <svg width="22" height="22"><use href="#m-line" /></svg
+                ><span class="wm" style="font-size: 20px">bearing</span
+                ><span style="font-size: 10px; font-weight: 700; color: #8d8d93; margin-left: auto"
+                  >DARK MODE</span
+                >
+              </div>
+              <div
+                class="row"
+                style="
+                  gap: 8px;
+                  margin-top: 12px;
+                  padding-top: 10px;
+                  border-top: 2px solid #fff;
+                  font-weight: 700;
+                "
+              >
+                <i class="dot pulse"></i>Vitality v Aurora<span
+                  style="margin-left: auto; font-weight: 400"
+                  >1 – 0</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════ 3 · Heading ═════════ -->
+      <section class="route head">
+        <style>
+          .head {
+            --bg: #e9e3d5;
+            --card: #f7f3ea;
+            --ink: #0f2a20;
+            --ink2: #51645a;
+            --mute: #8b978f;
+            --rule: #d6cfbf;
+            --live: #f04a1d;
+            --mono: "Instrument Sans", sans-serif;
+          }
+          .head .board {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: "Instrument Sans", system-ui, sans-serif;
+          }
+          .head .tile {
+            background: var(--card);
+          }
+          .head .cap,
+          .head .notes h4 {
+            font-weight: 600;
+          }
+          .head .ser {
+            font-family: "Instrument Serif", serif;
+            font-weight: 400;
+            letter-spacing: -0.012em;
+            line-height: 1.04;
+          }
+          .head .stop {
+            display: inline-block;
+            width: 0.17em;
+            height: 0.17em;
+            border-radius: 50%;
+            background: var(--live);
+            margin-left: 0.05em;
+          }
+          .head .kick {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            color: var(--ink2);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+          }
+          .head .hh {
+            display: grid;
+            grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+            gap: 26px;
+            align-items: end;
+            margin: 18px 0 22px;
+          }
+          .head .hl {
+            font-size: clamp(27px, 6.6cqw, 46px);
+            margin: 0;
+          }
+          .head .figs {
+            display: flex;
+            gap: 22px;
+            justify-content: flex-end;
+          }
+          .head .num {
+            font-size: clamp(34px, 8cqw, 58px);
+            display: block;
+            line-height: 0.95;
+          }
+          .head .lab {
+            font-size: 11px;
+            color: var(--ink2);
+            display: block;
+            margin-top: 6px;
+            line-height: 1.3;
+          }
+          .head .ld {
+            display: flex;
+            align-items: baseline;
+            gap: 7px;
+            font-size: 13px;
+            padding: 5px 0;
+          }
+          .head .ld i {
+            flex: 1;
+            border-bottom: 1.5px dotted var(--mute);
+            transform: translateY(-3px);
+            min-width: 16px;
+          }
+          .head .toc {
+            border-top: 1px solid var(--ink);
+            padding-top: 8px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0 26px;
+          }
+          .head .phone {
+            background: var(--card);
+            box-shadow:
+              0 0 0 7px #ded7c8,
+              0 18px 40px -18px rgba(15, 42, 32, 0.4);
+          }
+          .head .sc {
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--ink2);
+          }
+          .head .tab {
+            border-top: 1px solid var(--rule);
+            color: var(--mute);
+            font-weight: 600;
+            background: var(--card);
+          }
+          @container (max-width: 520px) {
+            .head .hh {
+              grid-template-columns: minmax(0, 1fr);
+              gap: 18px;
+            }
+            .head .figs {
+              justify-content: flex-start;
+            }
+            .head .toc {
+              grid-template-columns: minmax(0, 1fr);
+            }
+          }
+        </style>
+        <div class="rhead">
+          <span class="rletter">3</span><span class="rname">Heading</span>
+          <span class="rline"
+            >It answers in a sentence. Serif headlines say what is happening; the numbers back them
+            up.</span
+          >
+        </div>
+        <div class="board">
+          <div class="tile s3">
+            <p class="cap">Mark</p>
+            <div class="row lock" style="margin-top: 10px">
+              <span class="ser" style="font-size: 68px">Bearing<i class="stop"></i></span>
+            </div>
+            <div class="icons">
+              <span class="ico i64" style="background: var(--ink); color: #f7f3ea"
+                ><span class="ser" style="font-size: 58px; line-height: 64px; margin-top: -9px"
+                  >b<i class="stop"></i></span
+              ></span>
+              <span class="ico i64" style="background: var(--card); border: 1px solid var(--rule)"
+                ><span class="ser" style="font-size: 58px; line-height: 64px; margin-top: -9px"
+                  >b<i class="stop"></i></span
+              ></span>
+              <span class="ico i28" style="background: var(--ink); color: #f7f3ea"
+                ><span class="ser" style="font-size: 26px; line-height: 28px; margin-top: -4px"
+                  >b<i class="stop"></i></span
+              ></span>
+              <span class="ico i16" style="background: var(--ink); color: #f7f3ea"
+                ><span class="ser" style="font-size: 15px; line-height: 16px; margin-top: -2px"
+                  >b<i class="stop"></i></span
+              ></span>
+            </div>
+          </div>
+          <div class="tile s3">
+            <p class="cap">Colour and type</p>
+            <div class="sw">
+              <i style="background: #f7f3ea; border: 1px solid var(--rule)"></i
+              ><i style="background: #0f2a20"></i><i style="background: #51645a"></i
+              ><i style="background: #d6cfbf"></i><i style="background: #f04a1d"></i>
+            </div>
+            <p class="swl">Bone · Racing green · Moss · Rule · Flare, for live only</p>
+            <div class="spec">
+              <div class="ser" style="font-size: 36px">Vitality, <em>13–9</em></div>
+              <div class="small">
+                Instrument Serif for headlines and figures, Instrument Sans for everything small.
+                The wordmark is the logo; its full stop is the ball.
+              </div>
+            </div>
+          </div>
+
+          <div class="tile s6 hero" style="padding: 22px 24px">
+            <div class="kick">
+              <i class="dot pulse"></i><span class="live">Live</span><span>Counter-Strike 2</span
+              ><span>IEM Cologne, semi-final</span>
+            </div>
+            <div class="hh">
+              <h3 class="ser hl">
+                Vitality lead Aurora by a map, and are two rounds up on Anubis.
+              </h3>
+              <div class="figs">
+                <div>
+                  <span class="ser num">1–0</span><span class="lab">Maps<br />best of three</span>
+                </div>
+                <div>
+                  <span class="ser num live">9–7</span><span class="lab">Anubis<br />round 17</span>
+                </div>
+              </div>
+            </div>
+            <div class="toc">
+              <div class="ld"><span>Mirage</span><i></i><b style="font-weight: 600">13–9</b></div>
+              <div class="ld">
+                <span>Anubis</span><i></i><b class="live" style="font-weight: 600">9–7 live</b>
+              </div>
+              <div class="ld" style="color: var(--mute)">
+                <span>Inferno</span><i></i><span>if needed</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tile s3">
+            <div class="phone">
+              <div style="padding: 26px 22px 0">
+                <div class="sc">Monday 16 November</div>
+                <div class="ser" style="font-size: 42px; margin: 8px 0 16px">This evening</div>
+                <p class="ser" style="font-size: 24px; line-height: 1.14; margin: 0">
+                  <i
+                    class="dot pulse"
+                    style="width: 9px; height: 9px; margin-right: 4px; transform: translateY(-3px)"
+                  ></i
+                  >Vitality are live against Aurora: a map up, and
+                  <span class="live">9–7</span> ahead on Anubis.
+                </p>
+                <div
+                  style="
+                    font-size: 12px;
+                    font-weight: 600;
+                    margin: 14px 0 20px;
+                    display: flex;
+                    gap: 14px;
+                  "
+                >
+                  <span style="border-bottom: 1.5px solid var(--ink)">Open the match</span
+                  ><span style="color: var(--ink2)">Bracket</span>
+                </div>
+                <div
+                  class="sc"
+                  style="border-top: 1px solid var(--ink); padding-top: 10px; margin-bottom: 4px"
+                >
+                  Later tonight
+                </div>
+                <div class="ld">
+                  <span class="ser" style="font-size: 20px">G2 v T1</span><i></i
+                  ><span class="tnum">20:30</span>
+                </div>
+                <div class="sub" style="margin: -4px 0 4px">League of Legends, final</div>
+                <div class="ld">
+                  <span class="ser" style="font-size: 20px">KC v BDS</span><i></i
+                  ><span class="tnum">21:15</span>
+                </div>
+                <div class="sub" style="margin: -4px 0 4px">Rocket League, final</div>
+                <div class="ld">
+                  <span class="ser" style="font-size: 20px">Cup final</span><i></i
+                  ><span class="tnum">22:00</span>
+                </div>
+                <div class="sub" style="margin: -4px 0 4px">Trackmania</div>
+                <div
+                  class="sc"
+                  style="border-top: 1px solid var(--rule); padding-top: 10px; margin: 12px 0 4px"
+                >
+                  Tomorrow
+                </div>
+                <div class="ld">
+                  <span class="ser" style="font-size: 20px">Carlsen v Nakamura</span><i></i
+                  ><span class="tnum">17:00</span>
+                </div>
+                <div class="ld">
+                  <span class="ser" style="font-size: 20px">Spirit v MOUZ</span><i></i
+                  ><span class="tnum">18:00</span>
+                </div>
+              </div>
+              <div class="tab">
+                <span style="color: var(--ink)">Today</span><span>Schedule</span
+                ><span>Following</span><span>Search</span>
+              </div>
+            </div>
+          </div>
+          <div class="tile s3 notes">
+            <h4>The idea</h4>
+            <p>
+              You ask what is on and it tells you, in words. One sentence for now, a contents page
+              for later. The logo is just the name with a full stop.
+            </p>
+            <h4>Why it could work</h4>
+            <p>
+              Nothing else in esports looks like this. It reads as trustworthy and grown-up, and a
+              sentence works the same for chess, Trackmania or football.
+            </p>
+            <h4>The risk</h4>
+            <p>
+              The sentences have to be written well for every game. With ten matches live at once,
+              reading is slower than scanning.
+            </p>
+            <div class="alt" style="background: #0c1f18; color: #f1ecdf">
+              <div class="row" style="gap: 8px">
+                <span class="ser" style="font-size: 26px">Bearing<i class="stop"></i></span
+                ><span
+                  style="
+                    font-size: 10px;
+                    font-weight: 600;
+                    color: #8fa197;
+                    margin-left: auto;
+                    letter-spacing: 0.08em;
+                  "
+                  >DARK MODE</span
+                >
+              </div>
+              <div
+                class="ser"
+                style="
+                  font-size: 18px;
+                  margin-top: 10px;
+                  padding-top: 10px;
+                  border-top: 1px solid #2c4136;
+                "
+              >
+                <i class="dot pulse" style="margin-right: 6px; transform: translateY(-2px)"></i
+                >Vitality lead Aurora, 1–0.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════ 4 · Field ═════════ -->
+      <section class="route field">
+        <style>
+          .field {
+            --bg: #e8e8e8;
+            --card: #fff;
+            --ink: #0c0c0d;
+            --ink2: #5c5c61;
+            --mute: #98989d;
+            --rule: #dedede;
+            --live: #ff2a1f;
+            --mono: "Archivo", sans-serif;
+          }
+          .field .board {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: "Archivo", system-ui, sans-serif;
+          }
+          .field .tile {
+            background: var(--card);
+          }
+          .field .cap,
+          .field .notes h4 {
+            font-weight: 700;
+          }
+          .field .wm {
+            font-weight: 800;
+            letter-spacing: -0.05em;
+          }
+          .field .cond {
+            font-stretch: 78%;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -0.005em;
+            line-height: 0.92;
+          }
+          .field .split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            position: relative;
+          }
+          .field .half {
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 270px;
+            min-width: 0;
+          }
+          .field .hmeta {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+          }
+          .field .hname {
+            font-size: clamp(25px, 8.4cqw, 60px);
+          }
+          .field .ball {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: #fff;
+            color: #0c0c0d;
+            display: grid;
+            place-items: center;
+            text-align: center;
+          }
+          .field .hball {
+            width: clamp(100px, 25cqw, 172px);
+            aspect-ratio: 1;
+          }
+          .field .hball .cond {
+            font-size: clamp(30px, 8.2cqw, 58px);
+          }
+          .field .hball small {
+            display: block;
+            font-size: clamp(8px, 1.5cqw, 10.5px);
+            font-weight: 700;
+            letter-spacing: 0.08em;
+          }
+          .field .phone {
+            background: #fff;
+            box-shadow:
+              0 0 0 7px #d9d9d9,
+              0 18px 40px -18px rgba(0, 0, 0, 0.4);
+          }
+          .field .band {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            position: relative;
+            border-radius: 13px;
+            overflow: hidden;
+            height: 66px;
+            margin-top: 7px;
+          }
+          .field .band > span {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 12px;
+            min-width: 0;
+          }
+          .field .band > span:first-child {
+            background: var(--a);
+            color: var(--ac);
+          }
+          .field .band > span:nth-child(2) {
+            background: var(--b);
+            color: var(--bc);
+            text-align: right;
+            align-items: flex-end;
+          }
+          .field .band .cond {
+            font-size: 17px;
+          }
+          .field .band small {
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            opacity: 0.75;
+            margin-top: 3px;
+            text-transform: uppercase;
+          }
+          .field .band .ball {
+            width: 42px;
+            height: 42px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+          }
+          .field .band.one {
+            grid-template-columns: 1fr;
+          }
+          .field .tab {
+            background: var(--ink);
+            color: #8a8a90;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 0.05em;
+            padding-bottom: 0;
+          }
+          .field .minis {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+            align-items: center;
+            font-size: 10.5px;
+            color: var(--ink2);
+          }
+        </style>
+        <div class="rhead">
+          <span class="rletter">4</span><span class="rname">Field</span>
+          <span class="rline"
+            >The teams bring all the colour. Flat halves, a white ball between them, and nothing
+            else.</span
+          >
+        </div>
+        <div class="board">
+          <div class="tile s3">
+            <p class="cap">Mark</p>
+            <div class="row lock">
+              <svg width="60" height="60"><use href="#m-field" /></svg
+              ><span class="wm">bearing</span>
+            </div>
+            <div class="icons">
+              <svg width="64" height="64"><use href="#m-field" /></svg>
+              <svg width="64" height="64" style="--fa: #ffd400; --fb: #0a8a86">
+                <use href="#m-field" />
+              </svg>
+              <svg width="28" height="28"><use href="#m-field" /></svg>
+              <svg width="16" height="16"><use href="#m-field" /></svg>
+            </div>
+            <div class="minis">
+              <svg width="22" height="22" style="--fa: #111; --fb: #e2012d">
+                <use href="#m-field" />
+              </svg>
+              <svg width="22" height="22" style="--fa: #19a8ff; --fb: #ff5fa2">
+                <use href="#m-field" />
+              </svg>
+              <svg width="22" height="22" style="--fa: #e9e9e6; --fb: #1b1b1d">
+                <use href="#m-field" />
+              </svg>
+              <span>The mark takes the colours of the match you open.</span>
+            </div>
+          </div>
+          <div class="tile s3">
+            <p class="cap">Colour and type</p>
+            <div class="sw">
+              <i style="background: #fff; border: 1px solid var(--rule)"></i
+              ><i style="background: #0c0c0d"></i><i style="background: #5c5c61"></i
+              ><i style="background: linear-gradient(90deg, #ffd400 50%, #0a8a86 50%)"></i
+              ><i style="background: linear-gradient(90deg, #111 50%, #e2012d 50%)"></i>
+            </div>
+            <p class="swl">White · Black · Grey · and whatever the two teams wear</p>
+            <div class="spec">
+              <div class="cond" style="font-size: 40px">Vitality 13–9</div>
+              <div class="small">
+                Archivo, condensed and heavy for names and scores, regular width for reading. No
+                gradients, no shadows, no glass.
+              </div>
+            </div>
+          </div>
+
+          <div class="tile s6 hero" style="padding: 0">
+            <div class="split">
+              <div class="half" style="background: #ffd400; color: #0c0c0d">
+                <div class="hmeta">
+                  <i class="dot pulse" style="background: #0c0c0d"></i>Live · CS2
+                </div>
+                <div>
+                  <div class="hmeta" style="margin-bottom: 8px">1 map</div>
+                  <div class="cond hname">Vitality</div>
+                </div>
+              </div>
+              <div
+                class="half"
+                style="background: #0a8a86; color: #fff; text-align: right; align-items: flex-end"
+              >
+                <div class="hmeta">IEM Cologne · Semi-final</div>
+                <div>
+                  <div class="hmeta" style="margin-bottom: 8px; justify-content: flex-end">
+                    0 maps
+                  </div>
+                  <div class="cond hname">Aurora</div>
+                </div>
+              </div>
+              <div class="ball hball">
+                <div>
+                  <small>ANUBIS</small><span class="cond">9–7</span
+                  ><small class="live">ROUND 17</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tile s3">
+            <div class="phone">
+              <div style="padding: 22px 14px 0">
+                <div
+                  class="row"
+                  style="justify-content: space-between; align-items: baseline; padding: 0 4px 6px"
+                >
+                  <span class="cond" style="font-size: 32px">Today</span
+                  ><span
+                    style="
+                      font-size: 10.5px;
+                      font-weight: 700;
+                      letter-spacing: 0.06em;
+                      color: var(--ink2);
+                    "
+                    >MON 16 NOV</span
+                  >
+                </div>
+                <div
+                  class="band"
+                  style="--a: #ffd400; --ac: #0c0c0d; --b: #0a8a86; --bc: #fff; height: 148px"
+                >
+                  <span style="justify-content: space-between; padding: 12px"
+                    ><small style="margin: 0; opacity: 1; font-weight: 800"
+                      ><i class="dot pulse" style="background: #0c0c0d; margin-right: 5px"></i
+                      >LIVE</small
+                    ><b class="cond" style="font-size: 24px"
+                      >Vitality<small style="display: block; font-stretch: 100%">1 map</small></b
+                    ></span
+                  >
+                  <span style="justify-content: space-between; padding: 12px"
+                    ><small style="margin: 0; opacity: 1">CS2</small
+                    ><b class="cond" style="font-size: 24px"
+                      >Aurora<small style="display: block; font-stretch: 100%">0 maps</small></b
+                    ></span
+                  >
+                  <b class="ball" style="width: 78px; height: 78px"
+                    ><span
+                      ><span class="cond" style="font-size: 27px; display: block">9–7</span
+                      ><span style="font-size: 8px; letter-spacing: 0.08em; color: var(--live)"
+                        >ANUBIS</span
+                      ></span
+                    ></b
+                  >
+                </div>
+                <div
+                  style="
+                    font-size: 10px;
+                    font-weight: 800;
+                    letter-spacing: 0.08em;
+                    margin: 14px 4px 2px;
+                  "
+                >
+                  NEXT
+                </div>
+                <div class="band" style="--a: #111; --ac: #fff; --b: #e2012d; --bc: #fff">
+                  <span><b class="cond">G2</b><small>LoL · Final</small></span
+                  ><span><b class="cond">T1</b><small>in 50 min</small></span
+                  ><b class="ball">20:30</b>
+                </div>
+                <div class="band" style="--a: #19a8ff; --ac: #0c0c0d; --b: #ff5fa2; --bc: #0c0c0d">
+                  <span><b class="cond">KC</b><small>Rocket League</small></span
+                  ><span><b class="cond">BDS</b><small>Final</small></span
+                  ><b class="ball">21:15</b>
+                </div>
+                <div class="band one" style="--a: #00c978; --ac: #0c0c0d">
+                  <span><b class="cond">Cup final</b><small>Trackmania · 16 drivers</small></span
+                  ><b class="ball" style="left: auto; right: 12px; transform: translateY(-50%)"
+                    >22:00</b
+                  >
+                </div>
+                <div class="band" style="--a: #e9e9e6; --ac: #0c0c0d; --b: #1b1b1d; --bc: #fff">
+                  <span><b class="cond">Carlsen</b><small>Chess · Game 5</small></span
+                  ><span><b class="cond">Nakamura</b><small>Tomorrow</small></span
+                  ><b class="ball" style="border: 1px solid #ccc">17:00</b>
+                </div>
+              </div>
+              <div class="tab">
+                <span style="color: #fff">● Today</span><span>Schedule</span><span>Following</span
+                ><span>Search</span>
+              </div>
+            </div>
+          </div>
+          <div class="tile s3 notes">
+            <h4>The idea</h4>
+            <p>
+              The brand owns no colour. Each match is two flat halves in the teams' colours with the
+              ball between them, and the logo does the same.
+            </p>
+            <h4>Why it could work</h4>
+            <p>
+              You recognise a match by its colours before you read a word. It is the loudest route
+              and still very simple, and it carries straight over to football.
+            </p>
+            <h4>The risk</h4>
+            <p>
+              Two teams in similar colours, or colours that clash badly. A long list gets loud. Solo
+              events only have one colour to show.
+            </p>
+            <div class="alt" style="background: #0c0c0d; color: #fff">
+              <div class="row" style="gap: 8px">
+                <svg width="22" height="22" style="--fa: #fff; --fb: #8d8d93; --ball: #0c0c0d">
+                  <use href="#m-field" /></svg
+                ><span class="wm" style="font-size: 20px">bearing</span
+                ><span
+                  style="
+                    font-size: 10px;
+                    font-weight: 700;
+                    color: #8d8d93;
+                    margin-left: auto;
+                    letter-spacing: 0.06em;
+                  "
+                  >DARK MODE</span
+                >
+              </div>
+              <div
+                class="band"
+                style="
+                  --a: #ffd400;
+                  --ac: #0c0c0d;
+                  --b: #0a8a86;
+                  --bc: #fff;
+                  height: 44px;
+                  margin-top: 12px;
+                "
+              >
+                <span><b class="cond" style="font-size: 15px">Vitality</b></span
+                ><span><b class="cond" style="font-size: 15px">Aurora</b></span
+                ><b class="ball" style="width: 32px; height: 32px; font-size: 10px">1–0</b>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════ 5 · Depth ═════════ -->
+      <section class="route depth">
+        <style>
+          .depth {
+            --ink: #0f1115;
+            --ink2: #636973;
+            --mute: #969ca6;
+            --live: #ff3355;
+            --mono: "Figtree", sans-serif;
+          }
+          .depth .board {
+            background: linear-gradient(180deg, #eceef2, #d9dde4);
+            color: var(--ink);
+            font-family: "Figtree", system-ui, sans-serif;
+          }
+          .depth .tile {
+            background: rgba(255, 255, 255, 0.6);
+            box-shadow:
+              inset 0 1px 0 rgba(255, 255, 255, 0.9),
+              0 12px 26px -16px rgba(20, 28, 45, 0.3);
+          }
+          .depth .cap,
+          .depth .notes h4 {
+            font-weight: 700;
+          }
+          .depth .wm {
+            font-weight: 700;
+            letter-spacing: -0.045em;
+          }
+          .depth .card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow:
+              0 1px 1px rgba(16, 24, 40, 0.05),
+              0 6px 14px -4px rgba(16, 24, 40, 0.12),
+              0 28px 46px -18px rgba(16, 24, 40, 0.32);
+          }
+          .depth .stage {
+            padding: 22px 22px 26px;
+            background: linear-gradient(180deg, #e3e6ec, #cfd4dd);
+          }
+          .depth .dback {
+            margin: 0 auto;
+            height: 46px;
+            border-radius: 16px 16px 0 0;
+            background: #fff;
+            font-size: 10.5px;
+            font-weight: 600;
+            text-align: center;
+            padding-top: 5px;
+            color: var(--ink2);
+            white-space: nowrap;
+            overflow: hidden;
+          }
+          .depth .b2 {
+            width: 76%;
+            opacity: 0.5;
+            filter: blur(0.6px);
+          }
+          .depth .b1 {
+            width: 88%;
+            opacity: 0.8;
+            margin-top: -24px;
+            box-shadow: 0 -6px 14px -8px rgba(16, 24, 40, 0.18);
+          }
+          .depth .dfront {
+            position: relative;
+            margin-top: -22px;
+            padding: 18px 20px;
+            animation: dfloat 7s ease-in-out infinite;
+          }
+          @keyframes dfloat {
+            50% {
+              transform: translateY(-4px);
+              box-shadow:
+                0 1px 1px rgba(16, 24, 40, 0.05),
+                0 8px 18px -4px rgba(16, 24, 40, 0.12),
+                0 36px 54px -18px rgba(16, 24, 40, 0.34);
+            }
+          }
+          .depth .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(255, 51, 85, 0.1);
+            color: var(--live);
+          }
+          .depth .dg {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            align-items: center;
+            gap: 10px;
+            margin: 16px 0 14px;
+          }
+          .depth .orb {
+            width: clamp(38px, 9cqw, 58px);
+            aspect-ratio: 1;
+            border-radius: 50%;
+            display: inline-grid;
+            place-items: center;
+            font-size: 11px;
+            font-weight: 800;
+            box-shadow:
+              inset 0 2px 3px rgba(255, 255, 255, 0.55),
+              inset 0 -6px 10px rgba(0, 0, 0, 0.14),
+              0 10px 16px -6px rgba(16, 24, 40, 0.4);
+            flex: none;
+          }
+          .depth .hname {
+            font-size: clamp(17px, 4.6cqw, 30px);
+            font-weight: 700;
+            letter-spacing: -0.035em;
+            line-height: 1.05;
+          }
+          .depth .hscore {
+            font-size: clamp(34px, 9cqw, 62px);
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            line-height: 1;
+          }
+          .depth .chips {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            font-size: 11px;
+            font-weight: 600;
+          }
+          .depth .chips span {
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: #f1f3f6;
+            color: var(--ink2);
+            white-space: nowrap;
+          }
+          .depth .phone {
+            background: linear-gradient(180deg, #e9ecf1 0%, #d3d8e0 100%);
+            box-shadow:
+              0 0 0 7px #f4f5f7,
+              0 0 0 8px #cfd3da,
+              0 22px 44px -18px rgba(16, 24, 40, 0.45);
+          }
+          .depth .pc {
+            position: absolute;
+            left: 18px;
+            right: 18px;
+            transform-origin: 50% 0;
+            transform: scale(var(--s));
+            opacity: var(--o);
+            filter: blur(var(--b, 0));
+            padding: 11px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+          }
+          .depth .pc b {
+            font-weight: 700;
+            letter-spacing: -0.02em;
+          }
+          .depth .pc .t {
+            font-weight: 800;
+            width: 40px;
+            font-variant-numeric: tabular-nums;
+            flex: none;
+          }
+          .depth .tab {
+            left: 22px;
+            right: 22px;
+            bottom: 14px;
+            height: 50px;
+            border-radius: 999px;
+            background: #fff;
+            box-shadow: 0 10px 24px -10px rgba(16, 24, 40, 0.4);
+            padding: 0 14px;
+            color: var(--mute);
+            font-weight: 700;
+          }
+        </style>
+        <div class="rhead">
+          <span class="rletter">5</span><span class="rname">Depth</span>
+          <span class="rline"
+            >What is nearest in time is nearest to you. Now is the front card; later stands further
+            back.</span
+          >
+        </div>
+        <div class="board">
+          <div class="tile s3">
+            <p class="cap">Mark</p>
+            <div class="row lock">
+              <svg width="60" height="60"><use href="#m-depth" /></svg
+              ><span class="wm">bearing</span>
+            </div>
+            <div class="icons">
+              <span
+                class="ico i64"
+                style="
+                  background: linear-gradient(180deg, #23262d, #0f1115);
+                  color: #fff;
+                  box-shadow: 0 10px 18px -8px rgba(16, 24, 40, 0.6);
+                "
+                ><svg width="44" height="44"><use href="#m-depth" /></svg
+              ></span>
+              <span
+                class="ico i64"
+                style="background: #fff; box-shadow: 0 10px 18px -8px rgba(16, 24, 40, 0.35)"
+                ><svg width="44" height="44"><use href="#m-depth" /></svg
+              ></span>
+              <span class="ico i28" style="background: #0f1115; color: #fff"
+                ><svg width="20" height="20"><use href="#m-depth" /></svg
+              ></span>
+              <span class="ico i16" style="background: #0f1115; color: #fff"
+                ><svg width="12" height="12"><use href="#m-depth" /></svg
+              ></span>
+            </div>
+          </div>
+          <div class="tile s3">
+            <p class="cap">Colour and type</p>
+            <div class="sw">
+              <i style="background: #e3e6ec"></i><i style="background: #fff"></i
+              ><i style="background: #0f1115"></i><i style="background: #636973"></i
+              ><i style="background: #ff3355"></i>
+            </div>
+            <p class="swl">
+              Air · Card · Ink · Slate · Signal, for live only. Shadow is the sixth colour.
+            </p>
+            <div class="spec">
+              <div
+                style="font-size: 32px; font-weight: 800; letter-spacing: -0.045em; line-height: 1"
+              >
+                Vitality 13–9
+              </div>
+              <div class="small">
+                Figtree: round, friendly, sturdy at small sizes. Distance is shown by size,
+                sharpness and shadow, never by colour.
+              </div>
+            </div>
+          </div>
+
+          <div class="tile s6 hero stage">
+            <div class="dback b2">22:00 · Trackmania Cup final</div>
+            <div class="dback b1">20:30 · G2 v T1 · League of Legends · in 50 min</div>
+            <div class="card dfront">
+              <div class="row" style="justify-content: space-between; gap: 10px; flex-wrap: wrap">
+                <span class="pill"><i class="dot pulse"></i>Live · round 17</span
+                ><span class="sub" style="font-weight: 600">CS2 · IEM Cologne · Semi-final</span>
+              </div>
+              <div class="dg">
+                <div class="row" style="gap: 12px">
+                  <span class="orb" style="background: #f5d000">VIT</span
+                  ><span class="hname">Vitality</span>
+                </div>
+                <div class="hscore tnum">9–7</div>
+                <div class="row" style="gap: 12px; justify-content: flex-end">
+                  <span class="hname">Aurora</span
+                  ><span class="orb" style="background: #0f9a94; color: #fff">AUR</span>
+                </div>
+              </div>
+              <div class="chips">
+                <span>Mirage 13–9</span
+                ><span style="background: rgba(255, 51, 85, 0.1); color: var(--live)"
+                  >Anubis 9–7</span
+                ><span>Inferno</span
+                ><span style="margin-left: auto; background: #0f1115; color: #fff">Open match</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tile s3">
+            <div class="phone">
+              <div
+                class="row"
+                style="justify-content: space-between; padding: 22px 22px 0; align-items: baseline"
+              >
+                <span style="font-size: 19px; font-weight: 800; letter-spacing: -0.04em">Today</span
+                ><span style="font-size: 10.5px; font-weight: 700; color: var(--ink2)"
+                  >later ↑</span
+                >
+              </div>
+              <div class="card pc" style="top: 62px; --s: 0.72; --o: 0.42; --b: 1.1px">
+                <span class="t">Tue</span><span><b>Spirit v MOUZ</b></span>
+              </div>
+              <div class="card pc" style="top: 92px; --s: 0.79; --o: 0.6; --b: 0.7px">
+                <span class="t">22:00</span
+                ><span><b>Cup final</b> <span class="sub">Trackmania</span></span>
+              </div>
+              <div class="card pc" style="top: 124px; --s: 0.86; --o: 0.8; --b: 0.3px">
+                <span class="t">21:15</span
+                ><span><b>KC v BDS</b> <span class="sub">Rocket League</span></span>
+              </div>
+              <div class="card pc" style="top: 159px; --s: 0.93; --o: 0.95">
+                <span class="t">20:30</span
+                ><span><b>G2 v T1</b> <span class="sub">LoL · in 50 min</span></span>
+              </div>
+              <div
+                class="card pc"
+                style="
+                  top: 198px;
+                  --s: 1;
+                  --o: 1;
+                  display: block;
+                  padding: 16px;
+                  border-radius: 22px;
+                "
+              >
+                <div class="row" style="justify-content: space-between">
+                  <span class="pill"><i class="dot pulse"></i>Live</span
+                  ><span class="sub" style="font-weight: 600">CS2 · Semi-final</span>
+                </div>
+                <div class="row" style="justify-content: space-between; margin: 18px 4px 6px">
+                  <span class="orb" style="width: 46px; background: #f5d000">VIT</span>
+                  <span
+                    style="
+                      font-size: 46px;
+                      font-weight: 800;
+                      letter-spacing: -0.05em;
+                      line-height: 1;
+                    "
+                    class="tnum"
+                    >9–7</span
+                  >
+                  <span class="orb" style="width: 46px; background: #0f9a94; color: #fff">AUR</span>
+                </div>
+                <div
+                  class="row"
+                  style="
+                    justify-content: space-between;
+                    font-size: 13px;
+                    font-weight: 700;
+                    margin: 0 0 14px;
+                  "
+                >
+                  <span>Vitality</span
+                  ><span class="sub" style="font-weight: 600">Anubis · map 2</span
+                  ><span>Aurora</span>
+                </div>
+                <div class="chips">
+                  <span>Maps 1–0</span><span>Round 17</span
+                  ><span style="margin-left: auto; background: #0f1115; color: #fff">Open</span>
+                </div>
+              </div>
+              <div
+                style="
+                  position: absolute;
+                  left: 22px;
+                  right: 22px;
+                  top: 430px;
+                  font-size: 10.5px;
+                  font-weight: 700;
+                  color: var(--ink2);
+                  display: flex;
+                  justify-content: space-between;
+                "
+              >
+                <span>earlier ↓</span><span>2 results today</span>
+              </div>
+              <div
+                class="card"
+                style="
+                  position: absolute;
+                  left: 34px;
+                  right: 34px;
+                  top: 456px;
+                  height: 60px;
+                  border-radius: 16px 16px 0 0;
+                  opacity: 0.55;
+                  padding: 10px 14px;
+                  font-size: 11.5px;
+                  font-weight: 600;
+                  line-height: 1.45;
+                  color: var(--ink2);
+                "
+              >
+                NAVI 2–1 FaZe<br />Carlsen ½–½ Nakamura
+              </div>
+              <div class="tab">
+                <span style="color: var(--ink)">Today</span><span>Schedule</span
+                ><span>Following</span><span>Search</span>
+              </div>
+            </div>
+          </div>
+          <div class="tile s3 notes">
+            <h4>The idea</h4>
+            <p>
+              Time has depth. The live match is the card in front of you; the next ones stand behind
+              it, smaller and softer the later they are. Scrolling pulls the evening towards you.
+            </p>
+            <h4>Why it could work</h4>
+            <p>
+              It needs no colour at all to say what matters, so team colours stay free. It is the
+              route that would use real 3D best, and Three.js is already in the stack.
+            </p>
+            <h4>The risk</h4>
+            <p>
+              It shows fewer matches at once than a plain list, and the motion has to be very good
+              or it feels like a gimmick.
+            </p>
+            <div
+              class="alt"
+              style="background: linear-gradient(180deg, #1a1d23, #0d0f13); color: #fff"
+            >
+              <div class="row" style="gap: 8px">
+                <svg width="22" height="22"><use href="#m-depth" /></svg
+                ><span class="wm" style="font-size: 20px">bearing</span
+                ><span
+                  style="
+                    font-size: 10px;
+                    font-weight: 700;
+                    color: #868d98;
+                    margin-left: auto;
+                    letter-spacing: 0.06em;
+                  "
+                  >DARK MODE</span
+                >
+              </div>
+              <div
+                class="row"
+                style="
+                  gap: 8px;
+                  margin-top: 12px;
+                  padding: 9px 12px;
+                  border-radius: 12px;
+                  background: #262a32;
+                  box-shadow:
+                    0 12px 20px -10px #000,
+                    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+                  font-weight: 700;
+                "
+              >
+                <i class="dot pulse"></i>Vitality v Aurora<span style="margin-left: auto">9–7</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════ 6 · Lens ═════════ -->
+      <section class="route lens">
+        <style>
+          .lens {
+            --ink: #0a0b0e;
+            --ink2: #555b66;
+            --mute: #8e95a1;
+            --live: #ff3b30;
+            --mono: "Inter", sans-serif;
+          }
+          .lens .board {
+            background: #eef0f4;
+            color: var(--ink);
+            font-family: "Inter", system-ui, sans-serif;
+          }
+          .lens .tile {
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 10px 26px -18px rgba(10, 20, 40, 0.3);
+          }
+          .lens .cap,
+          .lens .notes h4 {
+            font-weight: 600;
+          }
+          .lens .disp {
+            font-family: "Inter Tight", sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.035em;
+            line-height: 1;
+          }
+          .lens .wm {
+            font-family: "Inter Tight", sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.045em;
+          }
+          .lens .light {
+            position: absolute;
+            inset: 0;
+            background: #f4f5f8;
+            overflow: hidden;
+          }
+          .lens .light i {
+            position: absolute;
+            width: 70%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            filter: blur(40px);
+            opacity: 0.9;
+          }
+          .lens .light i:first-child {
+            left: -22%;
+            top: -30%;
+            background: var(--a);
+            animation: drift 14s ease-in-out infinite;
+          }
+          .lens .light i:last-child {
+            right: -22%;
+            bottom: -40%;
+            background: var(--b);
+            animation: drift 14s ease-in-out infinite reverse;
+          }
+          @keyframes drift {
+            50% {
+              transform: translate(9%, 7%) scale(1.08);
+            }
+          }
+          .lens .glass {
+            background: rgba(255, 255, 255, 0.4);
+            -webkit-backdrop-filter: blur(22px) saturate(180%);
+            backdrop-filter: blur(22px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            box-shadow:
+              inset 0 1px 0 rgba(255, 255, 255, 0.85),
+              0 12px 30px -14px rgba(10, 20, 40, 0.3);
+          }
+          .lens .lensdisc {
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            text-align: center;
+            background: radial-gradient(
+              circle at 30% 22%,
+              rgba(255, 255, 255, 0.85),
+              rgba(255, 255, 255, 0.28) 62%,
+              rgba(255, 255, 255, 0.5)
+            );
+            -webkit-backdrop-filter: blur(18px) saturate(190%);
+            backdrop-filter: blur(18px) saturate(190%);
+            border: 1.5px solid rgba(255, 255, 255, 0.9);
+            box-shadow:
+              inset 0 -10px 22px rgba(255, 255, 255, 0.35),
+              inset 0 2px 1px #fff,
+              0 22px 40px -16px rgba(10, 20, 40, 0.45);
+          }
+          .lens .hg {
+            position: relative;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            align-items: center;
+            gap: 10px;
+            padding: 14px 24px 18px;
+          }
+          .lens .hname {
+            font-size: clamp(22px, 6cqw, 42px);
+          }
+          .lens .hl {
+            width: clamp(104px, 25cqw, 172px);
+            aspect-ratio: 1;
+          }
+          .lens .hl .disp {
+            font-size: clamp(32px, 8.4cqw, 58px);
+          }
+          .lens .pillg {
+            display: inline-flex;
+            gap: 8px;
+            align-items: center;
+            padding: 7px 13px;
+            border-radius: 999px;
+            font-size: 11.5px;
+            font-weight: 600;
+          }
+          .lens .phone {
+            background: #f4f5f8;
+            box-shadow:
+              0 0 0 7px #fff,
+              0 0 0 8px #d6dae1,
+              0 22px 44px -18px rgba(10, 20, 40, 0.45);
+          }
+          .lens .lr {
+            display: grid;
+            grid-template-columns: 42px minmax(0, 1fr) auto;
+            gap: 8px;
+            align-items: center;
+            padding: 9px 0;
+            font-size: 12.5px;
+            line-height: 1.3;
+            border-top: 1px solid rgba(10, 11, 14, 0.08);
+          }
+          .lens .lr:first-child {
+            border-top: 0;
+          }
+          .lens .tab {
+            left: 22px;
+            right: 22px;
+            bottom: 14px;
+            height: 50px;
+            border-radius: 999px;
+            padding: 0 14px;
+            color: var(--ink2);
+            font-weight: 600;
+          }
+        </style>
+        <div class="rhead">
+          <span class="rletter">6</span><span class="rname">Lens</span>
+          <span class="rline"
+            >Every match is coloured light, read through round glass. Route C, pushed further.</span
+          >
+        </div>
+        <div class="board">
+          <div class="tile s3">
+            <p class="cap">Mark</p>
+            <div class="row lock">
+              <svg width="60" height="60"><use href="#m-lens" /></svg
+              ><span class="wm">bearing</span>
+            </div>
+            <div class="icons">
+              <span
+                class="ico i64"
+                style="
+                  position: relative;
+                  background: #0a0b0e;
+                  color: #fff;
+                  --a: #ffb300;
+                  --b: #00b3a7;
+                "
+                ><span class="light" style="background: #0a0b0e; opacity: 0.75"><i></i><i></i></span
+                ><svg width="42" height="42" style="position: relative"><use href="#m-lens" /></svg
+              ></span>
+              <span
+                class="ico i64"
+                style="background: #fff; box-shadow: 0 8px 18px -10px rgba(10, 20, 40, 0.4)"
+                ><svg width="42" height="42"><use href="#m-lens" /></svg
+              ></span>
+              <span class="ico i28" style="background: #0a0b0e; color: #fff"
+                ><svg width="19" height="19"><use href="#m-lens" /></svg
+              ></span>
+              <span class="ico i16" style="background: #0a0b0e; color: #fff"
+                ><svg width="12" height="12"><use href="#m-lens" /></svg
+              ></span>
+            </div>
+          </div>
+          <div class="tile s3">
+            <p class="cap">Colour and type</p>
+            <div class="sw">
+              <i style="background: #eef0f4"></i><i style="background: #0a0b0e"></i
+              ><i style="background: #555b66"></i
+              ><i style="background: linear-gradient(90deg, #ffd400, #0aa5a0)"></i
+              ><i style="background: #ff3b30"></i>
+            </div>
+            <p class="swl">Mist · Ink · Slate · the teams' light · Red, for live only</p>
+            <div class="spec">
+              <div class="disp" style="font-size: 34px">Vitality 13–9</div>
+              <div class="small">
+                Inter Tight for names and scores, Inter for text. Colour is never painted on; it
+                shines from behind the glass.
+              </div>
+            </div>
+          </div>
+
+          <div class="tile s6 hero" style="padding: 0; --a: #ffd400; --b: #0aa5a0">
+            <div class="light"><i></i><i></i></div>
+            <div
+              style="
+                position: relative;
+                padding: 16px 18px 0;
+                display: flex;
+                justify-content: space-between;
+                gap: 8px;
+                flex-wrap: wrap;
+              "
+            >
+              <span class="glass pillg"
+                ><i class="dot pulse"></i><span class="live">Live</span> Round 17</span
+              ><span class="glass pillg">CS2 · IEM Cologne · Semi-final</span>
+            </div>
+            <div class="hg">
+              <div>
+                <div class="disp hname">Vitality</div>
+                <div
+                  class="sub"
+                  style="font-weight: 600; margin-top: 6px; color: rgba(10, 11, 14, 0.62)"
+                >
+                  1 map
+                </div>
+              </div>
+              <div class="lensdisc hl">
+                <div>
+                  <div
+                    style="
+                      font-size: 9.5px;
+                      font-weight: 700;
+                      letter-spacing: 0.08em;
+                      color: var(--ink2);
+                    "
+                  >
+                    ANUBIS
+                  </div>
+                  <div class="disp tnum">9–7</div>
+                </div>
+              </div>
+              <div style="text-align: right">
+                <div class="disp hname">Aurora</div>
+                <div
+                  class="sub"
+                  style="font-weight: 600; margin-top: 6px; color: rgba(10, 11, 14, 0.62)"
+                >
+                  0 maps
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tile s3">
+            <div class="phone" style="--a: #ffd400; --b: #0aa5a0">
+              <div class="light">
+                <i style="width: 120%; left: -50%; top: -8%"></i
+                ><i style="width: 120%; right: -55%; bottom: 22%"></i>
+              </div>
+              <div style="position: relative; padding: 22px 16px 0">
+                <div
+                  class="row"
+                  style="justify-content: space-between; align-items: baseline; padding: 0 6px 12px"
+                >
+                  <span class="disp" style="font-size: 28px">Today</span
+                  ><span style="font-size: 11px; font-weight: 600; color: rgba(10, 11, 14, 0.6)"
+                    >Mon 16 Nov</span
+                  >
+                </div>
+                <div class="glass" style="border-radius: 28px; padding: 14px 16px 16px">
+                  <div
+                    class="row"
+                    style="justify-content: space-between; font-size: 11px; font-weight: 600"
+                  >
+                    <span class="row" style="gap: 6px"
+                      ><i class="dot pulse"></i><span class="live">Live</span></span
+                    ><span style="color: var(--ink2)">CS2 · Semi-final</span>
+                  </div>
+                  <div class="row" style="justify-content: space-between; margin-top: 10px">
+                    <span class="disp" style="font-size: 20px">Vitality</span>
+                    <span class="lensdisc" style="width: 92px; height: 92px"
+                      ><span
+                        ><span
+                          style="
+                            display: block;
+                            font-size: 8px;
+                            font-weight: 700;
+                            letter-spacing: 0.08em;
+                            color: var(--ink2);
+                          "
+                          >ANUBIS</span
+                        ><span class="disp tnum" style="font-size: 30px">9–7</span></span
+                      ></span
+                    >
+                    <span class="disp" style="font-size: 20px">Aurora</span>
+                  </div>
+                  <div
+                    class="row"
+                    style="
+                      justify-content: space-between;
+                      font-size: 11px;
+                      font-weight: 600;
+                      color: var(--ink2);
+                      margin-top: 8px;
+                    "
+                  >
+                    <span>1 map</span><span>round 17</span><span>0 maps</span>
+                  </div>
+                </div>
+                <div class="glass" style="border-radius: 24px; padding: 6px 16px; margin-top: 12px">
+                  <div class="lr">
+                    <span class="tnum" style="font-weight: 700">20:30</span
+                    ><span
+                      ><b style="font-weight: 600">G2 v T1</b><br /><span class="sub"
+                        >LoL · Final</span
+                      ></span
+                    ><span class="sub">50 min</span>
+                  </div>
+                  <div class="lr">
+                    <span class="tnum" style="font-weight: 700">21:15</span
+                    ><span
+                      ><b style="font-weight: 600">KC v BDS</b><br /><span class="sub"
+                        >Rocket League · Final</span
+                      ></span
+                    ><span class="sub">1 h 35</span>
+                  </div>
+                  <div class="lr">
+                    <span class="tnum" style="font-weight: 700">22:00</span
+                    ><span
+                      ><b style="font-weight: 600">Cup final</b><br /><span class="sub"
+                        >Trackmania</span
+                      ></span
+                    ><span class="sub">2 h 20</span>
+                  </div>
+                </div>
+                <div
+                  class="row"
+                  style="
+                    gap: 6px;
+                    margin-top: 12px;
+                    font-size: 11px;
+                    font-weight: 600;
+                    flex-wrap: wrap;
+                  "
+                >
+                  <span class="glass pillg" style="padding: 6px 11px"
+                    ><i class="dot pulse"></i>Vitality</span
+                  ><span class="glass pillg" style="padding: 6px 11px">Spirit · Tue</span
+                  ><span class="glass pillg" style="padding: 6px 11px; color: var(--ink2)"
+                    >T1 · 20:30</span
+                  >
+                </div>
+              </div>
+              <div class="tab glass">
+                <span style="color: var(--ink)">Today</span><span>Schedule</span
+                ><span>Following</span><span>Search</span>
+              </div>
+            </div>
+          </div>
+          <div class="tile s3 notes">
+            <h4>The idea</h4>
+            <p>
+              The two teams light the whole screen from behind, and you read the match through
+              glass. The score sits in a round lens: the ball of the bearing.
+            </p>
+            <h4>New since C</h4>
+            <p>
+              The lens replaces the plain glass box, the light now moves slowly, and the live match
+              colours the whole home screen, not just its own card.
+            </p>
+            <h4>The risk</h4>
+            <p>
+              It is the closest to Apple's own apps, so the least its own. Blur is heavy on older
+              phones, and text over colour needs care to stay readable.
+            </p>
+            <div
+              class="alt"
+              style="
+                position: relative;
+                overflow: hidden;
+                background: #0a0b0e;
+                color: #fff;
+                --a: #c79a00;
+                --b: #0a8f8a;
+              "
+            >
+              <div class="light" style="background: #0a0b0e; opacity: 0.6"><i></i><i></i></div>
+              <div style="position: relative">
+                <div class="row" style="gap: 8px">
+                  <svg width="22" height="22"><use href="#m-lens" /></svg
+                  ><span class="wm" style="font-size: 20px">bearing</span
+                  ><span
+                    style="
+                      font-size: 10px;
+                      font-weight: 600;
+                      color: #b3b9c4;
+                      margin-left: auto;
+                      letter-spacing: 0.06em;
+                    "
+                    >DARK MODE</span
+                  >
+                </div>
+                <div
+                  class="row"
+                  style="
+                    gap: 8px;
+                    font-weight: 600;
+                    margin-top: 12px;
+                    padding: 9px 12px;
+                    border-radius: 999px;
+                    background: rgba(255, 255, 255, 0.13);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                  "
+                >
+                  <i class="dot pulse"></i>Vitality v Aurora<span style="margin-left: auto"
+                    >9–7</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <script>
+        (function () {
+          var NS = "http://www.w3.org/2000/svg";
+          function el(t, a, p) {
+            var e = document.createElementNS(NS, t);
+            for (var k in a) e.setAttribute(k, a[k]);
+            if (p) p.appendChild(e);
+            return e;
+          }
+          function pt(cx, cy, r, d) {
+            var a = ((d - 90) * Math.PI) / 180;
+            return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+          }
+          function arc(cx, cy, r, a0, a1) {
+            var p = pt(cx, cy, r, a0),
+              q = pt(cx, cy, r, a1);
+            return (
+              "M" +
+              p[0].toFixed(2) +
+              " " +
+              p[1].toFixed(2) +
+              "A" +
+              r +
+              " " +
+              r +
+              " 0 " +
+              (a1 - a0 > 180 ? 1 : 0) +
+              " 1 " +
+              q[0].toFixed(2) +
+              " " +
+              q[1].toFixed(2)
+            );
+          }
+          function text(p, x, y, s, a) {
+            var t = el(
+              "text",
+              Object.assign(
+                { x: x, y: y, "text-anchor": "middle", "dominant-baseline": "central" },
+                a,
+              ),
+              p,
+            );
+            t.textContent = s;
+            return t;
+          }
+          var INK = "#14171c",
+            INK2 = "#5a616b",
+            RULE = "#d3cec4",
+            LIVE = "#f0452b",
+            MONO = "Geist Mono, monospace";
+
+          // Route 1: rounds gauge. Each team fills its own side, first to 13.
+          var g = document.getElementById("dial-gauge");
+          if (g) {
+            el(
+              "circle",
+              { cx: 100, cy: 100, r: 64, fill: "none", stroke: RULE, "stroke-width": 1 },
+              g,
+            );
+            [
+              [-1, 9],
+              [1, 7],
+            ].forEach(function (s) {
+              for (var i = 0; i < 13; i++) {
+                var d = s[0] * (8 + i * 11.5),
+                  on = i < s[1],
+                  last = s[0] < 0 && i === s[1] - 1;
+                var a = pt(100, 100, i === 12 ? 71 : 76, d),
+                  b = pt(100, 100, 93, d);
+                el(
+                  "line",
+                  {
+                    x1: a[0],
+                    y1: a[1],
+                    x2: b[0],
+                    y2: b[1],
+                    stroke: last ? LIVE : on ? INK : RULE,
+                    "stroke-width": on ? 4.2 : 2.4,
+                    "stroke-linecap": "round",
+                  },
+                  g,
+                );
+              }
+            });
+            text(g, 100, 72, "ROUND 17", {
+              "font-family": MONO,
+              "font-size": 8,
+              fill: LIVE,
+              "letter-spacing": 0.8,
+            });
+            text(g, 100, 101, "9–7", {
+              "font-family": MONO,
+              "font-size": 36,
+              "font-weight": 500,
+              fill: INK,
+              "letter-spacing": -1.5,
+            });
+            text(g, 100, 129, "ANUBIS · MAP 2", {
+              "font-family": MONO,
+              "font-size": 8,
+              fill: INK2,
+              "letter-spacing": 0.8,
+            });
+            text(g, 100, 186, "FIRST TO 13", {
+              "font-family": MONO,
+              "font-size": 7.5,
+              fill: "#9199a3",
+              "letter-spacing": 0.8,
+            });
+          }
+
+          // Route 1: the day as a 24-hour dial, midnight at the top.
+          var d = document.getElementById("dial-day");
+          if (d) {
+            var C = 115,
+              NOW = 19 + 40 / 60;
+            var deg = function (h) {
+              return (h / 24) * 360;
+            };
+            el("circle", { cx: C, cy: C, r: 94, fill: "none", stroke: INK, "stroke-width": 2 }, d);
+            el("circle", { cx: C, cy: C, r: 54, fill: "none", stroke: INK, "stroke-width": 2 }, d);
+            for (var h = 0; h < 24; h++) {
+              var a = pt(C, C, 94, deg(h)),
+                b = pt(C, C, h % 6 === 0 ? 100 : 98, deg(h));
+              el(
+                "line",
+                {
+                  x1: a[0],
+                  y1: a[1],
+                  x2: b[0],
+                  y2: b[1],
+                  stroke: INK,
+                  "stroke-width": h % 6 === 0 ? 1.6 : 1,
+                },
+                d,
+              );
+            }
+            [
+              [0, "00"],
+              [6, "06"],
+              [12, "12"],
+              [18, "18"],
+            ].forEach(function (l) {
+              var p = pt(C, C, 109, deg(l[0]));
+              text(d, p[0], p[1], l[1], { "font-family": MONO, "font-size": 9, fill: INK2 });
+            });
+            [
+              [9, 11, 2],
+              [13, 15.5, 0],
+              [16, 18, 1],
+              [18.75, 21, 0, 1],
+              [20.5, 22.5, 1],
+              [21.25, 23, 2],
+              [22, 23.4, 3],
+            ].forEach(function (m) {
+              el(
+                "path",
+                {
+                  d: arc(C, C, 86 - m[2] * 8.5, deg(m[0]), deg(m[1])),
+                  fill: "none",
+                  stroke: m[3] ? LIVE : m[1] < NOW ? "#bdb8ae" : INK,
+                  "stroke-width": 5.5,
+                  "stroke-linecap": "round",
+                },
+                d,
+              );
+            });
+            var n0 = pt(C, C, 54, deg(NOW)),
+              n1 = pt(C, C, 101, deg(NOW));
+            el(
+              "line",
+              { x1: n0[0], y1: n0[1], x2: n1[0], y2: n1[1], stroke: LIVE, "stroke-width": 1.6 },
+              d,
+            );
+            el("circle", { cx: n1[0], cy: n1[1], r: 3.4, fill: LIVE }, d);
+            text(d, C, C - 3, "19:40", {
+              "font-family": MONO,
+              "font-size": 23,
+              "font-weight": 500,
+              fill: INK,
+              "letter-spacing": -1,
+            });
+            text(d, C, C + 17, "1 LIVE · 3 NEXT", {
+              "font-family": MONO,
+              "font-size": 7.5,
+              fill: INK2,
+              "letter-spacing": 0.8,
+            });
+          }
+        })();
+      </script>
+    </div>
+  </body>
+</html>

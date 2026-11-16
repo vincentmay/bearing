@@ -1,0 +1,2206 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bearing identity, round 1</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      .id {
+        font-family: var(--font-sans, system-ui, sans-serif);
+        color: var(--foreground, #111);
+      }
+      .id * {
+        box-sizing: border-box;
+      }
+      .route {
+        margin: 0 0 44px;
+      }
+      .route:last-child {
+        margin-bottom: 8px;
+      }
+      .rhead {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 0 0 12px;
+      }
+      .rletter {
+        font-family: var(--font-mono, monospace);
+        font-size: 12px;
+        padding: 2px 8px;
+        border: 1px solid var(--border, #ccc);
+        border-radius: 999px;
+        color: var(--muted-foreground, #666);
+      }
+      .rname {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .rline {
+        font-size: 14px;
+        color: var(--muted-foreground, #666);
+        flex: 1 1 260px;
+      }
+      .board {
+        border-radius: var(--radius, 12px);
+        padding: 16px;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .tile {
+        border-radius: 14px;
+        padding: 16px;
+        min-width: 0;
+        position: relative;
+        overflow: hidden;
+      }
+      .s2 {
+        grid-column: span 2;
+      }
+      .s3 {
+        grid-column: span 3;
+      }
+      .s4 {
+        grid-column: span 4;
+      }
+      .s6 {
+        grid-column: span 6;
+      }
+      .cap {
+        font-size: 10.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin: 0 0 12px;
+      }
+      .sw {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+      }
+      .sw i {
+        display: block;
+        height: 34px;
+        border-radius: 8px;
+      }
+      .sw span {
+        display: block;
+        font-size: 10px;
+        margin-top: 4px;
+        line-height: 1.25;
+      }
+      .notes {
+        font-size: 13.5px;
+        line-height: 1.5;
+      }
+      .notes h4 {
+        font-size: 12px;
+        margin: 14px 0 3px;
+      }
+      .notes h4:first-child {
+        margin-top: 0;
+      }
+      .notes p {
+        margin: 0;
+      }
+      .phone {
+        width: 100%;
+        max-width: 292px;
+        height: 600px;
+        border-radius: 40px;
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+      }
+      .center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .mo {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .alt {
+        margin-top: 16px;
+        border-radius: 12px;
+        padding: 14px;
+      }
+      .chips {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .chips span {
+        font-size: 10.5px;
+        padding: 5px 9px;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+      }
+      .tnum {
+        font-variant-numeric: tabular-nums;
+      }
+      @media (max-width: 600px) {
+        .board {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .s2,
+        .s3,
+        .s4,
+        .s6 {
+          grid-column: span 2;
+        }
+        .s2.half {
+          grid-column: span 1;
+        }
+        .sw {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .hname {
+          font-size: 17px !important;
+        }
+        .hscore {
+          font-size: 34px !important;
+        }
+        .hgrid {
+          grid-template-columns: minmax(0, 1fr) 92px minmax(0, 1fr) !important;
+        }
+        .hpad {
+          padding: 8px 12px !important;
+          border-radius: 16px !important;
+        }
+        .A .crest {
+          width: 30px;
+          height: 30px;
+          border-radius: 8px;
+          font-size: 9px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .id * {
+          animation: none !important;
+        }
+      }
+
+      /* ───────── Route A · Instrument ───────── */
+      .A {
+        --paper: #f4f2ee;
+        --card: #fbfaf7;
+        --ink: #14171c;
+        --ink2: #5a616b;
+        --ink3: #9199a3;
+        --line: #dcd8d0;
+        --live: #f0452b;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: "Geist", system-ui, sans-serif;
+      }
+      .A .tile {
+        background: var(--card);
+        border: 1px solid var(--line);
+      }
+      .A .cap {
+        color: var(--ink3);
+        font-family: "Geist Mono", monospace;
+      }
+      .A .mono {
+        font-family: "Geist Mono", monospace;
+      }
+      .A .wm {
+        font-weight: 600;
+        letter-spacing: -0.045em;
+        line-height: 1;
+      }
+      .A .sw span {
+        color: var(--ink2);
+        font-family: "Geist Mono", monospace;
+      }
+      .A .notes h4 {
+        color: var(--ink3);
+        font-family: "Geist Mono", monospace;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .A .live {
+        color: var(--live);
+      }
+      .A .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--live);
+        display: inline-block;
+        animation: a-pulse 1.8s ease-in-out infinite;
+      }
+      @keyframes a-pulse {
+        50% {
+          opacity: 0.35;
+        }
+      }
+      .A .crest {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        font:
+          600 12px "Geist Mono",
+          monospace;
+        letter-spacing: 0.02em;
+      }
+      .A .needle {
+        transform-origin: 60px 60px;
+        animation: a-settle 4.5s cubic-bezier(0.2, 1.5, 0.35, 1) infinite;
+      }
+      @keyframes a-settle {
+        0% {
+          transform: rotate(-40deg);
+        }
+        30%,
+        100% {
+          transform: rotate(118deg);
+        }
+      }
+      .A .phone {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        box-shadow:
+          0 0 0 7px #e9e6e0,
+          0 18px 40px -18px rgba(20, 23, 28, 0.35);
+      }
+      .A .prow {
+        display: grid;
+        grid-template-columns: 46px minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+        padding: 9px 0;
+        border-top: 1px solid var(--line);
+        font-size: 12.5px;
+      }
+
+      /* ───────── Route B · Machined ───────── */
+      .B {
+        --bg: #0d0f12;
+        --panel: #15181d;
+        --panel2: #1c2027;
+        --line: #2a2f38;
+        --text: #eef0f3;
+        --text2: #9ba3ae;
+        --text3: #5e6672;
+        --live: #ff7a1a;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Archivo", system-ui, sans-serif;
+      }
+      .B .tile {
+        background: linear-gradient(180deg, var(--panel2), var(--panel));
+        border: 1px solid var(--line);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      }
+      .B .cap {
+        color: var(--text3);
+        font-family: "JetBrains Mono", monospace;
+      }
+      .B .mono {
+        font-family: "JetBrains Mono", monospace;
+      }
+      .B .wide {
+        font-stretch: 125%;
+        font-weight: 750;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+      .B .sw span {
+        color: var(--text2);
+        font-family: "JetBrains Mono", monospace;
+      }
+      .B .notes {
+        color: var(--text2);
+      }
+      .B .notes h4 {
+        color: var(--text);
+        font-stretch: 120%;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .B .live {
+        color: var(--live);
+      }
+      .B .spin {
+        transform-origin: 50% 50%;
+        transform-box: view-box;
+        animation: b-spin 48s linear infinite;
+      }
+      .B .spin.fast {
+        animation-duration: 9s;
+      }
+      @keyframes b-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .B .glow {
+        filter: drop-shadow(0 0 5px rgba(255, 122, 26, 0.9));
+      }
+      .B .phone {
+        background: var(--bg);
+        border: 1px solid var(--line);
+        box-shadow:
+          0 0 0 7px #1a1d22,
+          0 18px 40px -16px rgba(0, 0, 0, 0.8);
+      }
+      .B .prow {
+        display: grid;
+        grid-template-columns: 34px minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        padding: 9px 12px;
+        font-size: 12.5px;
+        border-radius: 12px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        margin-top: 6px;
+      }
+
+      /* ───────── Route C · Glass ───────── */
+      .C {
+        --bg: #eef0f4;
+        --text: #0a0b0e;
+        --text2: #6a7180;
+        --text3: #9aa1ad;
+        --live: #ff3b30;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", system-ui, sans-serif;
+      }
+      .C .tile {
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        box-shadow:
+          0 1px 2px rgba(15, 20, 30, 0.04),
+          0 10px 28px -16px rgba(15, 20, 30, 0.2);
+      }
+      .C .cap {
+        color: var(--text3);
+        font-weight: 600;
+      }
+      .C .disp {
+        font-family: "Inter Tight", "Inter", sans-serif;
+        font-weight: 700;
+        letter-spacing: -0.035em;
+        line-height: 1;
+      }
+      .C .sw span {
+        color: var(--text2);
+      }
+      .C .notes h4 {
+        color: var(--text3);
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .C .live {
+        color: var(--live);
+      }
+      .C .glass {
+        background: rgba(255, 255, 255, 0.58);
+        -webkit-backdrop-filter: blur(22px) saturate(170%);
+        backdrop-filter: blur(22px) saturate(170%);
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        box-shadow:
+          0 8px 24px -12px rgba(10, 15, 30, 0.35),
+          inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      }
+      .C .field {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(60% 90% at 12% 30%, #ffe45c 0%, rgba(255, 228, 92, 0) 70%),
+          radial-gradient(60% 90% at 88% 70%, #37d6cf 0%, rgba(55, 214, 207, 0) 70%),
+          linear-gradient(180deg, #fafbfc, #e9ecf1);
+      }
+      .C .breathe {
+        animation: c-breathe 3.2s ease-in-out infinite;
+      }
+      @keyframes c-breathe {
+        50% {
+          transform: scale(1.35);
+          opacity: 0.55;
+        }
+      }
+      .C .phone {
+        background: var(--bg);
+        border: 1px solid #fff;
+        box-shadow:
+          0 0 0 7px #dfe2e8,
+          0 18px 40px -18px rgba(20, 23, 28, 0.4);
+      }
+      .C .prow {
+        display: grid;
+        grid-template-columns: 44px minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+        padding: 10px 12px;
+        font-size: 12.5px;
+        border-top: 1px solid #eceef2;
+      }
+      .C .prow:first-child {
+        border-top: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="id">
+      <!-- ═════════════ ROUTE A ═════════════ -->
+      <section class="route">
+        <div class="rhead">
+          <span class="rletter">A</span><span class="rname">Instrument</span>
+          <span class="rline"
+            >A precise dial you read at a glance. Paper and ink, one signal colour, and the day
+            drawn as a ring.</span
+          >
+        </div>
+        <div class="board A">
+          <div class="tile s4 center" style="min-height: 190px; gap: 22px; flex-wrap: wrap">
+            <svg width="112" height="112" viewBox="0 0 32 32" aria-label="Bearing mark, route A">
+              <g fill="#14171c" opacity="0.1" id="a-ghosts"></g>
+              <circle cx="16" cy="16" r="13" fill="none" stroke="#14171c" stroke-width="2" />
+              <circle cx="16" cy="16" r="6.5" fill="none" stroke="#14171c" stroke-width="2" />
+              <circle cx="23.99" cy="10.41" r="2.1" fill="#f0452b" />
+            </svg>
+            <div>
+              <div class="row" style="gap: 9px">
+                <svg width="34" height="34" viewBox="0 0 32 32">
+                  <circle cx="16" cy="16" r="13" fill="none" stroke="#14171c" stroke-width="2.2" />
+                  <circle cx="16" cy="16" r="6.5" fill="none" stroke="#14171c" stroke-width="2.2" />
+                  <circle cx="23.99" cy="10.41" r="2.2" fill="#f0452b" />
+                </svg>
+                <span class="wm" style="font-size: 34px">bearing</span>
+              </div>
+              <p
+                style="
+                  margin: 12px 0 0;
+                  font-size: 12.5px;
+                  color: var(--ink2);
+                  max-width: 250px;
+                  line-height: 1.45;
+                "
+              >
+                Two rings and one ball: a bearing seen from the front. The ball is the match that is
+                on.
+              </p>
+            </div>
+          </div>
+          <div class="tile s2 half center" style="flex-direction: column; gap: 12px">
+            <svg width="92" height="92" viewBox="0 0 92 92">
+              <rect width="92" height="92" rx="21" fill="#14171c" />
+              <g transform="translate(14 14) scale(2)">
+                <circle cx="16" cy="16" r="13" fill="none" stroke="#f4f2ee" stroke-width="2.2" />
+                <circle cx="16" cy="16" r="6.5" fill="none" stroke="#f4f2ee" stroke-width="2.2" />
+                <circle cx="23.99" cy="10.41" r="2.3" fill="#f0452b" />
+              </g>
+            </svg>
+            <div class="row" style="gap: 10px">
+              <svg width="28" height="28" viewBox="0 0 92 92">
+                <rect
+                  width="92"
+                  height="92"
+                  rx="21"
+                  fill="#fbfaf7"
+                  stroke="#dcd8d0"
+                  stroke-width="2"
+                />
+                <g transform="translate(14 14) scale(2)">
+                  <circle cx="16" cy="16" r="13" fill="none" stroke="#14171c" stroke-width="2.6" />
+                  <circle cx="16" cy="16" r="6.5" fill="none" stroke="#14171c" stroke-width="2.6" />
+                  <circle cx="23.99" cy="10.41" r="2.6" fill="#f0452b" />
+                </g>
+              </svg>
+              <svg width="16" height="16" viewBox="0 0 32 32">
+                <circle cx="16" cy="16" r="12.5" fill="none" stroke="#14171c" stroke-width="3.2" />
+                <circle cx="16" cy="16" r="5" fill="none" stroke="#14171c" stroke-width="3.2" />
+                <circle cx="24.2" cy="9.6" r="3.2" fill="#f0452b" />
+              </svg>
+              <span class="mono" style="font-size: 10px; color: var(--ink3)">icon · 28 · 16</span>
+            </div>
+          </div>
+
+          <div class="tile s2 half">
+            <p class="cap">Colour</p>
+            <div class="sw">
+              <div>
+                <i style="background: #f4f2ee; border: 1px solid #dcd8d0"></i
+                ><span>Paper<br />#F4F2EE</span>
+              </div>
+              <div>
+                <i style="background: #14171c"></i><span>Ink<br />#14171C</span>
+              </div>
+              <div>
+                <i style="background: #f0452b"></i><span>Live<br />#F0452B</span>
+              </div>
+              <div>
+                <i style="background: #fbfaf7; border: 1px solid #dcd8d0"></i
+                ><span>Card<br />#FBFAF7</span>
+              </div>
+              <div>
+                <i style="background: #5a616b"></i><span>Ink 2<br />#5A616B</span>
+              </div>
+              <div>
+                <i style="background: #dcd8d0"></i><span>Line<br />#DCD8D0</span>
+              </div>
+            </div>
+          </div>
+          <div class="tile s2 half">
+            <p class="cap">Type</p>
+            <div
+              style="font-size: 30px; font-weight: 600; letter-spacing: -0.04em; line-height: 1.05"
+            >
+              What's on now
+            </div>
+            <div style="font-size: 13px; color: var(--ink2); margin-top: 8px; line-height: 1.45">
+              Geist for words. Calm, neutral, close to Apple's own type.
+            </div>
+            <div class="mono" style="font-size: 15px; margin-top: 10px">19:40 · 13–9 · 045°</div>
+            <div style="font-size: 11px; color: var(--ink3); margin-top: 3px">
+              Geist Mono for times and scores.
+            </div>
+          </div>
+          <div class="tile s2">
+            <p class="cap">Motion</p>
+            <div class="mo">
+              <svg width="84" height="84" viewBox="0 0 120 120" style="flex: none">
+                <circle cx="60" cy="60" r="52" fill="none" stroke="#14171c" stroke-width="2" />
+                <g id="a-ticks" stroke="#14171c"></g>
+                <g class="needle">
+                  <line
+                    x1="60"
+                    y1="60"
+                    x2="60"
+                    y2="14"
+                    stroke="#f0452b"
+                    stroke-width="2.5"
+                    stroke-linecap="round"
+                  />
+                  <circle cx="60" cy="14" r="4" fill="#f0452b" />
+                </g>
+                <circle cx="60" cy="60" r="4" fill="#14171c" />
+              </svg>
+              <div style="font-size: 12.5px; line-height: 1.45; color: var(--ink2)">
+                Things swing to their place and settle, like a needle finding its reading. Only the
+                live dot keeps moving.
+              </div>
+            </div>
+          </div>
+
+          <!-- match header -->
+          <div class="tile s6" style="padding: 18px 20px">
+            <div
+              class="row mono"
+              style="
+                justify-content: space-between;
+                font-size: 11px;
+                gap: 10px;
+                flex-wrap: wrap;
+                color: var(--ink2);
+              "
+            >
+              <span class="row" style="gap: 7px"
+                ><span class="dot"></span><b class="live" style="font-weight: 500">LIVE</b
+                ><span>· Counter-Strike 2 · Copenhagen Masters · Semifinal · Best of 3</span></span
+              >
+              <span>Sun 15 Nov · 18:30</span>
+            </div>
+            <div
+              style="
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+                align-items: center;
+                gap: 14px;
+                margin: 20px 0 18px;
+              "
+            >
+              <div class="row" style="gap: 12px; min-width: 0">
+                <div class="crest center" style="background: #fae100; color: #14171c; flex: none">
+                  VIT
+                </div>
+                <div style="min-width: 0">
+                  <div
+                    class="hname"
+                    style="
+                      font-size: 26px;
+                      font-weight: 600;
+                      letter-spacing: -0.035em;
+                      line-height: 1.1;
+                    "
+                  >
+                    Vitality
+                  </div>
+                  <div style="font-size: 12px; color: var(--ink2)">France · you follow</div>
+                </div>
+              </div>
+              <div
+                class="mono tnum hscore"
+                style="font-size: 50px; font-weight: 500; letter-spacing: -0.04em; line-height: 1"
+              >
+                1<span style="color: var(--ink3); margin: 0 6px">–</span>0
+              </div>
+              <div
+                class="row"
+                style="gap: 12px; justify-content: flex-end; text-align: right; min-width: 0"
+              >
+                <div style="min-width: 0">
+                  <div
+                    class="hname"
+                    style="
+                      font-size: 26px;
+                      font-weight: 600;
+                      letter-spacing: -0.035em;
+                      line-height: 1.1;
+                    "
+                  >
+                    Aurora
+                  </div>
+                  <div style="font-size: 12px; color: var(--ink2)">Türkiye</div>
+                </div>
+                <div class="crest center" style="background: #19c9c0; color: #14171c; flex: none">
+                  AUR
+                </div>
+              </div>
+            </div>
+            <div
+              style="
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                border-top: 1px solid var(--line);
+              "
+            >
+              <div style="padding: 12px 12px 0 0">
+                <div class="mono" style="font-size: 10.5px; color: var(--ink3)">MAP 1 · MIRAGE</div>
+                <div class="mono tnum" style="font-size: 17px; margin-top: 3px">13–9</div>
+                <div style="font-size: 11.5px; color: var(--ink2)">Vitality</div>
+              </div>
+              <div style="padding: 12px 12px 0; border-left: 1px solid var(--line)">
+                <div class="mono live" style="font-size: 10.5px">MAP 2 · ANUBIS · LIVE</div>
+                <div class="mono tnum" style="font-size: 17px; margin-top: 3px">9–7</div>
+                <div
+                  style="height: 3px; background: var(--line); border-radius: 2px; margin-top: 7px"
+                >
+                  <div
+                    style="width: 66%; height: 100%; background: var(--live); border-radius: 2px"
+                  ></div>
+                </div>
+              </div>
+              <div style="padding: 12px 0 0 12px; border-left: 1px solid var(--line)">
+                <div class="mono" style="font-size: 10.5px; color: var(--ink3)">
+                  MAP 3 · INFERNO
+                </div>
+                <div style="font-size: 13px; margin-top: 5px; color: var(--ink2)">If needed</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- phone -->
+          <div class="tile s3" style="padding: 22px 12px; background: transparent; border: 0">
+            <div class="phone">
+              <div style="padding: 18px 18px 0">
+                <div class="row" style="justify-content: space-between">
+                  <span class="wm" style="font-size: 19px">bearing</span>
+                  <span class="mono" style="font-size: 10.5px; color: var(--ink2)">SUN 15 NOV</span>
+                </div>
+                <svg
+                  id="a-dial"
+                  viewBox="0 0 230 230"
+                  style="display: block; width: 100%; max-width: 230px; margin: 10px auto 2px"
+                ></svg>
+                <div
+                  class="mono"
+                  style="
+                    font-size: 10px;
+                    color: var(--ink3);
+                    letter-spacing: 0.08em;
+                    margin-top: 8px;
+                  "
+                >
+                  NOW
+                </div>
+                <div class="prow" style="border-top: 0; padding-top: 5px">
+                  <span class="row" style="gap: 6px"
+                    ><span class="dot"></span
+                    ><span class="mono live" style="font-size: 10.5px">CS2</span></span
+                  ><span
+                    ><b style="font-weight: 600">Vitality</b> v Aurora<br /><span
+                      style="color: var(--ink2); font-size: 11px"
+                      >Map 2 · Anubis</span
+                    ></span
+                  ><span class="mono tnum" style="text-align: right"
+                    >1–0<br /><span style="color: var(--ink2); font-size: 11px">9–7</span></span
+                  >
+                </div>
+                <div class="prow">
+                  <span class="row" style="gap: 6px"
+                    ><span class="dot"></span
+                    ><span class="mono live" style="font-size: 10.5px">CHE</span></span
+                  ><span
+                    >Caruana v Praggnanandhaa<br /><span style="color: var(--ink2); font-size: 11px"
+                      >Round 6 · move 31</span
+                    ></span
+                  ><span class="mono" style="text-align: right; color: var(--ink2); font-size: 11px"
+                    >1:12<br />0:58</span
+                  >
+                </div>
+                <div
+                  class="mono"
+                  style="
+                    font-size: 10px;
+                    color: var(--ink3);
+                    letter-spacing: 0.08em;
+                    margin-top: 8px;
+                  "
+                >
+                  NEXT
+                </div>
+                <div class="prow" style="border-top: 0; padding-top: 5px">
+                  <span class="mono tnum">20:30</span
+                  ><span
+                    >G2 v Gen.G<br /><span style="color: var(--ink2); font-size: 11px"
+                      >League of Legends · Semifinal</span
+                    ></span
+                  ><span class="mono" style="color: var(--ink2); font-size: 11px">50 min</span>
+                </div>
+                <div class="prow">
+                  <span class="mono tnum">21:15</span
+                  ><span
+                    >KC v BDS<br /><span style="color: var(--ink2); font-size: 11px"
+                      >Rocket League · Final</span
+                    ></span
+                  ><span class="mono" style="color: var(--ink2); font-size: 11px">1 h 35</span>
+                </div>
+              </div>
+              <div
+                class="row mono"
+                style="
+                  position: absolute;
+                  left: 0;
+                  right: 0;
+                  bottom: 0;
+                  justify-content: space-around;
+                  padding: 13px 8px 20px;
+                  font-size: 10.5px;
+                  border-top: 1px solid var(--line);
+                  background: var(--card);
+                  color: var(--ink3);
+                "
+              >
+                <span style="color: var(--ink)">● Now</span><span>Schedule</span
+                ><span>Following</span><span>Search</span>
+              </div>
+            </div>
+          </div>
+          <div class="tile s3 notes">
+            <h4>The idea</h4>
+            <p>
+              The home screen is a 24-hour dial. Every match is an arc at its time of day, the hand
+              is now, and the live ones are the only colour.
+            </p>
+            <h4>Logo</h4>
+            <p>
+              Two rings with one ball between them. It is the dial in miniature: the logo and the
+              product are the same drawing.
+            </p>
+            <h4>Colour</h4>
+            <p>
+              Warm paper and ink, light first. Vermilion means live and nothing else; teams bring
+              their own colours.
+            </p>
+            <h4>Feels like</h4>
+            <p>
+              A Braun clock or a good watch face. The calmest of the three, and the closest to
+              "clean and solid".
+            </p>
+            <h4>Risk</h4>
+            <p>Restraint can read as plain. The dial has to carry the wow.</p>
+            <div class="alt" style="background: #101317; color: #f4f2ee">
+              <div class="row" style="gap: 8px">
+                <svg width="22" height="22" viewBox="0 0 32 32">
+                  <circle cx="16" cy="16" r="13" fill="none" stroke="#f4f2ee" stroke-width="2.4" />
+                  <circle cx="16" cy="16" r="6.5" fill="none" stroke="#f4f2ee" stroke-width="2.4" />
+                  <circle cx="23.99" cy="10.41" r="2.4" fill="#f0452b" /></svg
+                ><span class="wm" style="font-size: 20px">bearing</span
+                ><span class="mono" style="font-size: 10px; color: #9199a3; margin-left: auto"
+                  >DARK MODE</span
+                >
+              </div>
+              <div
+                class="row mono"
+                style="
+                  gap: 8px;
+                  font-size: 12px;
+                  margin-top: 12px;
+                  padding-top: 10px;
+                  border-top: 1px solid #2a2f37;
+                "
+              >
+                <span class="dot"></span
+                ><span style="font-family: Geist, sans-serif">Vitality v Aurora</span
+                ><span style="margin-left: auto">1–0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════════ ROUTE B ═════════════ -->
+      <section class="route">
+        <div class="rhead">
+          <span class="rletter">B</span><span class="rname">Machined</span>
+          <span class="rline"
+            >The bearing as an object: steel, depth and smooth rotation. Dark first, built to feel
+            like a stage.</span
+          >
+        </div>
+        <div class="board B">
+          <svg width="0" height="0" style="position: absolute">
+            <defs>
+              <linearGradient id="b-chrome" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#ffffff" />
+                <stop offset="0.45" stop-color="#b9c0cb" />
+                <stop offset="1" stop-color="#69717d" />
+              </linearGradient>
+              <linearGradient id="b-tile" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#262b33" />
+                <stop offset="1" stop-color="#0d0f12" />
+              </linearGradient>
+              <radialGradient id="b-hot" cx="0.4" cy="0.35" r="0.7">
+                <stop offset="0" stop-color="#ffd9a8" />
+                <stop offset="0.5" stop-color="#ff7a1a" />
+                <stop offset="1" stop-color="#c94c00" />
+              </radialGradient>
+            </defs>
+          </svg>
+          <div class="tile s4 center" style="min-height: 190px; gap: 24px; flex-wrap: wrap">
+            <svg width="112" height="112" viewBox="0 0 32 32" aria-label="Bearing mark, route B">
+              <rect x="6" y="4" width="4.2" height="24" rx="0.7" fill="url(#b-chrome)" />
+              <circle
+                cx="17.4"
+                cy="18.5"
+                r="7.4"
+                fill="none"
+                stroke="url(#b-chrome)"
+                stroke-width="4.2"
+              />
+              <circle class="glow" cx="17.4" cy="18.5" r="2.4" fill="url(#b-hot)" />
+            </svg>
+            <div>
+              <div class="row" style="gap: 10px">
+                <svg width="34" height="34" viewBox="0 0 32 32">
+                  <rect x="6" y="4" width="4.2" height="24" rx="0.7" fill="#eef0f3" />
+                  <circle
+                    cx="17.4"
+                    cy="18.5"
+                    r="7.4"
+                    fill="none"
+                    stroke="#eef0f3"
+                    stroke-width="4.2"
+                  />
+                  <circle cx="17.4" cy="18.5" r="2.4" fill="#ff7a1a" />
+                </svg>
+                <span class="wide" style="font-size: 30px">bearing</span>
+              </div>
+              <p
+                style="
+                  margin: 12px 0 0;
+                  font-size: 12.5px;
+                  color: var(--text2);
+                  max-width: 250px;
+                  line-height: 1.45;
+                "
+              >
+                The letter b, built from a bar and a bearing. The ball at its centre glows when
+                something is on.
+              </p>
+            </div>
+          </div>
+          <div class="tile s2 half center" style="flex-direction: column; gap: 12px">
+            <svg width="92" height="92" viewBox="0 0 92 92">
+              <rect width="92" height="92" rx="21" fill="url(#b-tile)" />
+              <rect
+                x="0.75"
+                y="0.75"
+                width="90.5"
+                height="90.5"
+                rx="20.4"
+                fill="none"
+                stroke="#3a414c"
+                stroke-width="1.5"
+              />
+              <g transform="translate(13 13) scale(2.06)">
+                <rect x="6" y="4" width="4.2" height="24" rx="0.7" fill="url(#b-chrome)" />
+                <circle
+                  cx="17.4"
+                  cy="18.5"
+                  r="7.4"
+                  fill="none"
+                  stroke="url(#b-chrome)"
+                  stroke-width="4.2"
+                />
+                <circle class="glow" cx="17.4" cy="18.5" r="2.4" fill="url(#b-hot)" />
+              </g>
+            </svg>
+            <div class="row" style="gap: 10px">
+              <svg width="28" height="28" viewBox="0 0 92 92">
+                <rect
+                  width="92"
+                  height="92"
+                  rx="21"
+                  fill="#15181d"
+                  stroke="#3a414c"
+                  stroke-width="2"
+                />
+                <g transform="translate(13 13) scale(2.06)">
+                  <rect x="6" y="4" width="4.6" height="24" rx="0.7" fill="#eef0f3" />
+                  <circle
+                    cx="17.4"
+                    cy="18.5"
+                    r="7.2"
+                    fill="none"
+                    stroke="#eef0f3"
+                    stroke-width="4.6"
+                  />
+                  <circle cx="17.4" cy="18.5" r="2.6" fill="#ff7a1a" />
+                </g>
+              </svg>
+              <svg width="16" height="16" viewBox="0 0 32 32">
+                <rect x="5" y="3" width="5.4" height="26" rx="0.7" fill="#eef0f3" />
+                <circle cx="18" cy="19" r="7.2" fill="none" stroke="#eef0f3" stroke-width="5.4" />
+                <circle cx="18" cy="19" r="3" fill="#ff7a1a" />
+              </svg>
+              <span class="mono" style="font-size: 10px; color: var(--text3)">icon · 28 · 16</span>
+            </div>
+          </div>
+
+          <div class="tile s2 half">
+            <p class="cap">Colour</p>
+            <div class="sw">
+              <div>
+                <i style="background: #0d0f12; border: 1px solid #2a2f38"></i
+                ><span>Graphite<br />#0D0F12</span>
+              </div>
+              <div>
+                <i style="background: linear-gradient(180deg, #fff, #b9c0cb 45%, #69717d)"></i
+                ><span>Steel<br />gradient</span>
+              </div>
+              <div>
+                <i style="background: #ff7a1a"></i><span>Live<br />#FF7A1A</span>
+              </div>
+              <div>
+                <i style="background: #1c2027; border: 1px solid #2a2f38"></i
+                ><span>Panel<br />#1C2027</span>
+              </div>
+              <div>
+                <i style="background: #9ba3ae"></i><span>Text 2<br />#9BA3AE</span>
+              </div>
+              <div>
+                <i style="background: #eef0f3"></i><span>Text<br />#EEF0F3</span>
+              </div>
+            </div>
+          </div>
+          <div class="tile s2 half">
+            <p class="cap">Type</p>
+            <div class="wide" style="font-size: 25px; line-height: 1.08">What's on now</div>
+            <div style="font-size: 13px; color: var(--text2); margin-top: 8px; line-height: 1.45">
+              Archivo, set wide for headings. Sporty and engineered.
+            </div>
+            <div class="mono" style="font-size: 14.5px; margin-top: 10px">19:40 · 13–9 · 045°</div>
+            <div style="font-size: 11px; color: var(--text3); margin-top: 3px">
+              JetBrains Mono for times and scores.
+            </div>
+          </div>
+          <div class="tile s2">
+            <p class="cap">Motion</p>
+            <div class="mo">
+              <svg width="84" height="84" viewBox="0 0 120 120" style="flex: none">
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="52"
+                  fill="none"
+                  stroke="url(#b-chrome)"
+                  stroke-width="5"
+                />
+                <circle
+                  cx="60"
+                  cy="60"
+                  r="28"
+                  fill="none"
+                  stroke="url(#b-chrome)"
+                  stroke-width="5"
+                />
+                <g class="spin fast" id="b-demo-balls"></g>
+              </svg>
+              <div style="font-size: 12.5px; line-height: 1.45; color: var(--text2)">
+                Everything rolls: no friction, no bounce. Rings turn slowly behind live matches and
+                the hot ball marks the one that is on.
+              </div>
+            </div>
+          </div>
+
+          <!-- match header -->
+          <div
+            class="tile s6"
+            style="
+              padding: 0;
+              min-height: 336px;
+              background: radial-gradient(
+                70% 120% at 50% 40%,
+                #20252d 0%,
+                #111418 62%,
+                #0d0f12 100%
+              );
+            "
+          >
+            <div
+              style="position: absolute; inset: 0 auto 0 0; width: 4px; background: #fae100"
+            ></div>
+            <div
+              style="position: absolute; inset: 0 0 0 auto; width: 4px; background: #19c9c0"
+            ></div>
+            <svg
+              viewBox="0 0 300 300"
+              style="
+                position: absolute;
+                left: 50%;
+                top: 47%;
+                width: 256px;
+                height: 256px;
+                transform: translate(-50%, -50%);
+              "
+              aria-hidden="true"
+            >
+              <circle cx="150" cy="150" r="138" fill="none" stroke="#2d333d" stroke-width="9" />
+              <circle cx="150" cy="150" r="96" fill="none" stroke="#2d333d" stroke-width="9" />
+              <g class="spin" id="b-hero-balls"></g>
+            </svg>
+            <div
+              style="
+                position: relative;
+                padding: 18px 22px;
+                display: flex;
+                flex-direction: column;
+                min-height: 336px;
+              "
+            >
+              <div
+                class="row mono"
+                style="
+                  justify-content: space-between;
+                  font-size: 11px;
+                  gap: 10px;
+                  flex-wrap: wrap;
+                  color: var(--text2);
+                "
+              >
+                <span
+                  ><b class="live" style="font-weight: 500">● LIVE</b> · CS2 · Copenhagen Masters ·
+                  Semifinal</span
+                >
+                <span>Best of 3 · 18:30</span>
+              </div>
+              <div
+                class="hgrid"
+                style="
+                  flex: 1;
+                  display: grid;
+                  grid-template-columns: minmax(0, 1fr) 170px minmax(0, 1fr);
+                  align-items: center;
+                  gap: 6px;
+                "
+              >
+                <div style="min-width: 0">
+                  <div class="wide hname" style="font-size: 27px; text-transform: uppercase">
+                    Vitality
+                  </div>
+                  <div class="mono" style="font-size: 11px; color: var(--text2); margin-top: 6px">
+                    FRANCE · FOLLOWING
+                  </div>
+                </div>
+                <div style="text-align: center">
+                  <div class="wide tnum hscore" style="font-size: 56px; letter-spacing: -0.03em">
+                    1<span style="color: var(--text3); font-weight: 400; margin: 0 4px">:</span>0
+                  </div>
+                  <div class="mono live" style="font-size: 11.5px; margin-top: 6px">ANUBIS 9–7</div>
+                </div>
+                <div style="text-align: right; min-width: 0">
+                  <div class="wide hname" style="font-size: 27px; text-transform: uppercase">
+                    Aurora
+                  </div>
+                  <div class="mono" style="font-size: 11px; color: var(--text2); margin-top: 6px">
+                    TÜRKIYE
+                  </div>
+                </div>
+              </div>
+              <div
+                class="row mono"
+                style="gap: 8px; font-size: 11px; flex-wrap: wrap; justify-content: center"
+              >
+                <span
+                  style="
+                    padding: 5px 10px;
+                    border: 1px solid var(--line);
+                    border-radius: 999px;
+                    color: var(--text2);
+                  "
+                  >Mirage 13–9</span
+                >
+                <span
+                  style="padding: 5px 10px; border: 1px solid var(--live); border-radius: 999px"
+                  class="live"
+                  >Anubis 9–7</span
+                >
+                <span
+                  style="
+                    padding: 5px 10px;
+                    border: 1px solid var(--line);
+                    border-radius: 999px;
+                    color: var(--text3);
+                  "
+                  >Inferno</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- phone -->
+          <div
+            class="tile s3"
+            style="padding: 22px 12px; background: transparent; border: 0; box-shadow: none"
+          >
+            <div class="phone">
+              <div style="padding: 18px 14px 0">
+                <div class="row" style="justify-content: space-between; padding: 0 4px">
+                  <span class="row" style="gap: 7px"
+                    ><svg width="20" height="20" viewBox="0 0 32 32">
+                      <rect x="6" y="4" width="4.4" height="24" rx="0.7" fill="#eef0f3" />
+                      <circle
+                        cx="17.4"
+                        cy="18.5"
+                        r="7.3"
+                        fill="none"
+                        stroke="#eef0f3"
+                        stroke-width="4.4"
+                      />
+                      <circle cx="17.4" cy="18.5" r="2.5" fill="#ff7a1a" /></svg
+                    ><span class="wide" style="font-size: 16px">bearing</span></span
+                  >
+                  <span class="mono" style="font-size: 10.5px; color: var(--text2)">19:40</span>
+                </div>
+                <div
+                  style="
+                    position: relative;
+                    height: 188px;
+                    margin-top: 12px;
+                    border-radius: 18px;
+                    border: 1px solid var(--line);
+                    overflow: hidden;
+                    background: radial-gradient(90% 100% at 50% 45%, #232831, #101317);
+                  "
+                >
+                  <div
+                    style="position: absolute; inset: 0 auto 0 0; width: 3px; background: #fae100"
+                  ></div>
+                  <div
+                    style="position: absolute; inset: 0 0 0 auto; width: 3px; background: #19c9c0"
+                  ></div>
+                  <svg
+                    viewBox="0 0 300 300"
+                    style="
+                      position: absolute;
+                      left: 50%;
+                      top: 47%;
+                      width: 160px;
+                      height: 160px;
+                      transform: translate(-50%, -50%);
+                    "
+                    aria-hidden="true"
+                  >
+                    <circle
+                      cx="150"
+                      cy="150"
+                      r="136"
+                      fill="none"
+                      stroke="#2d333d"
+                      stroke-width="11"
+                    />
+                    <circle
+                      cx="150"
+                      cy="150"
+                      r="92"
+                      fill="none"
+                      stroke="#2d333d"
+                      stroke-width="11"
+                    />
+                    <g class="spin" id="b-phone-balls"></g>
+                  </svg>
+                  <div
+                    style="
+                      position: relative;
+                      height: 100%;
+                      display: flex;
+                      flex-direction: column;
+                      justify-content: space-between;
+                      padding: 12px 14px;
+                    "
+                  >
+                    <div class="mono" style="font-size: 9.5px; color: var(--text2)">
+                      <span class="live">● LIVE</span> · CS2 · SEMIFINAL
+                    </div>
+                    <div
+                      style="
+                        display: grid;
+                        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+                        align-items: center;
+                      "
+                    >
+                      <span class="wide" style="font-size: 12px; text-transform: uppercase"
+                        >Vitality</span
+                      >
+                      <span class="wide tnum" style="font-size: 36px">1:0</span>
+                      <span
+                        class="wide"
+                        style="font-size: 12px; text-transform: uppercase; text-align: right"
+                        >Aurora</span
+                      >
+                    </div>
+                    <div class="mono live" style="font-size: 10px; text-align: center">
+                      ANUBIS 9–7
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="mono"
+                  style="
+                    font-size: 10px;
+                    color: var(--text3);
+                    letter-spacing: 0.08em;
+                    margin: 14px 4px 2px;
+                  "
+                >
+                  NEXT
+                </div>
+                <div class="prow">
+                  <svg width="30" height="30" viewBox="0 0 32 32" data-ring="0.72"></svg
+                  ><span
+                    ><b style="font-weight: 650">G2 v Gen.G</b><br /><span
+                      style="color: var(--text2); font-size: 11px"
+                      >LoL · Semifinal</span
+                    ></span
+                  ><span class="mono" style="text-align: right"
+                    >20:30<br /><span style="color: var(--text2); font-size: 10.5px"
+                      >50 min</span
+                    ></span
+                  >
+                </div>
+                <div class="prow">
+                  <svg width="30" height="30" viewBox="0 0 32 32" data-ring="0.47"></svg
+                  ><span
+                    ><b style="font-weight: 650">KC v BDS</b><br /><span
+                      style="color: var(--text2); font-size: 11px"
+                      >Rocket League · Final</span
+                    ></span
+                  ><span class="mono" style="text-align: right"
+                    >21:15<br /><span style="color: var(--text2); font-size: 10.5px"
+                      >1 h 35</span
+                    ></span
+                  >
+                </div>
+                <div class="prow">
+                  <svg width="30" height="30" viewBox="0 0 32 32" data-ring="0.07"></svg
+                  ><span
+                    ><b style="font-weight: 650">Spirit v TBD</b><br /><span
+                      style="color: var(--text2); font-size: 11px"
+                      >CS2 · Grand final</span
+                    ></span
+                  ><span class="mono" style="text-align: right"
+                    >Mon<br /><span style="color: var(--text2); font-size: 10.5px"
+                      >18:00</span
+                    ></span
+                  >
+                </div>
+                <div
+                  class="mono"
+                  style="
+                    font-size: 10px;
+                    color: var(--text3);
+                    letter-spacing: 0.08em;
+                    margin: 12px 4px 6px;
+                  "
+                >
+                  FOLLOWING
+                </div>
+                <div class="chips" style="padding: 0 2px; font-weight: 600">
+                  <span style="border: 1px solid var(--live); color: var(--live)"
+                    >Vitality · live</span
+                  ><span style="border: 1px solid var(--line); color: var(--text2)"
+                    >Spirit · Mon</span
+                  ><span style="border: 1px solid var(--line); color: var(--text3)">T1 · out</span>
+                </div>
+              </div>
+              <div
+                class="row mono"
+                style="
+                  position: absolute;
+                  left: 12px;
+                  right: 12px;
+                  bottom: 14px;
+                  justify-content: space-around;
+                  padding: 11px 6px;
+                  font-size: 10.5px;
+                  border: 1px solid var(--line);
+                  border-radius: 999px;
+                  background: rgba(28, 32, 39, 0.92);
+                  color: var(--text3);
+                "
+              >
+                <span style="color: var(--text)">Now</span><span>Schedule</span
+                ><span>Following</span><span>Search</span>
+              </div>
+            </div>
+          </div>
+          <div class="tile s3 notes">
+            <h4>The idea</h4>
+            <p>
+              A live match sits inside a slowly turning bearing. Upcoming matches each get a small
+              ring that closes as kick-off approaches.
+            </p>
+            <h4>Logo</h4>
+            <p>
+              A lowercase b made of a bar and a ring, in brushed steel, with a hot ball at its
+              centre.
+            </p>
+            <h4>Colour</h4>
+            <p>
+              Graphite and steel, dark first. Orange, like hot metal, means live. Team colours
+              appear as thin edges of light.
+            </p>
+            <h4>Feels like</h4>
+            <p>
+              Your EA FC stage pages: material, depth and motion. The most spectacular of the three.
+            </p>
+            <h4>Risk</h4>
+            <p>
+              Dark steel can tip into "gaming hardware". It needs restraint to stay trustworthy, and
+              a light mode is harder.
+            </p>
+            <div class="alt" style="background: #e9ecf0; color: #15181d; border: 1px solid #d5d9e0">
+              <div class="row" style="gap: 8px">
+                <svg width="22" height="22" viewBox="0 0 32 32">
+                  <rect x="6" y="4" width="4.4" height="24" rx="0.7" fill="#15181d" />
+                  <circle
+                    cx="17.4"
+                    cy="18.5"
+                    r="7.3"
+                    fill="none"
+                    stroke="#15181d"
+                    stroke-width="4.4"
+                  />
+                  <circle cx="17.4" cy="18.5" r="2.5" fill="#ff7a1a" /></svg
+                ><span class="wide" style="font-size: 17px">bearing</span
+                ><span class="mono" style="font-size: 10px; color: #5e6672; margin-left: auto"
+                  >LIGHT MODE</span
+                >
+              </div>
+              <div
+                class="row mono"
+                style="
+                  gap: 8px;
+                  font-size: 12px;
+                  margin-top: 12px;
+                  padding-top: 10px;
+                  border-top: 1px solid #d5d9e0;
+                "
+              >
+                <span style="color: #e2600a">●</span
+                ><span style="font-family: Archivo, sans-serif; font-weight: 600"
+                  >Vitality v Aurora</span
+                ><span style="margin-left: auto">1:0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════════ ROUTE C ═════════════ -->
+      <section class="route">
+        <div class="rhead">
+          <span class="rletter">C</span><span class="rname">Glass</span>
+          <span class="rline"
+            >Apple's current language taken seriously: the teams are the colour, and controls float
+            above them on glass.</span
+          >
+        </div>
+        <div class="board C">
+          <div class="tile s4 center" style="min-height: 190px; gap: 24px; flex-wrap: wrap">
+            <svg width="112" height="112" viewBox="0 0 32 32" aria-label="Bearing mark, route C">
+              <defs>
+                <linearGradient id="c-ring" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#3b414d" />
+                  <stop offset="1" stop-color="#0a0b0e" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M26.34 14.18 A10.5 10.5 0 1 1 17.82 5.66"
+                fill="none"
+                stroke="url(#c-ring)"
+                stroke-width="5"
+                stroke-linecap="round"
+              />
+              <circle cx="23.42" cy="8.58" r="2.6" fill="#ff3b30" />
+            </svg>
+            <div>
+              <div class="row" style="gap: 9px">
+                <svg width="34" height="34" viewBox="0 0 32 32">
+                  <path
+                    d="M26.34 14.18 A10.5 10.5 0 1 1 17.82 5.66"
+                    fill="none"
+                    stroke="#0a0b0e"
+                    stroke-width="5"
+                    stroke-linecap="round"
+                  />
+                  <circle cx="23.42" cy="8.58" r="2.6" fill="#ff3b30" />
+                </svg>
+                <span class="disp" style="font-size: 34px">bearing</span>
+              </div>
+              <p
+                style="
+                  margin: 12px 0 0;
+                  font-size: 12.5px;
+                  color: var(--text2);
+                  max-width: 250px;
+                  line-height: 1.45;
+                "
+              >
+                One ring, opened where the ball sits. The simplest of the three marks, and the
+                easiest to recognise small.
+              </p>
+            </div>
+          </div>
+          <div class="tile s2 half center" style="flex-direction: column; gap: 12px">
+            <svg width="92" height="92" viewBox="0 0 92 92">
+              <defs>
+                <linearGradient id="c-tile" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#ffffff" />
+                  <stop offset="1" stop-color="#dfe3ea" />
+                </linearGradient>
+              </defs>
+              <rect width="92" height="92" rx="21" fill="url(#c-tile)" />
+              <rect
+                x="0.75"
+                y="0.75"
+                width="90.5"
+                height="90.5"
+                rx="20.4"
+                fill="none"
+                stroke="#ffffff"
+                stroke-width="1.5"
+              />
+              <g transform="translate(13 13) scale(2.06)">
+                <path
+                  d="M26.34 14.18 A10.5 10.5 0 1 1 17.82 5.66"
+                  fill="none"
+                  stroke="url(#c-ring)"
+                  stroke-width="5"
+                  stroke-linecap="round"
+                />
+                <circle cx="23.42" cy="8.58" r="2.6" fill="#ff3b30" />
+              </g>
+            </svg>
+            <div class="row" style="gap: 10px">
+              <svg width="28" height="28" viewBox="0 0 92 92">
+                <rect width="92" height="92" rx="21" fill="#0a0b0e" />
+                <g transform="translate(13 13) scale(2.06)">
+                  <path
+                    d="M26.34 14.18 A10.5 10.5 0 1 1 17.82 5.66"
+                    fill="none"
+                    stroke="#ffffff"
+                    stroke-width="5.2"
+                    stroke-linecap="round"
+                  />
+                  <circle cx="23.42" cy="8.58" r="2.8" fill="#ff3b30" />
+                </g>
+              </svg>
+              <svg width="16" height="16" viewBox="0 0 32 32">
+                <path
+                  d="M27.3 14.4 A11.5 11.5 0 1 1 17.6 4.7"
+                  fill="none"
+                  stroke="#0a0b0e"
+                  stroke-width="6"
+                  stroke-linecap="round"
+                />
+                <circle cx="24.6" cy="7.4" r="3.4" fill="#ff3b30" />
+              </svg>
+              <span style="font-size: 10px; color: var(--text3)">icon · 28 · 16</span>
+            </div>
+          </div>
+
+          <div class="tile s2 half">
+            <p class="cap">Colour</p>
+            <div class="sw">
+              <div>
+                <i style="background: #eef0f4; border: 1px solid #dfe2e8"></i
+                ><span>Mist<br />#EEF0F4</span>
+              </div>
+              <div>
+                <i style="background: #0a0b0e"></i><span>Ink<br />#0A0B0E</span>
+              </div>
+              <div>
+                <i style="background: #ff3b30"></i><span>Live<br />#FF3B30</span>
+              </div>
+              <div>
+                <i style="background: linear-gradient(135deg, #ffe45c, #37d6cf)"></i
+                ><span>Team<br />colours</span>
+              </div>
+              <div>
+                <i
+                  style="
+                    background: rgba(255, 255, 255, 0.7);
+                    border: 1px solid #fff;
+                    box-shadow: 0 2px 8px rgba(10, 15, 30, 0.12);
+                  "
+                ></i
+                ><span>Glass<br />60% white</span>
+              </div>
+              <div>
+                <i style="background: #6a7180"></i><span>Ink 2<br />#6A7180</span>
+              </div>
+            </div>
+          </div>
+          <div class="tile s2 half">
+            <p class="cap">Type</p>
+            <div class="disp" style="font-size: 31px; line-height: 1.05">What's on now</div>
+            <div style="font-size: 13px; color: var(--text2); margin-top: 8px; line-height: 1.45">
+              Inter Tight for titles, Inter for text. Large, friendly, familiar.
+            </div>
+            <div class="tnum" style="font-size: 16px; font-weight: 600; margin-top: 10px">
+              19:40 · 13–9 · 045°
+            </div>
+            <div style="font-size: 11px; color: var(--text3); margin-top: 3px">
+              Figures stay in Inter; no mono.
+            </div>
+          </div>
+          <div class="tile s2">
+            <p class="cap">Motion</p>
+            <div class="mo">
+              <div
+                style="
+                  position: relative;
+                  width: 84px;
+                  height: 84px;
+                  flex: none;
+                  border-radius: 20px;
+                  overflow: hidden;
+                "
+              >
+                <div class="field"></div>
+                <div
+                  class="glass center"
+                  style="
+                    position: absolute;
+                    inset: 22px 10px;
+                    border-radius: 12px;
+                    gap: 6px;
+                    font-size: 11.5px;
+                    font-weight: 600;
+                  "
+                >
+                  <span
+                    class="breathe"
+                    style="
+                      width: 8px;
+                      height: 8px;
+                      border-radius: 50%;
+                      background: var(--live);
+                      display: block;
+                    "
+                  ></span
+                  >Live
+                </div>
+              </div>
+              <div style="font-size: 12.5px; line-height: 1.45; color: var(--text2)">
+                Soft and springy, like iOS. Colour drifts under the glass, and the live dot
+                breathes.
+              </div>
+            </div>
+          </div>
+
+          <!-- match header -->
+          <div class="tile s6" style="padding: 0; min-height: 290px; border-radius: 22px">
+            <div class="field"></div>
+            <div
+              style="
+                position: relative;
+                padding: 18px 20px 20px;
+                display: flex;
+                flex-direction: column;
+                min-height: 290px;
+              "
+            >
+              <div
+                class="row"
+                style="justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 12px"
+              >
+                <span
+                  class="glass row"
+                  style="gap: 7px; padding: 6px 12px; border-radius: 999px; font-weight: 600"
+                  ><span
+                    class="breathe"
+                    style="
+                      width: 7px;
+                      height: 7px;
+                      border-radius: 50%;
+                      background: var(--live);
+                      display: block;
+                    "
+                  ></span
+                  >Live</span
+                >
+                <span style="font-weight: 500; color: #2b3038"
+                  >Counter-Strike 2 · Copenhagen Masters · Semifinal</span
+                >
+              </div>
+              <div
+                style="
+                  flex: 1;
+                  display: grid;
+                  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+                  align-items: center;
+                  gap: 12px;
+                "
+              >
+                <div style="min-width: 0">
+                  <div class="disp hname" style="font-size: 36px">Vitality</div>
+                  <div style="font-size: 12.5px; font-weight: 500; color: #3a3f48; margin-top: 4px">
+                    France · Following
+                  </div>
+                </div>
+                <div
+                  class="glass hpad"
+                  style="padding: 12px 22px 10px; border-radius: 24px; text-align: center"
+                >
+                  <div class="disp tnum hscore" style="font-size: 54px">1 – 0</div>
+                  <div style="font-size: 12px; font-weight: 600; margin-top: 2px">
+                    <span class="live">Anubis</span> 9–7
+                  </div>
+                </div>
+                <div style="text-align: right; min-width: 0">
+                  <div class="disp hname" style="font-size: 36px">Aurora</div>
+                  <div style="font-size: 12.5px; font-weight: 500; color: #3a3f48; margin-top: 4px">
+                    Türkiye
+                  </div>
+                </div>
+              </div>
+              <div
+                class="glass"
+                style="
+                  display: grid;
+                  grid-template-columns: repeat(3, minmax(0, 1fr));
+                  padding: 4px;
+                  border-radius: 16px;
+                  font-size: 12.5px;
+                  text-align: center;
+                  font-weight: 500;
+                "
+              >
+                <span style="padding: 9px 6px; color: #3a3f48">Mirage 13–9</span>
+                <span
+                  style="
+                    padding: 9px 6px;
+                    background: #fff;
+                    border-radius: 12px;
+                    font-weight: 600;
+                    box-shadow: 0 2px 8px rgba(10, 15, 30, 0.12);
+                  "
+                  >Anubis 9–7</span
+                >
+                <span style="padding: 9px 6px; color: #7a8190">Inferno</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- phone -->
+          <div
+            class="tile s3"
+            style="padding: 22px 12px; background: transparent; border: 0; box-shadow: none"
+          >
+            <div class="phone">
+              <div style="padding: 20px 14px 0">
+                <div style="font-size: 12px; font-weight: 600; color: var(--text2); padding: 0 4px">
+                  Sunday 15 November
+                </div>
+                <div class="row" style="justify-content: space-between; padding: 0 4px">
+                  <span class="disp" style="font-size: 32px">Today</span
+                  ><svg width="26" height="26" viewBox="0 0 32 32">
+                    <path
+                      d="M26.34 14.18 A10.5 10.5 0 1 1 17.82 5.66"
+                      fill="none"
+                      stroke="#0a0b0e"
+                      stroke-width="5"
+                      stroke-linecap="round"
+                    />
+                    <circle cx="23.42" cy="8.58" r="2.6" fill="#ff3b30" />
+                  </svg>
+                </div>
+                <div
+                  style="
+                    position: relative;
+                    height: 176px;
+                    margin-top: 12px;
+                    border-radius: 24px;
+                    overflow: hidden;
+                    box-shadow: 0 12px 26px -16px rgba(10, 15, 30, 0.5);
+                  "
+                >
+                  <div class="field"></div>
+                  <div
+                    style="
+                      position: relative;
+                      height: 100%;
+                      padding: 12px;
+                      display: flex;
+                      flex-direction: column;
+                      justify-content: space-between;
+                    "
+                  >
+                    <div
+                      class="row"
+                      style="justify-content: space-between; font-size: 10.5px; font-weight: 600"
+                    >
+                      <span
+                        class="glass row"
+                        style="gap: 5px; padding: 4px 9px; border-radius: 999px"
+                        ><span
+                          class="breathe"
+                          style="
+                            width: 6px;
+                            height: 6px;
+                            border-radius: 50%;
+                            background: var(--live);
+                            display: block;
+                          "
+                        ></span
+                        >Live</span
+                      ><span style="color: #2b3038">CS2 · Semifinal</span>
+                    </div>
+                    <div
+                      style="
+                        display: grid;
+                        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+                        align-items: center;
+                        gap: 6px;
+                      "
+                    >
+                      <span class="disp" style="font-size: 17px">Vitality</span>
+                      <span
+                        class="glass disp tnum"
+                        style="font-size: 26px; padding: 6px 12px; border-radius: 14px"
+                        >1 – 0</span
+                      >
+                      <span class="disp" style="font-size: 17px; text-align: right">Aurora</span>
+                    </div>
+                    <div
+                      style="font-size: 11px; font-weight: 600; text-align: center; color: #2b3038"
+                    >
+                      Map 2 · Anubis 9–7
+                    </div>
+                  </div>
+                </div>
+                <div style="font-size: 13px; font-weight: 700; margin: 14px 4px 6px">Next</div>
+                <div
+                  style="
+                    background: #fff;
+                    border-radius: 18px;
+                    box-shadow: 0 1px 2px rgba(15, 20, 30, 0.05);
+                  "
+                >
+                  <div class="prow">
+                    <span class="tnum" style="font-weight: 600">20:30</span
+                    ><span
+                      ><b style="font-weight: 600">G2 v Gen.G</b><br /><span
+                        style="color: var(--text2); font-size: 11px"
+                        >League of Legends</span
+                      ></span
+                    ><span style="color: var(--text2); font-size: 11px">50 min</span>
+                  </div>
+                  <div class="prow">
+                    <span class="tnum" style="font-weight: 600">21:15</span
+                    ><span
+                      ><b style="font-weight: 600">KC v BDS</b><br /><span
+                        style="color: var(--text2); font-size: 11px"
+                        >Rocket League</span
+                      ></span
+                    ><span style="color: var(--text2); font-size: 11px">1 h 35</span>
+                  </div>
+                  <div class="prow">
+                    <span class="tnum" style="font-weight: 600">Mon</span
+                    ><span
+                      ><b style="font-weight: 600">Spirit v TBD</b><br /><span
+                        style="color: var(--text2); font-size: 11px"
+                        >CS2 · Grand final</span
+                      ></span
+                    ><span style="color: var(--text2); font-size: 11px">18:00</span>
+                  </div>
+                </div>
+                <div style="font-size: 13px; font-weight: 700; margin: 12px 4px 6px">Following</div>
+                <div class="chips" style="font-weight: 600; padding: 0 2px">
+                  <span style="background: #fff; color: var(--live)">Vitality · live</span
+                  ><span style="background: #fff">Spirit · Mon</span
+                  ><span style="background: #fff; color: var(--text3)">T1 · out</span>
+                </div>
+              </div>
+              <div
+                class="glass row"
+                style="
+                  position: absolute;
+                  left: 14px;
+                  right: 14px;
+                  bottom: 14px;
+                  justify-content: space-around;
+                  padding: 12px 6px;
+                  font-size: 10.5px;
+                  font-weight: 600;
+                  border-radius: 999px;
+                  color: var(--text3);
+                "
+              >
+                <span style="color: var(--text)">Now</span><span>Schedule</span
+                ><span>Following</span><span>Search</span>
+              </div>
+            </div>
+          </div>
+          <div class="tile s3 notes">
+            <h4>The idea</h4>
+            <p>
+              Each live match fills its card with the two teams' colours. Scores and controls sit on
+              glass above, so the brand itself stays almost colourless.
+            </p>
+            <h4>Logo</h4>
+            <p>
+              A single thick ring, open where the red ball sits. It works in one colour and at 16
+              pixels.
+            </p>
+            <h4>Colour</h4>
+            <p>
+              Mist and ink, light first, with a full dark mode. Apple's red means live. Everything
+              else is borrowed from the teams.
+            </p>
+            <h4>Feels like</h4>
+            <p>A first-party iPhone app. The friendliest of the three, and the most familiar.</p>
+            <h4>Risk</h4>
+            <p>
+              It could look like everyone else's Apple-style app. Team colours that clash will need
+              careful handling.
+            </p>
+            <div
+              class="alt"
+              style="position: relative; overflow: hidden; background: #0a0b0e; color: #fff"
+            >
+              <div
+                style="
+                  position: absolute;
+                  inset: 0;
+                  opacity: 0.55;
+                  background:
+                    radial-gradient(60% 120% at 8% 20%, #b89a00 0%, rgba(184, 154, 0, 0) 70%),
+                    radial-gradient(60% 120% at 92% 80%, #0f9a94 0%, rgba(15, 154, 148, 0) 70%);
+                "
+              ></div>
+              <div style="position: relative">
+                <div class="row" style="gap: 8px">
+                  <svg width="22" height="22" viewBox="0 0 32 32">
+                    <path
+                      d="M26.34 14.18 A10.5 10.5 0 1 1 17.82 5.66"
+                      fill="none"
+                      stroke="#fff"
+                      stroke-width="5"
+                      stroke-linecap="round"
+                    />
+                    <circle cx="23.42" cy="8.58" r="2.6" fill="#ff453a" /></svg
+                  ><span class="disp" style="font-size: 20px">bearing</span
+                  ><span
+                    style="font-size: 10px; font-weight: 600; color: #aab0bb; margin-left: auto"
+                    >DARK MODE</span
+                  >
+                </div>
+                <div
+                  class="row"
+                  style="
+                    gap: 8px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    margin-top: 12px;
+                    padding: 9px 12px;
+                    border-radius: 12px;
+                    background: rgba(255, 255, 255, 0.12);
+                    border: 1px solid rgba(255, 255, 255, 0.18);
+                  "
+                >
+                  <span
+                    style="width: 7px; height: 7px; border-radius: 50%; background: #ff453a"
+                  ></span
+                  >Vitality v Aurora<span style="margin-left: auto">1 – 0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      (function () {
+        var NS = "http://www.w3.org/2000/svg";
+        function el(tag, attrs, parent) {
+          var n = document.createElementNS(NS, tag);
+          for (var k in attrs) n.setAttribute(k, attrs[k]);
+          if (parent) parent.appendChild(n);
+          return n;
+        }
+        // Angle in degrees clockwise from the top.
+        function pt(cx, cy, r, deg) {
+          var a = (deg * Math.PI) / 180;
+          return [cx + r * Math.sin(a), cy - r * Math.cos(a)];
+        }
+        function arc(cx, cy, r, a0, a1) {
+          var p0 = pt(cx, cy, r, a0),
+            p1 = pt(cx, cy, r, a1);
+          return (
+            "M" +
+            p0[0].toFixed(2) +
+            " " +
+            p0[1].toFixed(2) +
+            " A" +
+            r +
+            " " +
+            r +
+            " 0 " +
+            (a1 - a0 > 180 ? 1 : 0) +
+            " 1 " +
+            p1[0].toFixed(2) +
+            " " +
+            p1[1].toFixed(2)
+          );
+        }
+
+        // Route A: ghost balls in the big mark, ticks in the motion demo.
+        var ghosts = document.getElementById("a-ghosts");
+        for (var i = 1; i < 8; i++) {
+          var g = pt(16, 16, 9.75, 55 + i * 45);
+          el("circle", { cx: g[0].toFixed(2), cy: g[1].toFixed(2), r: 2.1 }, ghosts);
+        }
+        var ticks = document.getElementById("a-ticks");
+        for (var t = 0; t < 24; t++) {
+          var o = pt(60, 60, 47, t * 15),
+            n = pt(60, 60, t % 6 === 0 ? 39 : 43, t * 15);
+          el(
+            "line",
+            { x1: o[0], y1: o[1], x2: n[0], y2: n[1], "stroke-width": t % 6 === 0 ? 2 : 1 },
+            ticks,
+          );
+        }
+
+        // Route A: the day dial. 24 hours, midnight at the top, clockwise.
+        var dial = document.getElementById("a-dial"),
+          C = 115,
+          INK = "#14171c",
+          LIVE = "#f0452b";
+        var deg = function (h) {
+          return (h / 24) * 360;
+        };
+        el("circle", { cx: C, cy: C, r: 94, fill: "none", stroke: INK, "stroke-width": 2 }, dial);
+        el("circle", { cx: C, cy: C, r: 54, fill: "none", stroke: INK, "stroke-width": 2 }, dial);
+        for (var h = 0; h < 24; h++) {
+          var a = pt(C, C, 94, deg(h)),
+            b = pt(C, C, h % 6 === 0 ? 100 : 98, deg(h));
+          el(
+            "line",
+            {
+              x1: a[0],
+              y1: a[1],
+              x2: b[0],
+              y2: b[1],
+              stroke: INK,
+              "stroke-width": h % 6 === 0 ? 2 : 1,
+            },
+            dial,
+          );
+        }
+        [
+          ["00", 0],
+          ["06", 6],
+          ["12", 12],
+          ["18", 18],
+        ].forEach(function (l) {
+          var p = pt(C, C, 109, deg(l[1])),
+            tx = el(
+              "text",
+              {
+                x: p[0],
+                y: p[1] + 3,
+                "text-anchor": "middle",
+                "font-size": 8,
+                "font-family": "Geist Mono, monospace",
+                fill: "#9199a3",
+              },
+              dial,
+            );
+          tx.textContent = l[0];
+        });
+        // [start, end, lane, state]
+        var NOW = 19 + 40 / 60;
+        [
+          [15, 17.33, 0, "done"],
+          [17, 21.5, 1, "live"],
+          [18.5, 21, 0, "live"],
+          [19.5, 20.25, 2, "live"],
+          [20.5, 23.75, 2, "next"],
+          [21.25, 22.25, 0, "next"],
+        ].forEach(function (m) {
+          var r = 85 - m[2] * 10;
+          if (m[3] === "live") {
+            el(
+              "path",
+              {
+                d: arc(C, C, r, deg(m[0]), deg(NOW)),
+                fill: "none",
+                stroke: LIVE,
+                "stroke-width": 6,
+                "stroke-linecap": "round",
+              },
+              dial,
+            );
+            el(
+              "path",
+              {
+                d: arc(C, C, r, deg(NOW), deg(m[1])),
+                fill: "none",
+                stroke: LIVE,
+                "stroke-width": 6,
+                "stroke-linecap": "round",
+                opacity: 0.28,
+              },
+              dial,
+            );
+          } else {
+            el(
+              "path",
+              {
+                d: arc(C, C, r, deg(m[0]), deg(m[1])),
+                fill: "none",
+                stroke: INK,
+                "stroke-width": 6,
+                "stroke-linecap": "round",
+                opacity: m[3] === "done" ? 0.16 : 0.85,
+              },
+              dial,
+            );
+          }
+        });
+        var n0 = pt(C, C, 54, deg(NOW)),
+          n1 = pt(C, C, 101, deg(NOW));
+        el(
+          "line",
+          { x1: n0[0], y1: n0[1], x2: n1[0], y2: n1[1], stroke: INK, "stroke-width": 1.5 },
+          dial,
+        );
+        el("circle", { cx: n1[0], cy: n1[1], r: 3, fill: INK }, dial);
+        var big = el(
+          "text",
+          {
+            x: C,
+            y: C + 4,
+            "text-anchor": "middle",
+            "font-size": 23,
+            "font-weight": 500,
+            "font-family": "Geist Mono, monospace",
+            fill: INK,
+            "letter-spacing": "-1",
+          },
+          dial,
+        );
+        big.textContent = "19:40";
+        var sub = el(
+          "text",
+          {
+            x: C + 4,
+            y: C + 20,
+            "text-anchor": "middle",
+            "font-size": 9.5,
+            "font-family": "Geist Mono, monospace",
+            fill: LIVE,
+          },
+          dial,
+        );
+        sub.textContent = "3 LIVE";
+        el("circle", { cx: C - 21, cy: C + 16.5, r: 2.6, fill: LIVE }, dial);
+
+        // Route B: balls in the raceway. One is hot.
+        function balls(id, cx, cy, r, size, count) {
+          var g = document.getElementById(id);
+          for (var i = 0; i < count; i++) {
+            var p = pt(cx, cy, r, (i * 360) / count),
+              hot = i === 1;
+            el(
+              "circle",
+              {
+                cx: p[0].toFixed(2),
+                cy: p[1].toFixed(2),
+                r: size,
+                fill: hot ? "url(#b-hot)" : "#3b424d",
+                class: hot ? "glow" : "",
+              },
+              g,
+            );
+          }
+        }
+        balls("b-demo-balls", 60, 60, 40, 7.2, 8);
+        balls("b-hero-balls", 150, 150, 117, 12, 14);
+        balls("b-phone-balls", 150, 150, 114, 13, 12);
+        // Route B: countdown rings. data-ring is how close kick-off is, 0 to 1.
+        document.querySelectorAll("svg[data-ring]").forEach(function (s) {
+          var f = parseFloat(s.getAttribute("data-ring")),
+            end = Math.max(8, f * 360);
+          el(
+            "circle",
+            { cx: 16, cy: 16, r: 12, fill: "none", stroke: "#2a2f38", "stroke-width": 3 },
+            s,
+          );
+          el(
+            "path",
+            {
+              d: arc(16, 16, 12, 0, Math.min(end, 359.9)),
+              fill: "none",
+              stroke: "#b9c0cb",
+              "stroke-width": 3,
+              "stroke-linecap": "round",
+            },
+            s,
+          );
+          var p = pt(16, 16, 12, end);
+          el("circle", { cx: p[0], cy: p[1], r: 3, fill: f > 0.6 ? "#ff7a1a" : "#eef0f3" }, s);
+        });
+      })();
+    </script>
+  </body>
+</html>

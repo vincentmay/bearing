@@ -1,0 +1,2956 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bearing identity, round 7</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400..800&family=Geist+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      @property --p {
+        syntax: "<percentage>";
+        inherits: true;
+        initial-value: 50%;
+      }
+      .id {
+        --mono: "Geist Mono", monospace;
+        --p: 50%;
+        --fa: 0;
+        --fb: 0;
+        font-family: var(--font-sans, system-ui, sans-serif);
+        color: var(--foreground, #111);
+        transition: --p 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .id *,
+      .id *::before,
+      .id *::after {
+        box-sizing: border-box;
+      }
+      .id button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        text-align: inherit;
+      }
+      .intro {
+        font-size: 14px;
+        line-height: 1.55;
+        color: var(--muted-foreground, #666);
+        margin: 0 0 22px;
+        max-width: 66ch;
+      }
+      .sec {
+        margin: 0 0 40px;
+      }
+      .sec:last-of-type {
+        margin-bottom: 8px;
+      }
+      .rhead {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 0 0 12px;
+      }
+      .rletter {
+        font-family: var(--font-mono, monospace);
+        font-size: 12px;
+        padding: 2px 8px;
+        border: 1px solid var(--border, #ccc);
+        border-radius: 999px;
+        color: var(--muted-foreground, #666);
+      }
+      .rname {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .rline {
+        font-size: 14px;
+        color: var(--muted-foreground, #666);
+        flex: 1 1 260px;
+      }
+      .ctl {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 18px;
+        margin: 0 0 14px;
+        font-size: 12.5px;
+        color: var(--muted-foreground, #666);
+      }
+      .ctl > div {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-wrap: wrap;
+      }
+      .ctl button {
+        color: var(--foreground, #111);
+        border: 1px solid var(--border, #ccc);
+        border-radius: 999px;
+        padding: 4px 11px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .ctl button.on {
+        background: var(--foreground, #111);
+        color: var(--background, #fff);
+        border-color: var(--foreground, #111);
+      }
+      .ctl .ic {
+        width: 13px;
+        height: 13px;
+      }
+
+      /* Neutrals: pure black and white. ml = light, md = dark. */
+      .px {
+        color: var(--ink);
+        font-family: "Gabarito", system-ui, sans-serif;
+      }
+      .px.ml {
+        --ground: #fff;
+        --stage: #f3f3f3;
+        --surface: #fff;
+        --sunk: #f1f1f1;
+        --ink: #000;
+        --ink2: #5c5c5c;
+        --ink3: #999;
+        --hair: rgba(0, 0, 0, 0.1);
+        --edge: rgba(0, 0, 0, 0.18);
+        --rest: rgba(0, 0, 0, 0.2);
+        --sh: 0 1px 1px rgba(0, 0, 0, 0.04), 0 10px 24px -14px rgba(0, 0, 0, 0.28);
+        --nav: rgba(255, 255, 255, 0.8);
+      }
+      .px.md {
+        --ground: #000;
+        --stage: #000;
+        --surface: #111;
+        --sunk: #1e1e1e;
+        --ink: #fff;
+        --ink2: #a6a6a6;
+        --ink3: #6b6b6b;
+        --hair: rgba(255, 255, 255, 0.13);
+        --edge: rgba(255, 255, 255, 0.2);
+        --rest: rgba(255, 255, 255, 0.3);
+        --sh: 0 12px 28px -14px #000;
+        --nav: rgba(30, 30, 30, 0.8);
+      }
+
+      .board {
+        border-radius: var(--radius, 12px);
+        padding: 16px;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 12px;
+        background: var(--ground);
+        border: 1px solid var(--hair);
+        transition: background 0.3s;
+      }
+      .tile {
+        border-radius: 18px;
+        padding: 16px;
+        min-width: 0;
+        position: relative;
+        overflow: hidden;
+        background: var(--surface);
+        border: 1px solid var(--hair);
+        color: var(--ink);
+        transition:
+          background 0.3s,
+          border-color 0.3s;
+      }
+      .s2 {
+        grid-column: span 2;
+      }
+      .s3 {
+        grid-column: span 3;
+      }
+      .s6 {
+        grid-column: span 6;
+      }
+      .hero {
+        container-type: inline-size;
+      }
+      .cap {
+        font: 500 10.5px var(--mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin: 0 0 12px;
+        color: var(--ink3);
+      }
+      .pcap {
+        text-align: center;
+        font: 500 10.5px var(--mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink3);
+        margin: 0 0 14px;
+      }
+      .note {
+        margin: 0;
+        font-size: 12.5px;
+        line-height: 1.5;
+        color: var(--ink2);
+      }
+      .note b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .mono {
+        font-family: var(--mono);
+      }
+      .dsp {
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+      }
+      .btw {
+        justify-content: space-between;
+      }
+      .tnum {
+        font-variant-numeric: tabular-nums;
+      }
+      .sub {
+        color: var(--ink2);
+        font-size: 11px;
+      }
+      .ic {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        flex: none;
+        display: block;
+      }
+      .pick {
+        font: 500 9.5px var(--mono);
+        letter-spacing: 0.06em;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--surface);
+        white-space: nowrap;
+      }
+
+      .ping {
+        position: relative;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        display: inline-block;
+        flex: none;
+      }
+      .ping::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 1.5px solid currentColor;
+        animation: ping 1.8s ease-out infinite;
+      }
+      .ping.off::after {
+        display: none;
+      }
+      @keyframes ping {
+        0% {
+          transform: scale(1);
+          opacity: 0.9;
+        }
+        100% {
+          transform: scale(3);
+          opacity: 0;
+        }
+      }
+      @keyframes pulse {
+        50% {
+          opacity: 0.25;
+        }
+      }
+      .pulse {
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+
+      /* Dots: flat, on a line */
+      .dots {
+        display: flex;
+        align-items: center;
+        gap: var(--dg, 3px);
+        min-width: 0;
+      }
+      .dots i {
+        flex: 0 1 var(--ds, 12px);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        min-width: 0;
+        box-shadow: inset 0 0 0 1px var(--edge);
+        transition: transform 0.15s;
+      }
+      .dots i:hover {
+        transform: scale(1.45);
+      }
+      .dots.fix i {
+        flex: none;
+        width: var(--ds, 12px);
+      }
+      .dots .a {
+        background: var(--a);
+      }
+      .dots .b {
+        background: var(--b);
+      }
+      .dots .h {
+        background: linear-gradient(90deg, var(--a) 50%, var(--b) 50%);
+      }
+      .dots .sa {
+        background: var(--a);
+        transform: scale(0.55);
+      }
+      .dots .sb {
+        background: var(--b);
+        transform: scale(0.55);
+      }
+      .dots .x {
+        box-shadow: none;
+      }
+      .dots .o {
+        box-shadow: inset 0 0 0 1.5px var(--rest);
+      }
+      .dots .n {
+        box-shadow: inset 0 0 0 2px var(--ink);
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+      .dots .g {
+        flex: 0 1 var(--dh, 8px);
+        aspect-ratio: auto;
+        box-shadow: none;
+      }
+      .dots .p1 {
+        background: #00c978;
+      }
+      .dots .p2 {
+        background: #ff8a00;
+      }
+      .dots .p3 {
+        background: #7a5cff;
+      }
+      .dots .p4 {
+        background: #19a8ff;
+      }
+      .dots .num {
+        display: grid;
+        place-items: center;
+        font:
+          700 9px "Gabarito",
+          sans-serif;
+        color: #000;
+      }
+      .dots .land,
+      .tl .land {
+        animation: land 0.34s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+      }
+      @keyframes land {
+        0% {
+          transform: scale(0);
+        }
+      }
+      .c2 {
+        --ds: 13px;
+        --dg: 4.5px;
+        justify-content: center;
+        margin-top: 5px;
+        min-height: 13px;
+      }
+      .cb {
+        --ds: 18px;
+        --dg: 7px;
+        justify-content: center;
+        margin-top: 4px;
+      }
+
+      /* Events on a clock */
+      .tl {
+        position: relative;
+        height: 46px;
+      }
+      .tl::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 22px;
+        height: 2px;
+        background: var(--rest);
+      }
+      .tl .el {
+        position: absolute;
+        left: 0;
+        top: 22px;
+        height: 2px;
+        background: var(--ink);
+        transition: width 0.6s linear;
+      }
+      .tl .d {
+        position: absolute;
+        width: var(--z, 12px);
+        height: var(--z, 12px);
+        margin-left: calc(var(--z, 12px) / -2);
+        border-radius: 50%;
+        box-shadow: inset 0 0 0 1px var(--edge);
+        top: calc(23px - var(--z, 12px) / 2);
+      }
+      .tl.two .d.up {
+        top: calc(19px - var(--z, 12px));
+      }
+      .tl.two .d.dn {
+        top: 27px;
+      }
+      .tl .d.now {
+        background: var(--surface);
+        box-shadow: inset 0 0 0 2px var(--ink);
+        top: 18px;
+        --z: 10px;
+        transition: left 0.6s linear;
+      }
+      .tl span {
+        position: absolute;
+        top: 36px;
+        font: 500 8px var(--mono);
+        color: var(--ink2);
+        transform: translateX(-50%);
+      }
+
+      /* A team is a flat disc with its short name. */
+      .av {
+        --s: 44px;
+        position: relative;
+        width: var(--s);
+        height: var(--s);
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: calc(var(--s) * 0.28);
+        letter-spacing: -0.02em;
+        flex: none;
+        box-shadow: inset 0 0 0 1px var(--edge);
+        line-height: 1;
+      }
+      .av.a {
+        background: var(--a);
+        color: var(--ak);
+        --c: var(--a);
+        --f: var(--fa);
+      }
+      .av.b {
+        background: var(--b);
+        color: var(--bk);
+        --c: var(--b);
+        --f: var(--fb);
+      }
+      .av::before {
+        content: "";
+        position: absolute;
+        inset: -5px;
+        border-radius: 50%;
+        background: conic-gradient(var(--c) calc(var(--f) * 1%), var(--rest) 0);
+        -webkit-mask: radial-gradient(
+          farthest-side,
+          transparent calc(100% - 2.5px),
+          #000 calc(100% - 2.5px)
+        );
+        mask: radial-gradient(
+          farthest-side,
+          transparent calc(100% - 2.5px),
+          #000 calc(100% - 2.5px)
+        );
+        display: none;
+      }
+      .duo {
+        --s: 34px;
+        width: var(--s);
+        height: var(--s);
+        border-radius: 50%;
+        background: conic-gradient(var(--ink) calc(var(--q, 0) * 1%), var(--rest) 0);
+        display: grid;
+        place-items: center;
+        flex: none;
+      }
+      .duo::after {
+        content: "";
+        width: calc(var(--s) - 8px);
+        height: calc(var(--s) - 8px);
+        border-radius: 50%;
+        background: linear-gradient(90deg, var(--a) 50%, var(--b) 50%);
+        border: 2px solid var(--surface);
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: var(--sunk);
+        white-space: nowrap;
+      }
+      .dash {
+        display: inline-block;
+        width: 0.5em;
+        height: 0.075em;
+        border-radius: 1em;
+        background: currentColor;
+        vertical-align: 0.3em;
+        margin: 0 0.2em;
+      }
+
+      /* The plain card, and four small ways to add the teams' colours to it. */
+      .lc {
+        position: relative;
+        border-radius: 22px;
+        background: var(--surface);
+        border: 1px solid var(--hair);
+        box-shadow: var(--sh);
+        overflow: hidden;
+        isolation: isolate;
+      }
+      .sline {
+        display: none;
+        height: 3px;
+        border-radius: 2px;
+        background: linear-gradient(
+          90deg,
+          var(--a) 0 calc(var(--p) - 2px),
+          transparent calc(var(--p) - 2px) calc(var(--p) + 2px),
+          var(--b) calc(var(--p) + 2px) 100%
+        );
+      }
+      .t-bar .lc::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 6px;
+        background: linear-gradient(90deg, var(--a) 0 var(--p), var(--b) var(--p) 100%);
+      }
+      .t-line .sline {
+        display: block;
+      }
+      .t-dash .dash {
+        height: 0.16em;
+        vertical-align: 0.26em;
+        background: linear-gradient(90deg, var(--a) 50%, var(--b) 50%);
+        box-shadow: 0 0 0 1px var(--edge);
+      }
+      .t-rings .av::before {
+        display: block;
+      }
+      .t-rings .av {
+        margin: 5px;
+      }
+      [data-solo] .av,
+      [data-solo] .dash,
+      [data-solo] [data-b="sb"],
+      [data-solo] .sline {
+        display: none !important;
+      }
+      [data-solo].t-bar .lc::before {
+        display: none;
+      }
+
+      /* Wide live header */
+      .stage {
+        padding: 22px 22px 24px;
+        background: var(--stage);
+        border-color: transparent;
+      }
+      .bk {
+        margin: 0 auto;
+        height: 46px;
+        border-radius: 16px 16px 0 0;
+        background: var(--surface);
+        border: 1px solid var(--hair);
+        border-bottom: 0;
+        font-size: 10.5px;
+        font-weight: 600;
+        padding: 4px 12px 0;
+        color: var(--ink2);
+        white-space: nowrap;
+        overflow: hidden;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 7px;
+      }
+      .bk .duo {
+        --s: 14px;
+        background: none;
+        margin-top: 1px;
+      }
+      .bk .duo::after {
+        width: 12px;
+        height: 12px;
+        border: 0;
+        box-shadow: inset 0 0 0 1px var(--edge);
+      }
+      .bk2 {
+        width: 76%;
+        opacity: 0.6;
+      }
+      .bk1 {
+        width: 88%;
+        margin-top: -24px;
+      }
+      .front {
+        margin-top: -22px;
+        padding: 20px 24px 22px;
+      }
+      .front .sline {
+        margin: 16px 0 -6px;
+      }
+      .lh {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        gap: 12px;
+        margin: 22px 0 28px;
+      }
+      .tm {
+        display: flex;
+        align-items: center;
+        gap: clamp(8px, 2cqw, 14px);
+        min-width: 0;
+        border-radius: 14px;
+        transition: transform 0.15s;
+      }
+      .tm:active {
+        transform: scale(0.97);
+      }
+      .tm.r {
+        flex-direction: row-reverse;
+      }
+      .tm .av {
+        --s: clamp(30px, 7.4cqw, 52px);
+      }
+      .hname {
+        font-size: clamp(20px, 6.2cqw, 44px);
+      }
+      .hscore {
+        font-size: clamp(22px, 7cqw, 50px);
+        font-weight: 400;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        white-space: nowrap;
+      }
+      .stops {
+        display: grid;
+        position: relative;
+      }
+      .stop {
+        position: relative;
+        padding: 38px 8px 0 0;
+        font-size: clamp(10px, 1.9cqw, 13px);
+        line-height: 1.3;
+        min-width: 0;
+      }
+      .stop::before {
+        content: "";
+        position: absolute;
+        top: 9px;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: var(--ink);
+      }
+      .stop::after {
+        content: "";
+        position: absolute;
+        top: 1px;
+        left: 0;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--surface);
+        border: 6px solid var(--ink);
+      }
+      .stop.done::after {
+        background: var(--sf, var(--ink));
+      }
+      .stop.now::before {
+        display: none;
+      }
+      .stop.now::after {
+        width: 30px;
+        height: 30px;
+        top: -2px;
+        left: -3px;
+        border-width: 5px;
+        background: linear-gradient(90deg, var(--a) 50%, var(--b) 50%);
+      }
+      .stop.now .dots {
+        position: absolute;
+        top: 1px;
+        left: 36px;
+        right: 10px;
+        height: 24px;
+        --ds: 13px;
+        --dg: clamp(1px, 0.5cqw, 4px);
+        --dh: clamp(4px, 1.6cqw, 12px);
+      }
+      .stop.now .tl {
+        position: absolute;
+        top: -10px;
+        left: 40px;
+        right: 16px;
+      }
+      .stop.now.tight::before {
+        display: block;
+        background: var(--rest);
+      }
+      .stop.fut::before {
+        background: var(--rest);
+      }
+      .stop.fut::after {
+        border-color: var(--rest);
+      }
+      .stop.end::before {
+        background: repeating-linear-gradient(90deg, var(--rest) 0 8px, transparent 8px 14px);
+        right: 20px;
+      }
+      .stop.last::before {
+        display: none;
+      }
+      .stop b {
+        display: block;
+        font-weight: 800;
+        font-size: 1.12em;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+      }
+      .stop span {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* Phones */
+      .phone {
+        width: 100%;
+        max-width: 292px;
+        height: 600px;
+        border-radius: 40px;
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
+        background: var(--ground);
+        color: var(--ink);
+        box-shadow:
+          0 0 0 7px var(--surface),
+          0 0 0 8px var(--edge),
+          0 22px 44px -18px rgba(10, 20, 40, 0.45);
+        transition: background 0.3s;
+      }
+      .view {
+        position: absolute;
+        inset: 0;
+        padding: 22px 16px 84px;
+        opacity: 0;
+        transform: translateY(10px);
+        pointer-events: none;
+        transition:
+          opacity 0.2s,
+          transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .view.on {
+        opacity: 1;
+        transform: none;
+        pointer-events: auto;
+      }
+      .view.match {
+        opacity: 1;
+        transform: translateX(104%);
+        background: var(--ground);
+        z-index: 2;
+        transition:
+          transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+          background 0.3s;
+      }
+      .view.match.on {
+        transform: none;
+      }
+      .vh {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 6px 2px;
+      }
+      .plab {
+        font: 500 9.5px var(--mono);
+        letter-spacing: 0.08em;
+        color: var(--ink2);
+        margin: 13px 8px -4px;
+      }
+      .card {
+        border-radius: 24px;
+        padding: 12px 14px;
+        margin-top: 10px;
+        background: var(--surface);
+        border: 1px solid var(--hair);
+        box-shadow: var(--sh);
+        transition: background 0.3s;
+      }
+      .lr {
+        display: grid;
+        grid-template-columns: 36px 40px minmax(0, 1fr) auto;
+        gap: 9px;
+        align-items: center;
+        padding: 8px 0;
+        font-size: 12.5px;
+        line-height: 1.3;
+        border-top: 1px solid var(--hair);
+      }
+      .lr:first-child {
+        border-top: 0;
+      }
+      .er {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        padding: 8px 0;
+        font-size: 12.5px;
+        border-top: 1px solid var(--hair);
+        min-height: 38px;
+      }
+      .er:first-child {
+        border-top: 0;
+      }
+      .half {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        margin-top: 7px;
+      }
+      .half span {
+        font: 500 10px var(--mono);
+        color: var(--ink2);
+      }
+      .ch {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: 12.5px;
+        gap: 8px;
+      }
+      .ch b {
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+      }
+      .lane {
+        display: grid;
+        grid-template-columns: 70px minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 8px;
+      }
+      .plot {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr)) 6px repeat(12, minmax(0, 1fr));
+        row-gap: 3px;
+        align-items: center;
+        margin-top: 10px;
+      }
+      .plot i {
+        aspect-ratio: 1;
+        border-radius: 50%;
+        width: min(100% - 1px, 10px);
+        margin: 0 auto;
+      }
+      .plot i.a {
+        background: var(--a);
+        box-shadow: inset 0 0 0 1px var(--edge);
+      }
+      .plot i.b {
+        background: var(--b);
+        box-shadow: inset 0 0 0 1px var(--edge);
+      }
+      .plot i.ax {
+        grid-column: 1 / -1;
+        height: 1.5px;
+        background: var(--ink);
+        aspect-ratio: auto;
+        width: auto;
+        border-radius: 0;
+        margin: 0;
+      }
+      .press {
+        transition: transform 0.15s;
+        display: block;
+        width: 100%;
+      }
+      .press:active {
+        transform: scale(0.975);
+      }
+      .chips {
+        display: flex;
+        gap: 6px;
+        margin-top: 12px;
+      }
+      .chips button {
+        flex: 1;
+        border-radius: 14px;
+        padding: 7px 0 6px;
+        text-align: center;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--ink2);
+        background: var(--surface);
+        border: 1px solid var(--hair);
+        line-height: 1.2;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+      .chips button b {
+        display: block;
+        font-size: 16px;
+        font-weight: 800;
+        color: inherit;
+      }
+      .chips button.on {
+        background: var(--ink);
+        color: var(--surface);
+        border-color: var(--ink);
+      }
+      .star {
+        width: 30px;
+        height: 30px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        color: var(--ink3);
+      }
+      .star[aria-pressed="true"] {
+        color: var(--ink);
+      }
+      .star[aria-pressed="true"] .ic {
+        fill: currentColor;
+      }
+      .field {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        padding: 0 14px;
+        height: 42px;
+        margin-top: 12px;
+        background: var(--surface);
+        border: 1px solid var(--hair);
+        color: var(--ink2);
+      }
+      .field input {
+        all: unset;
+        flex: 1;
+        min-width: 0;
+        font:
+          500 13px "Gabarito",
+          sans-serif;
+        color: var(--ink);
+      }
+      .field input::placeholder {
+        color: var(--ink3);
+      }
+      .tab {
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        bottom: 14px;
+        height: 56px;
+        border-radius: 999px;
+        padding: 5px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        background: var(--nav);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid var(--hair);
+        box-shadow: var(--sh);
+        z-index: 3;
+      }
+      .tab .ind {
+        position: absolute;
+        top: 5px;
+        bottom: 5px;
+        left: 5px;
+        width: calc((100% - 10px) / 4);
+        border-radius: 999px;
+        background: var(--sunk);
+        transition: transform 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.15);
+      }
+      .tab button {
+        position: relative;
+        display: grid;
+        place-items: center;
+        align-content: center;
+        gap: 2px;
+        font-size: 9.5px;
+        font-weight: 600;
+        color: var(--ink3);
+        transition: color 0.2s;
+      }
+      .tab button.on {
+        color: var(--ink);
+      }
+      .tab button:active .ic {
+        transform: scale(0.86);
+      }
+      .tab .ic {
+        transition: transform 0.15s;
+      }
+      .mhead {
+        display: flex;
+        justify-content: space-between;
+        padding: 0 4px;
+        margin-top: 14px;
+        gap: 8px;
+      }
+      .mscore {
+        font-size: 54px;
+        letter-spacing: -0.04em;
+        line-height: 1;
+        white-space: nowrap;
+      }
+      [data-solo] .mscore {
+        font-size: 36px;
+        font-weight: 800;
+      }
+
+      /* Comparison tiles */
+      .opt {
+        display: block;
+        width: 100%;
+        border-radius: 18px;
+        padding: 14px;
+        background: var(--stage);
+        border: 1.5px solid transparent;
+        transition: border-color 0.2s;
+      }
+      .opt.on {
+        border-color: var(--ink);
+      }
+      .opt h3 {
+        margin: 0 0 3px;
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+      .mini {
+        padding: 12px 14px 14px;
+        margin: 10px 0;
+        border-radius: 18px;
+      }
+      .mini .mh {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        gap: 6px;
+        margin: 10px 0;
+        font-size: 15px;
+      }
+      .mini .sline {
+        margin: 0 0 -2px;
+      }
+      .tbl {
+        display: grid;
+        grid-template-columns: 1.1fr 1.6fr 1.6fr;
+        font-size: 12.5px;
+        line-height: 1.45;
+      }
+      .tbl > * {
+        padding: 9px 12px 9px 0;
+        border-top: 1px solid var(--hair);
+        color: var(--ink2);
+      }
+      .tbl > b {
+        color: var(--ink);
+        font-weight: 800;
+      }
+      .tbl > .th {
+        border-top: 0;
+        font: 500 10px var(--mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink3);
+        padding-top: 0;
+      }
+
+      @container (max-width: 520px) {
+        .stage {
+          padding: 14px 12px 16px;
+        }
+        .front {
+          padding: 14px 14px 18px;
+        }
+      }
+      @media (max-width: 600px) {
+        .board {
+          grid-template-columns: minmax(0, 1fr);
+          padding: 12px;
+        }
+        .s2,
+        .s3,
+        .s6 {
+          grid-column: auto;
+        }
+        .tbl {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .tbl > .th {
+          display: none;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .id *,
+        .id *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="id" id="bearing-r7">
+      <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+        <symbol id="mark" viewBox="0 0 64 64">
+          <path
+            fill="currentColor"
+            d="M56.305 22.767A26 26 0 1 1 41.233 7.695A11 11 0 0 0 35.871 16.475A16 16 0 1 0 47.525 28.129A11 11 0 0 0 56.305 22.767Z"
+          />
+          <circle fill="currentColor" cx="46.85" cy="17.15" r="7.5" />
+        </symbol>
+        <!-- Icons: Lucide 1.73 (ISC licence), the set already installed in the app. -->
+        <symbol id="i-house" viewBox="0 0 24 24">
+          <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+          <path
+            d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+          />
+        </symbol>
+        <symbol id="i-calendar" viewBox="0 0 24 24">
+          <path d="M8 2v3" />
+          <path d="M16 2v3" />
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <path d="M3 9h18" />
+          <path d="M8 13h.01" />
+          <path d="M12 13h.01" />
+          <path d="M16 13h.01" />
+          <path d="M8 17h.01" />
+          <path d="M12 17h.01" />
+          <path d="M16 17h.01" />
+        </symbol>
+        <symbol id="i-star" viewBox="0 0 24 24">
+          <path
+            d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"
+          />
+        </symbol>
+        <symbol id="i-search" viewBox="0 0 24 24">
+          <path d="m21 21-4.34-4.34" />
+          <circle cx="11" cy="11" r="8" />
+        </symbol>
+        <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></symbol>
+        <symbol id="i-play" viewBox="0 0 24 24">
+          <path
+            d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"
+          />
+        </symbol>
+        <symbol id="i-pause" viewBox="0 0 24 24">
+          <rect x="14" y="3" width="5" height="18" rx="1" />
+          <rect x="5" y="3" width="5" height="18" rx="1" />
+        </symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24">
+          <path d="M5 12h14" />
+          <path d="M12 5v14" />
+        </symbol>
+      </svg>
+
+      <p class="intro">
+        Built on your choices: plain cards, pure black and white. All five games now play live, and
+        each is shown three ways at once, because how a score should be drawn depends on how much
+        room it has: a small card, a full match page and the wide header. Pick a game and watch it.
+      </p>
+
+      <!-- ═════════ 1 · Every game, small and full ═════════ -->
+      <section class="sec">
+        <div class="rhead">
+          <span class="rletter">1</span><span class="rname">Every game, small and full</span>
+          <span class="rline"
+            >The same live match in the wide header, as a card on the home screen, and as its own
+            page.</span
+          >
+        </div>
+        <div class="ctl">
+          <div>
+            <span>Game</span><button data-set="game:cs" class="on">Counter-Strike 2</button
+            ><button data-set="game:lol">League of Legends</button
+            ><button data-set="game:rl">Rocket League</button
+            ><button data-set="game:chess">Chess</button
+            ><button data-set="game:tm">Trackmania</button>
+          </div>
+          <div>
+            <span>Team colour</span><button data-set="tone:plain" class="on">Plain</button
+            ><button data-set="tone:bar">Bar</button><button data-set="tone:line">Line</button
+            ><button data-set="tone:dash">Dash</button><button data-set="tone:rings">Rings</button>
+          </div>
+          <div>
+            <span>Mode</span><button data-set="mode:ml" class="on">Light</button
+            ><button data-set="mode:md">Dark</button>
+          </div>
+          <div>
+            <span>Match</span
+            ><button data-act="pause">
+              <svg class="ic"><use href="#i-pause" /></svg><span>Pause</span></button
+            ><button data-act="a">
+              <svg class="ic"><use href="#i-plus" /></svg><span data-b="ga">Fnatic</span></button
+            ><button data-act="b">
+              <svg class="ic"><use href="#i-plus" /></svg><span data-b="gb">Liquid</span></button
+            ><button data-act="next">Start again</button>
+          </div>
+        </div>
+        <div class="board px ml t-plain" data-follow>
+          <div class="tile s6 hero stage">
+            <div class="bk bk2" data-b="bk2"></div>
+            <div class="bk bk1" data-b="bk1"></div>
+            <div class="lc front" data-step>
+              <div class="row btw" style="gap: 8px; flex-wrap: wrap">
+                <span class="pill"
+                  ><i class="ping" data-b="ping"></i><span data-b="status"></span></span
+                ><span class="pill" data-b="meta"></span>
+              </div>
+              <i class="sline"></i>
+              <div class="lh">
+                <button class="tm" data-act="a" title="Give this side the next point">
+                  <span class="av a" data-b="at"></span><span class="dsp hname" data-b="an"></span>
+                </button>
+                <div class="hscore tnum">
+                  <span data-b="sa"></span><i class="dash"></i><span data-b="sb"></span>
+                </div>
+                <button class="tm r" data-act="b" title="Give this side the next point">
+                  <span class="av b" data-b="bt"></span><span class="dsp hname" data-b="bn"></span>
+                </button>
+              </div>
+              <div class="stops" data-b="stops"></div>
+            </div>
+          </div>
+
+          <div class="tile s3">
+            <p class="pcap">Small · home screen</p>
+            <div class="phone">
+              <div class="view on" data-view="today">
+                <div class="vh">
+                  <span class="row" style="gap: 8px"
+                    ><svg width="24" height="24"><use href="#mark" width="24" height="24" /></svg
+                    ><span class="dsp" style="font-size: 26px">Today</span></span
+                  >
+                  <span class="mono" style="font-size: 10.5px; color: var(--ink2)">MON 16 NOV</span>
+                </div>
+                <button class="press" data-open="match" style="margin-top: 10px">
+                  <div class="lc" data-step style="border-radius: 28px; padding: 14px 16px 15px">
+                    <div class="row btw" style="font-size: 11px; font-weight: 600; gap: 8px">
+                      <span class="row" style="gap: 7px; min-width: 0"
+                        ><i class="ping" data-b="ping"></i
+                        ><span
+                          data-b="status"
+                          style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis"
+                        ></span></span
+                      ><span style="color: var(--ink2); white-space: nowrap" data-b="short"></span>
+                    </div>
+                    <i class="sline" style="margin: 11px 0 -3px"></i>
+                    <div class="row btw" style="margin: 13px 0 3px; gap: 6px">
+                      <span class="row" style="gap: 6px; min-width: 0"
+                        ><span class="av a" style="--s: 22px" data-b="at"></span
+                        ><b class="dsp" style="font-size: 17px; white-space: nowrap" data-b="an"></b
+                      ></span>
+                      <span
+                        class="tnum"
+                        style="
+                          font-size: 20px;
+                          letter-spacing: -0.03em;
+                          line-height: 1;
+                          white-space: nowrap;
+                        "
+                        ><span data-b="sa"></span><i class="dash"></i><span data-b="sb"></span
+                      ></span>
+                      <span class="row" style="gap: 6px; min-width: 0"
+                        ><b class="dsp" style="font-size: 17px; white-space: nowrap" data-b="bn"></b
+                        ><span class="av b" style="--s: 22px" data-b="bt"></span
+                      ></span>
+                    </div>
+                    <div class="row btw sub" style="font-weight: 600; gap: 6px">
+                      <span data-b="subL"></span><span data-b="subM"></span
+                      ><span data-b="subR"></span>
+                    </div>
+                    <div data-b="card" style="margin-top: 11px"></div>
+                  </div>
+                </button>
+                <div class="plab">NEXT</div>
+                <div class="card" style="padding: 4px 14px" data-b="nextlist"></div>
+                <div class="plab">EARLIER</div>
+                <div class="card" style="padding: 4px 14px">
+                  <div class="er" style="--a: #7a5cff; --b: #e4032e">
+                    <span
+                      ><b style="font-weight: 600">Spirit 2–1 FaZe</b>
+                      <span class="sub">CS2</span></span
+                    ><span class="dots fix" style="--ds: 11px; --dg: 4px"
+                      ><i class="a"></i><i class="b"></i><i class="a"></i
+                    ></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="view" data-view="schedule">
+                <div class="vh">
+                  <span class="dsp" style="font-size: 26px">Schedule</span
+                  ><span class="mono" style="font-size: 10.5px; color: var(--ink2)">NOVEMBER</span>
+                </div>
+                <div class="chips" data-b="days"></div>
+                <div class="card" style="padding: 4px 14px" data-b="daylist"></div>
+              </div>
+              <div class="view" data-view="following">
+                <div class="vh">
+                  <span class="dsp" style="font-size: 26px">Following</span
+                  ><span class="mono" style="font-size: 10.5px; color: var(--ink2)">LAST FIVE</span>
+                </div>
+                <div class="card" style="padding: 4px 14px" data-b="follows"></div>
+                <p class="sub" style="margin: 12px 8px 0; line-height: 1.45">
+                  A filled dot is a win, an open one a loss. Tap a star to stop or start following.
+                </p>
+              </div>
+              <div class="view" data-view="search">
+                <div class="vh"><span class="dsp" style="font-size: 26px">Search</span></div>
+                <label class="field"
+                  ><svg class="ic" style="width: 16px; height: 16px"><use href="#i-search" /></svg
+                  ><input type="text" placeholder="Team, player or event" data-b="q"
+                /></label>
+                <div class="plab" data-b="qlab">TEAMS</div>
+                <div class="card" style="padding: 4px 14px" data-b="results"></div>
+              </div>
+
+              <div class="view match" data-view="match">
+                <button
+                  class="row"
+                  data-open="back"
+                  style="gap: 2px; font-size: 12px; font-weight: 600; margin-left: -2px"
+                >
+                  <svg class="ic"><use href="#i-back" /></svg>Today
+                </button>
+                <div data-b="pagehead"></div>
+                <div data-b="page"></div>
+              </div>
+
+              <div class="tab">
+                <i class="ind"></i>
+                <button class="on" data-tab="today">
+                  <svg class="ic"><use href="#i-house" /></svg>Today
+                </button>
+                <button data-tab="schedule">
+                  <svg class="ic"><use href="#i-calendar" /></svg>Schedule
+                </button>
+                <button data-tab="following">
+                  <svg class="ic"><use href="#i-star" /></svg>Following
+                </button>
+                <button data-tab="search">
+                  <svg class="ic"><use href="#i-search" /></svg>Search
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="tile s3">
+            <p class="pcap">Full · match page</p>
+            <div class="phone">
+              <div class="view on" style="padding-bottom: 22px">
+                <div
+                  class="row"
+                  style="gap: 2px; font-size: 12px; font-weight: 600; margin-left: -2px"
+                >
+                  <svg class="ic"><use href="#i-back" /></svg>Today
+                </div>
+                <div data-b="pagehead"></div>
+                <div data-b="page"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════ 2 · A little team colour ═════════ -->
+      <section class="sec">
+        <div class="rhead">
+          <span class="rletter">2</span
+          ><span class="rname">A little team colour, with more restraint</span>
+          <span class="rline"
+            >Plain is your pick and stays the base. Bar is the one you called decent. Three quieter
+            ideas next to them; click one to use it above.</span
+          >
+        </div>
+        <div class="board px ml" data-follow>
+          <button class="opt s3 on t-plain" data-set="tone:plain">
+            <h3>Plain</h3>
+            <div class="lc mini">
+              <div class="mh">
+                <span class="row" style="gap: 7px"
+                  ><span class="av a" style="--s: 24px" data-b="at"></span
+                  ><b class="dsp" data-b="an"></b></span
+                ><span class="tnum"
+                  ><span data-b="sa"></span><i class="dash"></i><span data-b="sb"></span></span
+                ><span class="row" style="gap: 7px; justify-content: flex-end"
+                  ><b class="dsp" data-b="bn"></b
+                  ><span class="av b" style="--s: 24px" data-b="bt"></span
+                ></span>
+              </div>
+              <div data-b="mini"></div>
+            </div>
+            <p class="note">Colour is only the team's disc and its dots.</p>
+          </button>
+          <button class="opt s3 t-bar" data-set="tone:bar">
+            <h3>Bar</h3>
+            <div class="lc mini" style="padding-top: 18px">
+              <div class="mh">
+                <span class="row" style="gap: 7px"
+                  ><span class="av a" style="--s: 24px" data-b="at"></span
+                  ><b class="dsp" data-b="an"></b></span
+                ><span class="tnum"
+                  ><span data-b="sa"></span><i class="dash"></i><span data-b="sb"></span></span
+                ><span class="row" style="gap: 7px; justify-content: flex-end"
+                  ><b class="dsp" data-b="bn"></b
+                  ><span class="av b" style="--s: 24px" data-b="bt"></span
+                ></span>
+              </div>
+              <div data-b="mini"></div>
+            </div>
+            <p class="note">A band along the top edge, split where the score stands.</p>
+          </button>
+          <button class="opt s3 t-line" data-set="tone:line">
+            <h3>Line</h3>
+            <div class="lc mini">
+              <i class="sline"></i>
+              <div class="mh">
+                <span class="row" style="gap: 7px"
+                  ><span class="av a" style="--s: 24px" data-b="at"></span
+                  ><b class="dsp" data-b="an"></b></span
+                ><span class="tnum"
+                  ><span data-b="sa"></span><i class="dash"></i><span data-b="sb"></span></span
+                ><span class="row" style="gap: 7px; justify-content: flex-end"
+                  ><b class="dsp" data-b="bn"></b
+                  ><span class="av b" style="--s: 24px" data-b="bt"></span
+                ></span>
+              </div>
+              <div data-b="mini"></div>
+            </div>
+            <p class="note">
+              The same idea made thin: a 3-pixel rule inside the card, with a small gap where the
+              two meet.
+            </p>
+          </button>
+          <button class="opt s3 t-dash" data-set="tone:dash">
+            <h3>Dash</h3>
+            <div class="lc mini">
+              <div class="mh">
+                <span class="row" style="gap: 7px"
+                  ><span class="av a" style="--s: 24px" data-b="at"></span
+                  ><b class="dsp" data-b="an"></b></span
+                ><span class="tnum" style="font-size: 20px"
+                  ><span data-b="sa"></span><i class="dash"></i><span data-b="sb"></span></span
+                ><span class="row" style="gap: 7px; justify-content: flex-end"
+                  ><b class="dsp" data-b="bn"></b
+                  ><span class="av b" style="--s: 24px" data-b="bt"></span
+                ></span>
+              </div>
+              <div data-b="mini"></div>
+            </div>
+            <p class="note">
+              Only the dash between the two numbers takes the colours, half each. The smallest
+              possible touch.
+            </p>
+          </button>
+          <button class="opt s6 t-rings" data-set="tone:rings">
+            <h3>Rings</h3>
+            <div class="lc mini">
+              <div class="mh">
+                <span class="row" style="gap: 7px"
+                  ><span class="av a" style="--s: 24px" data-b="at"></span
+                  ><b class="dsp" data-b="an"></b></span
+                ><span class="tnum"
+                  ><span data-b="sa"></span><i class="dash"></i><span data-b="sb"></span></span
+                ><span class="row" style="gap: 7px; justify-content: flex-end"
+                  ><b class="dsp" data-b="bn"></b
+                  ><span class="av b" style="--s: 24px" data-b="bt"></span
+                ></span>
+              </div>
+              <div data-b="mini"></div>
+            </div>
+            <p class="note">
+              Each team's disc gets a thin ring that fills as it gets closer to winning, the same
+              way the ring around an upcoming match fills as it gets closer to starting.
+            </p>
+          </button>
+        </div>
+      </section>
+
+      <!-- ═════════ 3 · The rule ═════════ -->
+      <section class="sec">
+        <div class="rhead">
+          <span class="rletter">3</span><span class="rname">What each size shows</span>
+          <span class="rline"
+            >You said it depends on the situation. This is the split I built above, game by
+            game.</span
+          >
+        </div>
+        <div class="board px ml" data-follow>
+          <div class="tile s6">
+            <div class="tbl">
+              <span class="th">Game</span><span class="th">Small: a card</span
+              ><span class="th">Full: the match page</span> <b>Counter-Strike 2</b
+              ><span>Every round of the map being played, folded into two rows of twelve.</span
+              ><span
+                >The same rows for each map, plus rounds plotted above and below a line to show
+                momentum.</span
+              >
+              <b>League of Legends</b
+              ><span>One dot per game in the series. Kills and the clock as numbers.</span
+              ><span
+                >Objectives on the game clock, one team above the line and one below, sized by
+                importance.</span
+              >
+              <b>Rocket League</b
+              ><span
+                >The goals of the current game as the score; one dot per game in the series.</span
+              ><span
+                >Each goal on the five-minute clock, and earlier games with their goals in
+                order.</span
+              >
+              <b>Chess</b><span>One dot per game; a draw is shared between the two.</span
+              ><span
+                >A row for each player, so the points can be read off, and the move count of the
+                game in progress.</span
+              >
+              <b>Trackmania</b
+              ><span>One dot per round, in the colour of the driver who won it.</span
+              ><span
+                >A row per driver with the rounds they have won, and the places your driver
+                took.</span
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <script>
+        (function () {
+          var root = document.getElementById("bearing-r7");
+          var $$ = function (s, p) {
+            return Array.prototype.slice.call((p || root).querySelectorAll(s));
+          };
+          var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          var ui = { game: "cs", tone: "plain", mode: "ml", paused: false };
+          var epoch = 0,
+            G,
+            landed = false;
+
+          function esc(s) {
+            return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+          }
+          function pct(f) {
+            return (Math.max(0, Math.min(1, f)) * 100).toFixed(1) + "%";
+          }
+          function plural(n, w) {
+            return n + " " + w + (n === 1 ? "" : "s");
+          }
+          function later(fn, ms) {
+            var e = epoch;
+            setTimeout(function () {
+              if (e === epoch) fn();
+            }, ms);
+          }
+          function d(cls, title, land) {
+            return (
+              '<i class="' +
+              cls +
+              (land ? " land" : "") +
+              '"' +
+              (title ? ' title="' + esc(title) + '"' : "") +
+              "></i>"
+            );
+          }
+          function count(seq, k) {
+            var n = 0;
+            seq.forEach(function (c) {
+              if (c === (k || "a")) n++;
+            });
+            return n;
+          }
+          function clock(min) {
+            var m = Math.floor(min),
+              s = Math.floor((min - m) * 60);
+            return m + ":" + (s < 10 ? "0" : "") + s;
+          }
+          function left(sec) {
+            var l = Math.max(0, 300 - sec);
+            return Math.floor(l / 60) + ":" + ("0" + (l % 60)).slice(-2);
+          }
+          function pts(n) {
+            var w = Math.floor(n);
+            return (w || n === 0 ? w : "") + (n - w ? "½" : "");
+          }
+          // Events on a clock: items are [fraction, side, size, isNewest].
+          function tline(items, frac, labels, two) {
+            var h =
+              '<div class="tl' +
+              (two ? " two" : "") +
+              '"><i class="el" style="width:' +
+              pct(frac) +
+              '"></i>';
+            items.forEach(function (it) {
+              h +=
+                '<i class="d ' +
+                (two ? (it[1] === "a" ? "up" : "dn") : "") +
+                (it[3] ? " land" : "") +
+                '" style="left:' +
+                pct(it[0]) +
+                ";--z:" +
+                it[2] +
+                "px;background:var(--" +
+                it[1] +
+                ')"></i>';
+            });
+            if (frac < 1) h += '<i class="d now pulse" style="left:' + pct(frac) + '"></i>';
+            (labels || []).forEach(function (l) {
+              h +=
+                '<span style="left:' +
+                l[0] +
+                "%" +
+                (l[2] ? ";transform:" + l[2] : "") +
+                '">' +
+                l[1] +
+                "</span>";
+            });
+            return h + "</div>";
+          }
+          function seriesDots(wins, live, total, land) {
+            var h = "";
+            for (var i = 0; i < total; i++)
+              h +=
+                i < wins.length
+                  ? d(wins[i], "Game " + (i + 1), land && i === wins.length - 1)
+                  : live && i === wins.length
+                    ? d("n", "Game " + (i + 1))
+                    : d("o");
+            return '<div class="dots fix cb">' + h + "</div>";
+          }
+
+          // ───────── Counter-Strike 2: best of three maps, a round is a dot ─────────
+          var CS_PAIRS = [
+            [
+              ["Fnatic", "FNC", "#ff5900", "#000"],
+              ["Liquid", "TL", "#14387f", "#fff"],
+            ],
+            [
+              ["Falcons", "FLC", "#00a86b", "#fff"],
+              ["MOUZ", "MOUZ", "#e30613", "#fff"],
+            ],
+            [
+              ["G2", "G2", "#1a1a1c", "#fff"],
+              ["Heroic", "HERO", "#c8102e", "#fff"],
+            ],
+          ];
+          var MAPS = ["Mirage", "Anubis", "Inferno"],
+            csPair = 0;
+          function rounds(seq, from, to, live, gap, land, names) {
+            var h = "";
+            for (var i = from; i < to; i++) {
+              if (gap && i === 12) h += '<i class="g"></i>';
+              if (i < seq.length)
+                h += d(
+                  seq[i],
+                  "Round " + (i + 1) + " · " + names[seq[i]],
+                  land && i === seq.length - 1,
+                );
+              else if (live) h += d(i === seq.length ? "n" : "o", "Round " + (i + 1));
+            }
+            return h;
+          }
+          var cs = {
+            meta: "CS2 · IEM Cologne · Semi-final",
+            short: "CS2 · Semi-final",
+            init: function () {
+              this.T = CS_PAIRS[csPair];
+              this.s = {
+                map: 2,
+                hist: ["abaababbaabaabaabababa".split(""), "aababbaaabbababa".split(""), []],
+                res: ["13–9", null, null],
+                won: ["a", null, null],
+                ma: 1,
+                mb: 0,
+                over: false,
+                wait: false,
+              };
+            },
+            tick: function () {
+              this.give(Math.random() < 0.52 ? "a" : "b");
+            },
+            give: function (w) {
+              var s = this.s;
+              if (s.over || s.wait) return;
+              var seq = s.hist[s.map - 1],
+                a = count(seq),
+                b = seq.length - a;
+              if (a === 12 && b === 11) w = "a"; // keep the sample out of overtime
+              if (b === 12 && a === 11) w = "b";
+              seq.push(w);
+              landed = true;
+              a = count(seq);
+              b = seq.length - a;
+              if (a === 13 || b === 13) {
+                s.res[s.map - 1] = a + "–" + b;
+                s.won[s.map - 1] = a > b ? "a" : "b";
+                if (a > b) s.ma++;
+                else s.mb++;
+                if (s.ma === 2 || s.mb === 2) {
+                  s.over = true;
+                  later(restart, 3600);
+                } else {
+                  s.wait = true;
+                  later(function () {
+                    s.map++;
+                    s.wait = false;
+                    render();
+                  }, 2400);
+                }
+              }
+            },
+            view: function () {
+              var s = this.s,
+                T = this.T,
+                seq = s.hist[s.map - 1],
+                a = count(seq),
+                b = seq.length - a,
+                live = !s.over && !s.wait,
+                names = { a: T[0][0], b: T[1][0] };
+              var stops = [],
+                page = "";
+              for (var i = 0; i < 3; i++) {
+                var now = i === s.map - 1 && !s.over;
+                if (now)
+                  stops.push({
+                    cls: "now",
+                    w: "2.2fr",
+                    inner:
+                      '<div class="dots">' +
+                      rounds(seq, 0, 24, live, true, landed, names) +
+                      "</div>",
+                    label: MAPS[i],
+                    sub: s.wait ? s.res[i] : "Round " + (seq.length + 1) + ", first to 13",
+                  });
+                else if (s.res[i])
+                  stops.push({
+                    cls: "done",
+                    fill: "var(--" + s.won[i] + ")",
+                    label: MAPS[i],
+                    sub: s.res[i],
+                  });
+                else
+                  stops.push({
+                    cls: "fut",
+                    label: MAPS[i],
+                    sub: s.over ? "not needed" : "if needed",
+                  });
+              }
+              stops.push({ cls: "fut end", w: "0.5fr", label: "Final", sub: "Sun 18:00" });
+              for (var j = s.map - 1; j >= 0; j--) {
+                var q = s.hist[j],
+                  cur = j === s.map - 1 && !s.over,
+                  h1 = count(q.slice(0, 12)),
+                  n1 = Math.min(12, q.length),
+                  h2 = count(q.slice(12)),
+                  n2 = Math.max(0, q.length - 12);
+                page +=
+                  '<div class="card"><div class="ch"><b>' +
+                  MAPS[j] +
+                  '</b><span class="sub mono">MAP ' +
+                  (j + 1) +
+                  " · " +
+                  (cur && !s.wait ? "FIRST TO 13" : s.res[j]) +
+                  "</span></div>" +
+                  '<div class="half"><div class="dots" style="--ds:13px;--dg:4px">' +
+                  rounds(q, 0, 12, cur && live, false, cur && landed, names) +
+                  "</div><span>" +
+                  h1 +
+                  "–" +
+                  (n1 - h1) +
+                  "</span></div>" +
+                  (q.length > 12 || cur
+                    ? '<div class="half"><div class="dots" style="--ds:13px;--dg:4px;min-height:13px">' +
+                      rounds(q, 12, 24, cur && live, false, cur && landed, names) +
+                      "</div><span>" +
+                      h2 +
+                      "–" +
+                      (n2 - h2) +
+                      "</span></div>"
+                    : "");
+                if (cur) {
+                  page += '<div class="plot">';
+                  ["a", "ax", "b"].forEach(function (k) {
+                    if (k === "ax") {
+                      page += '<i class="ax"></i>';
+                      return;
+                    }
+                    for (var x = 0; x < 24; x++) {
+                      if (x === 12) page += "<span></span>";
+                      page += '<i class="' + (q[x] === k ? k : "") + '"></i>';
+                    }
+                  });
+                  page +=
+                    '</div><div class="sub" style="margin-top:6px">Momentum: ' +
+                    esc(T[0][0]) +
+                    " above the line, " +
+                    esc(T[1][0]) +
+                    " below</div>";
+                }
+                page += "</div>";
+              }
+              var win = a > b ? T[0][0] : T[1][0];
+              return {
+                T: T,
+                sa: s.over ? s.ma : a,
+                sb: s.over ? s.mb : b,
+                live: !s.over,
+                status: s.over
+                  ? "Final · " + (s.ma > s.mb ? T[0][0] : T[1][0]) + " win"
+                  : s.wait
+                    ? MAPS[s.map - 1] + " to " + win
+                    : "Live · round " + (seq.length + 1),
+                subL: plural(s.ma, "map"),
+                subM: MAPS[s.map - 1],
+                subR: plural(s.mb, "map"),
+                share: s.over ? s.ma / (s.ma + s.mb) : seq.length ? a / seq.length : 0.5,
+                fa: a / 13,
+                fb: b / 13,
+                card:
+                  '<div class="dots c2">' +
+                  rounds(seq, 0, 12, live, false, landed, names) +
+                  '</div><div class="dots c2">' +
+                  rounds(seq, 12, 24, live, false, landed, names) +
+                  "</div>",
+                mini:
+                  '<div class="dots" style="--ds:11px;--dg:2.5px;--dh:7px;justify-content:center">' +
+                  rounds(seq, 0, 24, live, true, landed, names) +
+                  "</div>",
+                stops: stops,
+                page: page,
+              };
+            },
+          };
+
+          // ───────── League of Legends: best of five, a dot is a game; objectives live on the clock ─────────
+          var lol = {
+            meta: "League of Legends · Worlds · Final",
+            short: "LoL · Final",
+            T: [
+              ["Gen.G", "GEN", "#b08a2e", "#000"],
+              ["T1", "T1", "#e2012d", "#fff"],
+            ],
+            init: function () {
+              this.s = {
+                g: 3,
+                wins: ["a", "b", "a"],
+                durs: ["31 min", "36 min", "28 min"],
+                over: false,
+                wait: false,
+                cur: {
+                  ev: [
+                    [3, "a", 1],
+                    [6, "b", 1],
+                    [9, "a", 1],
+                    [12, "a", 2],
+                    [14, "b", 1],
+                    [17, "a", 1],
+                    [19, "b", 2],
+                    [22, "a", 1],
+                    [24, "a", 2],
+                    [26, "a", 3],
+                  ],
+                  t: 27.2,
+                  ka: 14,
+                  kb: 9,
+                  end: 32,
+                },
+              };
+            },
+            tick: function () {
+              var s = this.s,
+                c = s.cur;
+              if (s.over || s.wait) return;
+              c.t += 1.3;
+              if (Math.random() < 0.5) {
+                if (Math.random() < 0.58) c.ka++;
+                else c.kb++;
+              }
+              if (Math.random() < 0.3) this.give(Math.random() < 0.55 ? "a" : "b");
+              if (c.t >= c.end) this.end();
+            },
+            give: function (w) {
+              var s = this.s,
+                c = s.cur,
+                r = Math.random();
+              if (s.over || s.wait) return;
+              c.ev.push([c.t, w, r < 0.6 ? 1 : r < 0.9 || c.t < 18 ? 2 : 3]);
+              landed = true;
+            },
+            end: function () {
+              var s = this.s,
+                c = s.cur,
+                wa = 0,
+                wb = 0;
+              c.ev.forEach(function (e) {
+                if (e[1] === "a") wa += e[2];
+                else wb += e[2];
+              });
+              var w = wa >= wb ? "a" : "b";
+              s.wins.push(w);
+              s.durs.push(Math.round(c.t) + " min");
+              landed = true;
+              if (count(s.wins) === 3 || count(s.wins, "b") === 3) {
+                s.over = true;
+                later(restart, 3600);
+              } else {
+                s.wait = true;
+                later(function () {
+                  s.g++;
+                  s.cur = { ev: [], t: 0, ka: 0, kb: 0, end: 26 + Math.random() * 8 };
+                  s.wait = false;
+                  render();
+                }, 2400);
+              }
+            },
+            view: function () {
+              var s = this.s,
+                T = this.T,
+                c = s.cur,
+                sa = count(s.wins),
+                sb = s.wins.length - sa,
+                live = !s.over && !s.wait,
+                size = [0, 8, 12, 17];
+              var items = c.ev.map(function (e, i) {
+                return [e[0] / 36, e[1], size[e[2]], landed && i === c.ev.length - 1 && live];
+              });
+              var stops = [],
+                page = "";
+              for (var i = 0; i < 5; i++) {
+                if (i < s.wins.length)
+                  stops.push({
+                    cls: "done",
+                    fill: "var(--" + s.wins[i] + ")",
+                    label: "Game " + (i + 1),
+                    sub: s.durs[i],
+                  });
+                else if (i === s.g && live)
+                  stops.push({
+                    cls: "now",
+                    w: "2.4fr",
+                    inner: tline(items, c.t / 36),
+                    label: "Game " + (i + 1),
+                    sub: clock(c.t) + " · kills " + c.ka + "–" + c.kb,
+                  });
+                else
+                  stops.push({
+                    cls: "fut" + (i === 4 ? " last" : ""),
+                    label: "Game " + (i + 1),
+                    sub: s.over ? "not needed" : i === s.wins.length ? "next" : "if needed",
+                  });
+              }
+              if (live)
+                page +=
+                  '<div class="card"><div class="ch"><b>Game ' +
+                  (s.g + 1) +
+                  '</b><span class="sub mono">' +
+                  clock(c.t) +
+                  " · KILLS " +
+                  c.ka +
+                  "–" +
+                  c.kb +
+                  "</span></div>" +
+                  tline(
+                    items,
+                    c.t / 36,
+                    [
+                      [0, "0", "none"],
+                      [27.8, "10"],
+                      [55.6, "20"],
+                      [83.3, "30"],
+                    ],
+                    true,
+                  ) +
+                  '<div class="sub" style="margin-top:4px">Objectives: ' +
+                  esc(T[0][0]) +
+                  " above, " +
+                  esc(T[1][0]) +
+                  " below. Bigger matters more.</div></div>";
+              page += '<div class="card" style="padding:4px 14px">';
+              for (var j = s.wins.length - 1; j >= 0; j--)
+                page +=
+                  '<div class="er"><span><b style="font-weight:600">Game ' +
+                  (j + 1) +
+                  '</b> <span class="sub">' +
+                  esc(T[s.wins[j] === "a" ? 0 : 1][0]) +
+                  " · " +
+                  s.durs[j] +
+                  '</span></span><span class="dots fix" style="--ds:12px">' +
+                  d(s.wins[j]) +
+                  "</span></div>";
+              page += "</div>";
+              return {
+                T: T,
+                sa: sa,
+                sb: sb,
+                live: !s.over,
+                status: s.over
+                  ? "Final · " + T[sa > sb ? 0 : 1][0] + " win"
+                  : s.wait
+                    ? "Game " + (s.g + 1) + " to " + T[s.wins[s.wins.length - 1] === "a" ? 0 : 1][0]
+                    : "Live · game " + (s.g + 1) + " · " + clock(c.t),
+                subL: c.ka + " kills",
+                subM: "Best of five",
+                subR: c.kb + " kills",
+                share: s.wins.length ? sa / s.wins.length : 0.5,
+                fa: sa / 3,
+                fb: sb / 3,
+                card: seriesDots(s.wins, live, 5, landed),
+                mini: seriesDots(s.wins, live, 5, landed),
+                stops: stops,
+                page: page,
+              };
+            },
+          };
+
+          // ───────── Rocket League: best of seven, the score is goals, a dot is a game ─────────
+          var rl = {
+            meta: "Rocket League · RLCS · Final",
+            short: "Rocket League · Final",
+            T: [
+              ["Karmine", "KC", "#19a8ff", "#000"],
+              ["BDS", "BDS", "#ff5fa2", "#000"],
+            ],
+            init: function () {
+              this.s = {
+                wins: ["a", "b", "a"],
+                past: [
+                  ["abaa", "3–1"],
+                  ["bab", "1–2"],
+                  ["aabaab", "4–2"],
+                ],
+                over: false,
+                wait: false,
+                cur: {
+                  goals: [
+                    [42, "a"],
+                    [90, "b"],
+                    [135, "a"],
+                    [183, "a"],
+                    [216, "b"],
+                  ],
+                  t: 228,
+                },
+              };
+            },
+            tick: function () {
+              var s = this.s,
+                c = s.cur;
+              if (s.over || s.wait) return;
+              c.t = Math.min(300, c.t + 20);
+              if (Math.random() < 0.3) this.give(Math.random() < 0.52 ? "a" : "b");
+              if (c.t >= 300) this.end();
+            },
+            give: function (w) {
+              var s = this.s;
+              if (s.over || s.wait) return;
+              s.cur.goals.push([s.cur.t, w]);
+              landed = true;
+            },
+            end: function () {
+              var s = this.s,
+                c = s.cur,
+                seq = c.goals.map(function (g) {
+                  return g[1];
+                }),
+                a = count(seq),
+                b = seq.length - a;
+              if (a === b) {
+                var o = Math.random() < 0.5 ? "a" : "b";
+                c.goals.push([300, o]);
+                seq.push(o);
+                if (o === "a") a++;
+                else b++;
+              }
+              var w = a > b ? "a" : "b";
+              s.wins.push(w);
+              s.past.push([seq.join(""), a + "–" + b]);
+              landed = true;
+              if (count(s.wins) === 4 || count(s.wins, "b") === 4) {
+                s.over = true;
+                later(restart, 3600);
+              } else {
+                s.wait = true;
+                later(function () {
+                  s.cur = { goals: [], t: 0 };
+                  s.wait = false;
+                  render();
+                }, 2400);
+              }
+            },
+            view: function () {
+              var s = this.s,
+                T = this.T,
+                c = s.cur,
+                seq = c.goals.map(function (g) {
+                  return g[1];
+                }),
+                a = count(seq),
+                b = seq.length - a,
+                wa = count(s.wins),
+                wb = s.wins.length - wa,
+                live = !s.over && !s.wait,
+                g = s.wins.length + (live ? 1 : 0);
+              var items = c.goals.map(function (e, i) {
+                return [e[0] / 300, e[1], 12, landed && i === c.goals.length - 1 && live];
+              });
+              var stops = [],
+                page = "";
+              for (var i = 0; i < 7; i++) {
+                if (i < s.wins.length)
+                  stops.push({
+                    cls: "done",
+                    fill: "var(--" + s.wins[i] + ")",
+                    label: "G" + (i + 1),
+                    sub: s.past[i][1],
+                  });
+                else if (i === s.wins.length && live)
+                  stops.push({
+                    cls: "now",
+                    w: "3.2fr",
+                    inner: tline(items, c.t / 300),
+                    label: "Game " + (i + 1),
+                    sub: left(c.t) + " left",
+                  });
+                else
+                  stops.push({
+                    cls: "fut" + (i === 6 ? " last" : ""),
+                    label: "G" + (i + 1),
+                    sub: "",
+                  });
+              }
+              if (live)
+                page +=
+                  '<div class="card"><div class="ch"><b>Game ' +
+                  g +
+                  '</b><span class="sub mono">' +
+                  left(c.t) +
+                  " LEFT</span></div>" +
+                  tline(items, c.t / 300, [
+                    [0, "5:00", "none"],
+                    [50, "2:30"],
+                    [100, "0:00", "translateX(-100%)"],
+                  ]) +
+                  "</div>";
+              page += '<div class="card" style="padding:4px 14px">';
+              for (var j = s.past.length - 1; j >= 0; j--)
+                page +=
+                  '<div class="er"><span><b style="font-weight:600">Game ' +
+                  (j + 1) +
+                  '</b> <span class="sub mono">' +
+                  s.past[j][1] +
+                  '</span></span><span class="dots fix" style="--ds:10px;--dg:3px">' +
+                  s.past[j][0]
+                    .split("")
+                    .map(function (x) {
+                      return d(x);
+                    })
+                    .join("") +
+                  "</span></div>";
+              page += "</div>";
+              return {
+                T: T,
+                sa: s.over || s.wait ? wa : a,
+                sb: s.over || s.wait ? wb : b,
+                live: !s.over,
+                status: s.over
+                  ? "Final · " + T[wa > wb ? 0 : 1][0] + " win"
+                  : s.wait
+                    ? "Game " +
+                      s.wins.length +
+                      " to " +
+                      T[s.wins[s.wins.length - 1] === "a" ? 0 : 1][0]
+                    : "Live · game " + g + " · " + left(c.t),
+                subL: plural(wa, "game"),
+                subM: "Best of seven",
+                subR: plural(wb, "game"),
+                share: s.over || s.wait ? wa / s.wins.length : seq.length ? a / seq.length : 0.5,
+                fa: wa / 4,
+                fb: wb / 4,
+                card: seriesDots(s.wins, live, 7, landed),
+                mini: seriesDots(s.wins, live, 7, landed),
+                stops: stops,
+                page: page,
+              };
+            },
+          };
+
+          // ───────── Chess: six games, a dot is a game, a draw is shared ─────────
+          var chess = {
+            meta: "Chess · Speed Chess Championship · Final",
+            short: "Chess · Final",
+            T: [
+              ["Carlsen", "MC", "var(--ink)", "var(--surface)"],
+              ["Nakamura", "HN", "var(--surface)", "var(--ink)"],
+            ],
+            init: function () {
+              this.s = { res: ["h", "a", "h", "h"], move: 23, end: 41, over: false, wait: false };
+            },
+            tick: function () {
+              var s = this.s;
+              if (s.over || s.wait) return;
+              s.move += 2 + Math.floor(Math.random() * 3);
+              if (s.move >= s.end) {
+                var r = Math.random();
+                this.result(r < 0.5 ? "h" : r < 0.78 ? "a" : "b");
+              }
+            },
+            give: function (w) {
+              if (!this.s.over && !this.s.wait) this.result(w);
+            },
+            result: function (r) {
+              var s = this.s;
+              s.res.push(r);
+              landed = true;
+              var pa = this.points("a"),
+                pb = this.points("b");
+              if (s.res.length === 6 || pa > 3 || pb > 3) {
+                s.over = true;
+                later(restart, 3600);
+              } else {
+                s.wait = true;
+                later(function () {
+                  s.move = 1;
+                  s.end = 30 + Math.floor(Math.random() * 30);
+                  s.wait = false;
+                  render();
+                }, 2400);
+              }
+            },
+            points: function (k) {
+              var n = 0;
+              this.s.res.forEach(function (r) {
+                n += r === k ? 1 : r === "h" ? 0.5 : 0;
+              });
+              return n;
+            },
+            view: function () {
+              var s = this.s,
+                T = this.T,
+                pa = this.points("a"),
+                pb = this.points("b"),
+                live = !s.over && !s.wait,
+                n = s.res.length + 1,
+                stops = [],
+                cardDots = "";
+              var name = function (r) {
+                return r === "h" ? "Draw" : T[r === "a" ? 0 : 1][0] + " won";
+              };
+              for (var i = 0; i < 6; i++) {
+                var done = i < s.res.length;
+                cardDots += done
+                  ? d(
+                      s.res[i],
+                      "Game " + (i + 1) + " · " + name(s.res[i]),
+                      landed && i === s.res.length - 1,
+                    )
+                  : live && i === s.res.length
+                    ? d("n", "Game " + (i + 1))
+                    : d("o");
+                if (done)
+                  stops.push({
+                    cls: "done",
+                    fill:
+                      s.res[i] === "h"
+                        ? "linear-gradient(90deg,var(--a) 50%,var(--b) 50%)"
+                        : "var(--" + s.res[i] + ")",
+                    label: "Game " + (i + 1),
+                    sub: name(s.res[i]),
+                  });
+                else if (live && i === s.res.length)
+                  stops.push({ cls: "now tight", label: "Game " + (i + 1), sub: "move " + s.move });
+                else
+                  stops.push({
+                    cls: "fut" + (i === 5 ? " last" : ""),
+                    label: "Game " + (i + 1),
+                    sub: "",
+                  });
+              }
+              if (stops.length) stops[5].cls += " last";
+              var row = function (k) {
+                return (
+                  '<div class="lane"><span>' +
+                  T[k === "a" ? 0 : 1][0] +
+                  '</span><span class="dots fix" style="--ds:13px;--dg:5px">' +
+                  s.res
+                    .map(function (r, i) {
+                      return d(
+                        r === k ? k : r === "h" ? "s" + k : "x",
+                        "",
+                        landed && i === s.res.length - 1,
+                      );
+                    })
+                    .join("") +
+                  '</span><span class="mono" style="font-weight:500">' +
+                  pts(k === "a" ? pa : pb) +
+                  "</span></div>"
+                );
+              };
+              var page =
+                '<div class="card"><div class="ch"><b>The match</b><span class="sub mono">' +
+                s.res.length +
+                " OF 6 PLAYED</span></div>" +
+                row("a") +
+                row("b") +
+                '<div class="sub" style="margin-top:8px">A full dot is a win, a small one a draw.</div></div>';
+              if (live)
+                page +=
+                  '<div class="card"><div class="ch"><b>Game ' +
+                  n +
+                  '</b><span class="sub mono">MOVE ' +
+                  s.move +
+                  '</span></div><div class="sub" style="margin-top:5px">' +
+                  T[n % 2 ? 0 : 1][0] +
+                  " has the white pieces.</div></div>";
+              return {
+                T: T,
+                sa: pts(pa),
+                sb: pts(pb),
+                live: !s.over,
+                status: s.over
+                  ? "Final · " + (pa === pb ? "drawn" : T[pa > pb ? 0 : 1][0] + " wins")
+                  : s.wait
+                    ? "Game " + s.res.length + " · " + name(s.res[s.res.length - 1]).toLowerCase()
+                    : "Live · game " + n + " · move " + s.move,
+                subL: n % 2 ? "White" : "Black",
+                subM: "Game " + Math.min(6, n) + " of 6",
+                subR: n % 2 ? "Black" : "White",
+                share: pa + pb ? pa / (pa + pb) : 0.5,
+                fa: pa / 3.5,
+                fb: pb / 3.5,
+                card: '<div class="dots fix cb">' + cardDots + "</div>",
+                mini: '<div class="dots fix cb">' + cardDots + "</div>",
+                stops: stops,
+                page: page,
+              };
+            },
+          };
+
+          // ───────── Trackmania: a cup final with four drivers, a dot is a round ─────────
+          var DR = ["Affi", "Mudda", "Otaaaq", "Bren"];
+          var tm = {
+            meta: "Trackmania · World Cup · Final",
+            short: "Trackmania · Final",
+            solo: true,
+            T: [
+              ["Cup final", "", "var(--ink)", "var(--surface)"],
+              ["", "", "var(--ink)", "var(--surface)"],
+            ],
+            ga: "Affi",
+            gb: "Mudda",
+            init: function () {
+              this.s = { r: [1, 2, 1, 3, 1, 4, 2], pl: [1, 3, 1, 2, 1, 4, 2], over: false };
+            },
+            tick: function () {
+              if (!this.s.over && Math.random() < 0.55)
+                this.round(1 + Math.floor(Math.pow(Math.random(), 1.4) * 4));
+            },
+            give: function (w) {
+              if (!this.s.over) this.round(w === "a" ? 1 : 2);
+            },
+            round: function (w) {
+              var s = this.s;
+              s.r.push(w);
+              s.pl.push(w === 1 ? 1 : 2 + Math.floor(Math.random() * 3));
+              landed = true;
+              if (
+                this.wins().some(function (n) {
+                  return n === 5;
+                })
+              ) {
+                s.over = true;
+                later(restart, 3600);
+              }
+            },
+            wins: function () {
+              var s = this.s;
+              return [1, 2, 3, 4].map(function (k) {
+                return s.r.filter(function (x) {
+                  return x === k;
+                }).length;
+              });
+            },
+            view: function () {
+              var s = this.s,
+                w = this.wins(),
+                order = [0, 1, 2, 3].sort(function (x, y) {
+                  return w[y] - w[x];
+                }),
+                lead = order[0],
+                live = !s.over;
+              var line =
+                s.r
+                  .map(function (k, i) {
+                    return d(
+                      "p" + k,
+                      "Round " + (i + 1) + " · " + DR[k - 1],
+                      landed && i === s.r.length - 1,
+                    );
+                  })
+                  .join("") + (live ? d("n", "Round " + (s.r.length + 1)) : "");
+              var page =
+                '<div class="card"><div class="ch"><b>Standings</b><span class="sub mono">FIRST TO 5 ROUNDS</span></div>' +
+                order
+                  .map(function (k) {
+                    var dots = "";
+                    for (var i = 0; i < w[k]; i++)
+                      dots += d(
+                        "p" + (k + 1),
+                        "",
+                        landed && s.r[s.r.length - 1] === k + 1 && i === w[k] - 1,
+                      );
+                    return (
+                      '<div class="lane"><span>' +
+                      DR[k] +
+                      '</span><span class="dots fix" style="--ds:13px;--dg:4px">' +
+                      dots +
+                      '</span><span class="mono" style="font-weight:500">' +
+                      w[k] +
+                      "</span></div>"
+                    );
+                  })
+                  .join("") +
+                "</div>";
+              page +=
+                '<div class="card"><div class="ch"><b>Affi, round by round</b><span class="sub mono">PLACE</span></div><div class="dots fix" style="--ds:18px;--dg:4px;margin-top:9px;flex-wrap:wrap;row-gap:5px">' +
+                s.pl
+                  .map(function (p, i) {
+                    return (
+                      '<i class="' +
+                      (p === 1 ? "p1" : "o") +
+                      " num" +
+                      (landed && i === s.pl.length - 1 ? " land" : "") +
+                      '"' +
+                      (p === 1 ? "" : ' style="color:var(--ink)"') +
+                      ">" +
+                      p +
+                      "</i>"
+                    );
+                  })
+                  .join("") +
+                (live ? d("n") : "") +
+                '</div><div class="sub" style="margin-top:8px">The driver you follow. Filled when they won the round.</div></div>';
+              return {
+                T: this.T,
+                sa: s.over ? DR[lead] + " wins" : "Round " + (s.r.length + 1),
+                sb: "",
+                live: live,
+                status: s.over ? "Final · " + DR[lead] + " wins" : "Live · " + DR[lead] + " leads",
+                subL: DR[order[0]] + " " + w[order[0]],
+                subM: DR[order[1]] + " " + w[order[1]],
+                subR: DR[order[2]] + " " + w[order[2]] + " · " + DR[order[3]] + " " + w[order[3]],
+                share: 0.5,
+                fa: 0,
+                fb: 0,
+                card:
+                  '<div class="dots fix" style="--ds:14px;--dg:4px;justify-content:center;flex-wrap:wrap;row-gap:5px">' +
+                  line +
+                  "</div>",
+                mini:
+                  '<div class="dots fix" style="--ds:12px;--dg:3px;justify-content:center;flex-wrap:wrap;row-gap:4px">' +
+                  line +
+                  "</div>",
+                stops: [
+                  {
+                    cls: "now",
+                    w: "1fr",
+                    inner: '<div class="dots fix" style="--ds:15px;--dg:5px">' + line + "</div>",
+                    label: s.over ? DR[lead] + " wins the cup" : "Round " + (s.r.length + 1),
+                    sub: "First to five rounds",
+                  },
+                ],
+                page: page,
+              };
+            },
+          };
+
+          var GAMES = { cs: cs, lol: lol, rl: rl, chess: chess, tm: tm };
+          var ORDER = ["cs", "lol", "rl", "tm", "chess"];
+          var LIST = {
+            cs: ["Fnatic v Liquid", "CS2 · Semi-final", "#ff5900", "#14387f"],
+            lol: ["Gen.G v T1", "LoL · Final", "#b08a2e", "#e2012d"],
+            rl: ["Karmine v BDS", "Rocket League", "#19a8ff", "#ff5fa2"],
+            tm: ["Cup final", "Trackmania", "#00c978", "#00c978"],
+            chess: ["Carlsen v Nakamura", "Chess · Final", "#000", "#fff"],
+          };
+
+          function set(key, val, tick) {
+            val = String(val);
+            $$('[data-b="' + key + '"]').forEach(function (n) {
+              if (n.textContent === val) return;
+              n.textContent = val;
+              if (tick && !still && n.animate)
+                n.animate(
+                  [
+                    { transform: "translateY(0.3em)", opacity: 0 },
+                    { transform: "none", opacity: 1 },
+                  ],
+                  { duration: 260, easing: "cubic-bezier(.2,.8,.2,1)" },
+                );
+            });
+          }
+          function html(key, val) {
+            $$('[data-b="' + key + '"]').forEach(function (n) {
+              n.innerHTML = val;
+            });
+          }
+
+          function render() {
+            var V = G.view(),
+              T = V.T;
+            landed = false;
+            root.style.setProperty("--a", T[0][2]);
+            root.style.setProperty("--ak", T[0][3]);
+            root.style.setProperty("--b", T[1][2]);
+            root.style.setProperty("--bk", T[1][3]);
+            root.style.setProperty(
+              "--p",
+              Math.max(30, Math.min(70, 50 + (V.share - 0.5) * 90)) + "%",
+            );
+            root.style.setProperty("--fa", Math.round(Math.min(1, V.fa) * 100));
+            root.style.setProperty("--fb", Math.round(Math.min(1, V.fb) * 100));
+            $$("[data-follow]").forEach(function (n) {
+              if (G.solo) n.setAttribute("data-solo", "");
+              else n.removeAttribute("data-solo");
+            });
+            set("an", T[0][0]);
+            set("bn", T[1][0]);
+            set("at", T[0][1]);
+            set("bt", T[1][1]);
+            set("ga", G.ga || T[0][0]);
+            set("gb", G.gb || T[1][0]);
+            set("sa", V.sa, true);
+            set("sb", V.sb, true);
+            set("status", V.status);
+            set("meta", G.meta);
+            set("short", G.short);
+            set("subL", V.subL);
+            set("subM", V.subM);
+            set("subR", V.subR);
+            $$('[data-b="ping"]').forEach(function (n) {
+              n.classList.toggle("off", !V.live);
+            });
+            html("card", V.card);
+            html("mini", V.mini);
+            html("page", V.page);
+            html(
+              "pagehead",
+              '<div class="mhead"><span class="row" style="gap:9px;min-width:0"><span class="av a" style="--s:36px">' +
+                esc(T[0][1]) +
+                '</span><span><b class="dsp" style="font-size:22px">' +
+                esc(T[0][0]) +
+                '</b><br><span class="sub" style="font-weight:600">' +
+                esc(V.subL) +
+                "</span></span></span>" +
+                (G.solo
+                  ? ""
+                  : '<span class="row" style="gap:9px;text-align:right;min-width:0"><span><b class="dsp" style="font-size:22px">' +
+                    esc(T[1][0]) +
+                    '</b><br><span class="sub" style="font-weight:600">' +
+                    esc(V.subR) +
+                    '</span></span><span class="av b" style="--s:36px">' +
+                    esc(T[1][1]) +
+                    "</span></span>") +
+                "</div>" +
+                '<div style="text-align:center;margin:8px 0 4px"><div class="tnum mscore">' +
+                esc(V.sa) +
+                '<i class="dash"></i>' +
+                esc(V.sb) +
+                '</div><i class="sline" style="margin:10px 40px 0"></i><div class="row" style="justify-content:center;gap:8px;font-size:11px;font-weight:600;margin-top:8px"><i class="ping' +
+                (V.live ? "" : " off") +
+                '"></i>' +
+                esc(V.status) +
+                "</div></div>",
+            );
+            $$('[data-b="stops"]').forEach(function (n) {
+              n.style.gridTemplateColumns = V.stops
+                .map(function (x) {
+                  return x.w || "0.62fr";
+                })
+                .join(" ");
+              n.innerHTML = V.stops
+                .map(function (x) {
+                  return (
+                    '<div class="stop ' +
+                    x.cls +
+                    '"' +
+                    (x.fill ? ' style="--sf:' + x.fill + '"' : "") +
+                    ">" +
+                    (x.inner || "") +
+                    "<b>" +
+                    esc(x.label) +
+                    '</b><span class="' +
+                    (x.cls.indexOf("now") === 0 ? "" : "sub") +
+                    '" style="font-size:1em' +
+                    (x.cls.indexOf("now") === 0 ? ";font-weight:600" : "") +
+                    '">' +
+                    esc(x.sub) +
+                    "</span></div>"
+                  );
+                })
+                .join("");
+            });
+          }
+
+          // What comes after the live match, in the wide header and on the phone.
+          function lists() {
+            var i = ORDER.indexOf(ui.game),
+              next = [1, 2, 3].map(function (k) {
+                return ORDER[(i + k) % ORDER.length];
+              });
+            var times = [
+              ["20:30", "50m", 72],
+              ["21:15", "1h35", 47],
+              ["22:00", "2h20", 22],
+            ];
+            html(
+              "nextlist",
+              next
+                .map(function (k, j) {
+                  var L = LIST[k];
+                  return (
+                    '<div class="lr"><span class="duo" style="--a:' +
+                    L[2] +
+                    ";--b:" +
+                    L[3] +
+                    ";--q:" +
+                    times[j][2] +
+                    '"></span><span class="mono tnum" style="font-weight:500">' +
+                    times[j][0] +
+                    '</span><span style="min-width:0;overflow:hidden"><b style="font-weight:600;white-space:nowrap;display:block;overflow:hidden;text-overflow:ellipsis">' +
+                    L[0] +
+                    '</b><span class="sub">' +
+                    L[1] +
+                    '</span></span><span class="sub mono">' +
+                    times[j][1] +
+                    "</span></div>"
+                  );
+                })
+                .join(""),
+            );
+            [
+              ["bk1", 0, " · in 50 min"],
+              ["bk2", 1, ""],
+            ].forEach(function (b) {
+              var L = LIST[next[b[1]]];
+              html(
+                b[0],
+                '<span class="duo" style="--a:' +
+                  L[2] +
+                  ";--b:" +
+                  L[3] +
+                  '"></span>' +
+                  times[b[1]][0] +
+                  " · " +
+                  L[0] +
+                  " · " +
+                  L[1] +
+                  b[2],
+              );
+            });
+          }
+
+          function start(animate) {
+            epoch++;
+            G = GAMES[ui.game];
+            G.init();
+            lists();
+            render();
+            mark();
+            if (animate && !still)
+              $$("[data-step]").forEach(function (n) {
+                if (n.animate)
+                  n.animate(
+                    [
+                      { transform: "translateY(-22px) scale(0.94)", opacity: 0.3 },
+                      { transform: "none", opacity: 1 },
+                    ],
+                    { duration: 520, easing: "cubic-bezier(.2,.8,.2,1)" },
+                  );
+              });
+          }
+          function restart() {
+            if (ui.game === "cs") csPair = (csPair + 1) % CS_PAIRS.length;
+            start(true);
+          }
+
+          function mark() {
+            $$("[data-set]").forEach(function (b) {
+              var p = b.getAttribute("data-set").split(":");
+              b.classList.toggle("on", String(ui[p[0]]) === p[1]);
+            });
+            $$("[data-follow]").forEach(function (n) {
+              n.classList.remove("ml", "md");
+              n.classList.add(ui.mode);
+            });
+            var main = root.querySelector(".board");
+            ["plain", "bar", "line", "dash", "rings"].forEach(function (t) {
+              main.classList.toggle("t-" + t, ui.tone === t);
+            });
+          }
+          $$("[data-set]").forEach(function (b) {
+            b.addEventListener("click", function () {
+              var p = b.getAttribute("data-set").split(":");
+              ui[p[0]] = p[1];
+              if (p[0] === "game") start(true);
+              else mark();
+            });
+          });
+          $$("[data-act]").forEach(function (b) {
+            b.addEventListener("click", function () {
+              var act = b.getAttribute("data-act");
+              if (act === "a" || act === "b") {
+                G.give(act);
+                render();
+              } else if (act === "next") restart();
+              else if (act === "pause") {
+                ui.paused = !ui.paused;
+                b.querySelector("use").setAttribute("href", ui.paused ? "#i-play" : "#i-pause");
+                b.querySelector("span").textContent = ui.paused ? "Play" : "Pause";
+              }
+            });
+          });
+
+          // Phone: tabs, the match page, and three small real screens.
+          var tabs = $$("[data-tab]"),
+            ind = root.querySelector(".tab .ind"),
+            matchView = root.querySelector('[data-view="match"]');
+          function show(name) {
+            $$("[data-view]").forEach(function (v) {
+              if (v !== matchView) v.classList.toggle("on", v.getAttribute("data-view") === name);
+            });
+            matchView.classList.remove("on");
+            tabs.forEach(function (t, i) {
+              var on = t.getAttribute("data-tab") === name;
+              t.classList.toggle("on", on);
+              if (on) ind.style.transform = "translateX(" + i * 100 + "%)";
+            });
+          }
+          tabs.forEach(function (t) {
+            t.addEventListener("click", function () {
+              show(t.getAttribute("data-tab"));
+            });
+          });
+          $$("[data-open]").forEach(function (b) {
+            b.addEventListener("click", function () {
+              matchView.classList.toggle("on", b.getAttribute("data-open") === "match");
+            });
+          });
+
+          var DAYS = [
+            [
+              "Mon",
+              16,
+              [
+                ["18:45", "Fnatic v Liquid", "CS2 · Semi-final", "#ff5900", "#14387f"],
+                ["20:30", "Gen.G v T1", "LoL · Final", "#b08a2e", "#e2012d"],
+                ["21:15", "Karmine v BDS", "Rocket League", "#19a8ff", "#ff5fa2"],
+                ["22:00", "Cup final", "Trackmania", "#00c978", "#00c978"],
+              ],
+            ],
+            [
+              "Tue",
+              17,
+              [
+                ["17:00", "Carlsen v Nakamura", "Chess · Final", "#000", "#fff"],
+                ["18:00", "Spirit v MOUZ", "CS2 · Semi-final", "#7a5cff", "#e30613"],
+              ],
+            ],
+            ["Wed", 18, [["19:00", "Falcons v Vitality", "Rocket League", "#00a86b", "#ffd400"]]],
+            ["Sun", 22, [["18:00", "CS2 final", "IEM Cologne", "#999", "#999"]]],
+          ];
+          function day(k) {
+            html(
+              "days",
+              DAYS.map(function (x, i) {
+                return (
+                  '<button class="' +
+                  (i === k ? "on" : "") +
+                  '" data-day="' +
+                  i +
+                  '">' +
+                  x[0] +
+                  "<b>" +
+                  x[1] +
+                  "</b></button>"
+                );
+              }).join(""),
+            );
+            html(
+              "daylist",
+              DAYS[k][2]
+                .map(function (r) {
+                  return (
+                    '<div class="lr" style="grid-template-columns:36px 40px minmax(0,1fr)"><span class="duo" style="--a:' +
+                    r[3] +
+                    ";--b:" +
+                    r[4] +
+                    '"></span><span class="mono tnum" style="font-weight:500">' +
+                    r[0] +
+                    '</span><span><b style="font-weight:600">' +
+                    r[1] +
+                    '</b><br><span class="sub">' +
+                    r[2] +
+                    "</span></span></div>"
+                  );
+                })
+                .join(""),
+            );
+            $$("[data-day]").forEach(function (b) {
+              b.addEventListener("click", function () {
+                day(+b.getAttribute("data-day"));
+              });
+            });
+          }
+          day(0);
+
+          var TEAMS = [
+            ["Fnatic", "CS2", "#ff5900", "wwlww"],
+            ["Liquid", "CS2", "#14387f", "lwwlw"],
+            ["T1", "LoL", "#e2012d", "wwwwl"],
+            ["Karmine Corp", "Rocket League", "#19a8ff", "wlwww"],
+            ["Falcons", "CS2", "#00a86b", "lwlww"],
+            ["MOUZ", "CS2", "#e30613", "wwllw"],
+            ["Gen.G", "LoL", "#b08a2e", "wlwlw"],
+            ["Spirit", "CS2", "#7a5cff", "wwwlw"],
+          ];
+          function teamRow(t, star) {
+            return (
+              '<div class="er" style="--a:' +
+              t[2] +
+              '"><span class="row" style="gap:9px;min-width:0"><span class="av a" style="--s:26px"></span><span style="min-width:0"><b style="font-weight:600">' +
+              t[0] +
+              '</b><br><span class="sub" style="white-space:nowrap">' +
+              t[1] +
+              '</span></span></span><span class="row" style="gap:8px"><span class="dots fix" style="--ds:9px;--dg:3px">' +
+              t[3]
+                .split("")
+                .map(function (r) {
+                  return '<i class="' + (r === "w" ? "a" : "o") + '"></i>';
+                })
+                .join("") +
+              "</span>" +
+              (star
+                ? '<button class="star" aria-pressed="true" aria-label="Following ' +
+                  t[0] +
+                  '"><svg class="ic" style="width:16px;height:16px"><use href="#i-star"></use></svg></button>'
+                : "") +
+              "</span></div>"
+            );
+          }
+          html(
+            "follows",
+            TEAMS.slice(0, 5)
+              .map(function (t) {
+                return teamRow(t, true);
+              })
+              .join(""),
+          );
+          $$(".star").forEach(function (b) {
+            b.addEventListener("click", function () {
+              b.setAttribute(
+                "aria-pressed",
+                b.getAttribute("aria-pressed") === "true" ? "false" : "true",
+              );
+              if (!still && b.animate)
+                b.animate(
+                  [
+                    { transform: "scale(1)" },
+                    { transform: "scale(1.35)" },
+                    { transform: "scale(1)" },
+                  ],
+                  { duration: 300, easing: "cubic-bezier(.2,1.5,.4,1)" },
+                );
+            });
+          });
+          var q = root.querySelector('[data-b="q"]');
+          function search() {
+            var v = q.value.trim().toLowerCase(),
+              hit = TEAMS.filter(function (t) {
+                return !v || (t[0] + " " + t[1]).toLowerCase().indexOf(v) >= 0;
+              }).slice(0, 6);
+            set("qlab", v ? hit.length + (hit.length === 1 ? " RESULT" : " RESULTS") : "TEAMS");
+            html(
+              "results",
+              hit.length
+                ? hit
+                    .map(function (t) {
+                      return teamRow(t, false);
+                    })
+                    .join("")
+                : '<div class="er"><span class="sub">Nothing found for "' +
+                    esc(q.value) +
+                    '".</span></div>',
+            );
+          }
+          q.addEventListener("input", search);
+          search();
+
+          start(false);
+          if (!still)
+            setInterval(function () {
+              if (!ui.paused) {
+                G.tick();
+                render();
+              }
+            }, 1700);
+        })();
+      </script>
+    </div>
+  </body>
+</html>

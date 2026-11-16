@@ -1,0 +1,557 @@
+/*
+ * Bearing identity, version 2. The rules are in docs/BRAND.md.
+ * Black and white, one level of cards, flat discs and dots. Everything is scoped to .bx so the
+ * six earlier directions, which still live in this app, are not affected.
+ */
+.bx {
+  --ground: #fff;
+  --surface: #fff;
+  --sunk: #f1f1f1;
+  --ink: #000;
+  --ink2: #5c5c5c;
+  --ink3: #999;
+  --hair: rgb(0 0 0 / 0.1);
+  --edge: rgb(0 0 0 / 0.18);
+  --rest: rgb(0 0 0 / 0.2);
+  --sh: 0 1px 1px rgb(0 0 0 / 0.04), 0 10px 24px -14px rgb(0 0 0 / 0.28);
+  --nav: rgb(255 255 255 / 0.8);
+  --face: "Gabarito Variable", system-ui, sans-serif;
+  --mono: "Geist Mono Variable", ui-monospace, monospace;
+  min-height: 100dvh;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--face);
+  font-size: 13px;
+  line-height: 1.35;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  .bx {
+    --ground: #000;
+    --surface: #111;
+    --sunk: #1e1e1e;
+    --ink: #fff;
+    --ink2: #a6a6a6;
+    --ink3: #6b6b6b;
+    --hair: rgb(255 255 255 / 0.13);
+    --edge: rgb(255 255 255 / 0.2);
+    --rest: rgb(255 255 255 / 0.3);
+    --sh: 0 12px 28px -14px #000;
+    --nav: rgb(30 30 30 / 0.8);
+    color-scheme: dark;
+  }
+}
+.bx *,
+.bx *::before,
+.bx *::after {
+  box-sizing: border-box;
+}
+.bx a {
+  color: inherit;
+  text-decoration: none;
+}
+.bx button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.bx-page {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 26px 20px 110px;
+}
+
+/* Type */
+.bx-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.bx-name {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.bx-mono {
+  font-family: var(--mono);
+}
+.bx-num {
+  font-variant-numeric: tabular-nums;
+}
+.bx-sub {
+  color: var(--ink2);
+  font-size: 11px;
+}
+.bx-label {
+  margin: 0;
+  font: 500 9.5px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.bx-row {
+  display: flex;
+  align-items: center;
+}
+.bx-btw {
+  justify-content: space-between;
+}
+.bx-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.bx-head > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* A section starts with a black rule; rows are separated by hairlines. */
+/* A section is a small label on the page and, under it, one card. */
+.bx-section {
+  margin-top: 20px;
+}
+.bx-section > .bx-label {
+  margin: 0 8px 8px;
+  color: var(--ink2);
+}
+/* A list is one card; inside it, rows are separated by hairlines. Boxes never nest. */
+.bx-list {
+  padding: 3px 16px;
+  border-radius: 24px;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  box-shadow: var(--sh);
+}
+.bx-list:empty {
+  display: none;
+}
+.bx-list > * {
+  border-top: 1px solid var(--hair);
+}
+.bx-list > :first-child {
+  border-top: 0;
+}
+.bx-empty {
+  margin: 10px 0 0;
+  color: var(--ink2);
+}
+
+/* Live: a dot that sends out a ring. */
+.bx-ping {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  display: inline-block;
+  flex: none;
+}
+.bx-ping::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  animation: bx-ping 1.8s ease-out infinite;
+}
+.bx-ping-off::after {
+  display: none;
+}
+@keyframes bx-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+@keyframes bx-pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* Discs */
+.bx-disc {
+  width: var(--s, 44px);
+  height: var(--s, 44px);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: none;
+  font-weight: 800;
+  font-size: calc(var(--s, 44px) * 0.28);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
+.bx-duo {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: conic-gradient(var(--ink) calc(var(--q, 0) * 1%), var(--rest) 0);
+}
+.bx-duo i {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+}
+
+/* Dots */
+.bx-dots {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--ds, 13px) * 0.35);
+  margin-top: 5px;
+  min-height: var(--ds, 13px);
+}
+.bx-dots.bx-center {
+  justify-content: center;
+}
+.bx-dots i {
+  flex: 0 1 var(--ds, 13px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  min-width: 0;
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
+.bx-dots .bx-dot-open {
+  box-shadow: inset 0 0 0 1.5px var(--rest);
+}
+.bx-dots .bx-dot-now {
+  box-shadow: inset 0 0 0 2px var(--ink);
+  animation: bx-pulse 1.6s ease-in-out infinite;
+}
+
+/* The one box on a screen: whatever is live. */
+.bx-card {
+  display: block;
+  margin-top: 16px;
+  padding: 14px 16px 16px;
+  border-radius: 28px;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  box-shadow: var(--sh);
+  transition: transform 0.15s;
+}
+a.bx-card:active {
+  transform: scale(0.985);
+}
+.bx-meta {
+  font-size: 11px;
+  font-weight: 600;
+  gap: 8px;
+}
+.bx-meta > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.bx-meta > span:last-child {
+  color: var(--ink2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-versus {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 3px;
+}
+.bx-versus > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.bx-versus > span:last-child {
+  justify-content: flex-end;
+}
+.bx-versus .bx-name {
+  font-size: 18px;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.bx-versus > span:last-child .bx-name {
+  text-align: right;
+}
+.bx-score {
+  font-size: 22px;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.bx-score i {
+  display: inline-block;
+  width: 0.5em;
+  height: 0.075em;
+  border-radius: 1em;
+  background: currentColor;
+  vertical-align: 0.3em;
+  margin: 0 0.2em;
+}
+.bx-subs {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink2);
+  margin-bottom: 8px;
+}
+
+/* Rows */
+.bx-next {
+  display: grid;
+  grid-template-columns: 36px 42px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 0;
+}
+.bx-next b,
+.bx-result b {
+  font-weight: 600;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-result {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 0;
+  min-height: 40px;
+}
+.bx-result .bx-dots {
+  margin: 0;
+}
+.bx-result .bx-dots i {
+  flex: none;
+  width: var(--ds, 13px);
+}
+.bx-lane {
+  display: grid;
+  grid-template-columns: minmax(70px, auto) minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 0;
+  font-weight: 600;
+}
+
+/* Match page */
+.bx-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: -4px;
+}
+.bx-matchhead {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 16px;
+}
+.bx-matchhead > span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.bx-matchhead .bx-name {
+  font-size: 22px;
+}
+.bx-big {
+  text-align: center;
+  font-size: 56px;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin: 10px 0 0;
+}
+.bx-big.bx-solo {
+  font-size: 34px;
+  font-weight: 800;
+}
+.bx-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+.bx-game {
+  padding: 13px 0 12px;
+}
+.bx-gamehead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.bx-gamehead b {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.bx-plot {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr)) 6px repeat(12, minmax(0, 1fr));
+  row-gap: 3px;
+  align-items: center;
+  margin-top: 11px;
+}
+.bx-plot i {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  width: min(100% - 1px, 10px);
+  margin: 0 auto;
+}
+.bx-plot .bx-on {
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
+.bx-plot .bx-axis {
+  grid-column: 1 / -1;
+  height: 1.5px;
+  background: var(--ink);
+  aspect-ratio: auto;
+  width: auto;
+  border-radius: 0;
+  margin: 0;
+}
+
+/* Controls keep their shape. */
+.bx-days {
+  display: flex;
+  gap: 6px;
+  margin-top: 14px;
+}
+.bx-days button {
+  flex: 1;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+.bx-days b {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin: 3px auto 0;
+  border-radius: 50%;
+  font-size: 15px;
+  font-weight: 800;
+}
+.bx-days .bx-on {
+  color: var(--ink);
+}
+.bx-days .bx-on b {
+  background: var(--ink);
+  color: var(--surface);
+}
+.bx-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  margin-top: 14px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--sunk);
+  color: var(--ink2);
+}
+.bx-field input {
+  all: unset;
+  flex: 1;
+  min-width: 0;
+  font: 500 14px var(--face);
+  color: var(--ink);
+}
+.bx-star {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--ink3);
+}
+.bx-star[aria-pressed="true"] {
+  color: var(--ink);
+}
+.bx-star[aria-pressed="true"] svg {
+  fill: currentColor;
+}
+
+/* Navigation: a small floating capsule, icons only. */
+.bx-nav {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  width: 208px;
+  height: 52px;
+  padding: 5px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-radius: 999px;
+  background: var(--nav);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--hair);
+  box-shadow: var(--sh);
+  z-index: 10;
+}
+.bx-nav i {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  left: 5px;
+  width: calc((100% - 10px) / 4);
+  border-radius: 999px;
+  background: var(--sunk);
+  transition: transform 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.15);
+}
+.bx-nav a {
+  position: relative;
+  display: grid;
+  place-items: center;
+  color: var(--ink3);
+  transition: color 0.2s;
+}
+.bx-nav a[data-on] {
+  color: var(--ink);
+}
+.bx-nav a:active svg {
+  transform: scale(0.86);
+}
+.bx-nav svg {
+  transition: transform 0.15s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bx *,
+  .bx *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

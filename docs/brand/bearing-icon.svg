@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Bearing">
+  <rect width="64" height="64" rx="14.4" fill="#0a0b0e"/>
+  <g transform="translate(11.5 11.5) scale(0.640625)">
+    <path fill="#ffffff" d="M56.305 22.767A26 26 0 1 1 41.233 7.695A11 11 0 0 0 35.871 16.475A16 16 0 1 0 47.525 28.129A11 11 0 0 0 56.305 22.767Z"/>
+    <circle fill="#ffffff" cx="46.85" cy="17.15" r="7.5"/>
+  </g>
+</svg>

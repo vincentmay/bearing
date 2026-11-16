@@ -1,0 +1,2611 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bearing identity, round 6</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400..800&family=Geist+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      @property --p {
+        syntax: "<percentage>";
+        inherits: true;
+        initial-value: 50%;
+      }
+      .id {
+        --mono: "Geist Mono", monospace;
+        --p: 50%;
+        font-family: var(--font-sans, system-ui, sans-serif);
+        color: var(--foreground, #111);
+        transition: --p 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .id *,
+      .id *::before,
+      .id *::after {
+        box-sizing: border-box;
+      }
+      .id button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        text-align: inherit;
+      }
+      .intro {
+        font-size: 14px;
+        line-height: 1.55;
+        color: var(--muted-foreground, #666);
+        margin: 0 0 22px;
+        max-width: 66ch;
+      }
+      .sec {
+        margin: 0 0 40px;
+      }
+      .sec:last-of-type {
+        margin-bottom: 8px;
+      }
+      .rhead {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 0 0 12px;
+      }
+      .rletter {
+        font-family: var(--font-mono, monospace);
+        font-size: 12px;
+        padding: 2px 8px;
+        border: 1px solid var(--border, #ccc);
+        border-radius: 999px;
+        color: var(--muted-foreground, #666);
+      }
+      .rname {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .rline {
+        font-size: 14px;
+        color: var(--muted-foreground, #666);
+        flex: 1 1 260px;
+      }
+
+      /* Controls, in the thread's own colours */
+      .ctl {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 18px;
+        margin: 0 0 14px;
+        font-size: 12.5px;
+        color: var(--muted-foreground, #666);
+      }
+      .ctl > div {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-wrap: wrap;
+      }
+      .ctl button {
+        color: var(--foreground, #111);
+        border: 1px solid var(--border, #ccc);
+        border-radius: 999px;
+        padding: 4px 11px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .ctl button.on {
+        background: var(--foreground, #111);
+        color: var(--background, #fff);
+        border-color: var(--foreground, #111);
+      }
+      .ctl .ic {
+        width: 13px;
+        height: 13px;
+      }
+
+      /* Neutrals. nt = tinted, np = pure; ml = light, md = dark. Everything below only uses these. */
+      .px {
+        color: var(--ink);
+        font-family: "Gabarito", system-ui, sans-serif;
+      }
+      .px.nt.ml {
+        --ground: #eef0f4;
+        --stage: #e1e4ea;
+        --surface: #fff;
+        --sunk: #f1f3f6;
+        --ink: #0a0b0e;
+        --ink2: #555b66;
+        --ink3: #8e95a1;
+        --hair: rgba(10, 11, 14, 0.08);
+        --edge: rgba(10, 11, 14, 0.16);
+        --rest: rgba(10, 11, 14, 0.2);
+        --sh: 0 1px 1px rgba(16, 24, 40, 0.04), 0 10px 24px -14px rgba(16, 24, 40, 0.28);
+        --nav: rgba(255, 255, 255, 0.74);
+        --w: 15%;
+      }
+      .px.nt.md {
+        --ground: #0a0b0e;
+        --stage: #050607;
+        --surface: #15171c;
+        --sunk: #1f2229;
+        --ink: #fff;
+        --ink2: #aab0bb;
+        --ink3: #6c7380;
+        --hair: rgba(255, 255, 255, 0.1);
+        --edge: rgba(255, 255, 255, 0.16);
+        --rest: rgba(255, 255, 255, 0.3);
+        --sh: 0 12px 28px -14px rgba(0, 0, 0, 0.8);
+        --nav: rgba(31, 34, 41, 0.74);
+        --w: 22%;
+      }
+      .px.np.ml {
+        --ground: #fff;
+        --stage: #f2f2f2;
+        --surface: #fff;
+        --sunk: #f2f2f2;
+        --ink: #000;
+        --ink2: #5c5c5c;
+        --ink3: #999;
+        --hair: rgba(0, 0, 0, 0.1);
+        --edge: rgba(0, 0, 0, 0.18);
+        --rest: rgba(0, 0, 0, 0.22);
+        --sh: 0 1px 1px rgba(0, 0, 0, 0.04), 0 10px 24px -14px rgba(0, 0, 0, 0.28);
+        --nav: rgba(255, 255, 255, 0.78);
+        --w: 15%;
+      }
+      .px.np.md {
+        --ground: #000;
+        --stage: #000;
+        --surface: #111;
+        --sunk: #1c1c1c;
+        --ink: #fff;
+        --ink2: #a6a6a6;
+        --ink3: #6b6b6b;
+        --hair: rgba(255, 255, 255, 0.12);
+        --edge: rgba(255, 255, 255, 0.18);
+        --rest: rgba(255, 255, 255, 0.32);
+        --sh: 0 12px 28px -14px #000;
+        --nav: rgba(28, 28, 28, 0.78);
+        --w: 22%;
+      }
+
+      .board {
+        border-radius: var(--radius, 12px);
+        padding: 16px;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 12px;
+        background: var(--ground);
+        border: 1px solid var(--hair);
+        transition: background 0.3s;
+      }
+      .tile {
+        border-radius: 18px;
+        padding: 16px;
+        min-width: 0;
+        position: relative;
+        overflow: hidden;
+        background: var(--surface);
+        border: 1px solid var(--hair);
+        color: var(--ink);
+        transition:
+          background 0.3s,
+          border-color 0.3s;
+      }
+      .s2 {
+        grid-column: span 2;
+      }
+      .s3 {
+        grid-column: span 3;
+      }
+      .s6 {
+        grid-column: span 6;
+      }
+      .hero {
+        container-type: inline-size;
+      }
+      .cap {
+        font: 500 10.5px var(--mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin: 0 0 12px;
+        color: var(--ink3);
+      }
+      .note {
+        margin: 0;
+        font-size: 12.5px;
+        line-height: 1.5;
+        color: var(--ink2);
+      }
+      .note b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .mono {
+        font-family: var(--mono);
+      }
+      .dsp {
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+      }
+      .btw {
+        justify-content: space-between;
+      }
+      .tnum {
+        font-variant-numeric: tabular-nums;
+      }
+      .sub {
+        color: var(--ink2);
+        font-size: 11px;
+      }
+      .ic {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        flex: none;
+        display: block;
+      }
+      .pick {
+        font: 500 9.5px var(--mono);
+        letter-spacing: 0.06em;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--surface);
+        white-space: nowrap;
+      }
+
+      .ping {
+        position: relative;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        display: inline-block;
+        flex: none;
+      }
+      .ping::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 1.5px solid currentColor;
+        animation: ping 1.8s ease-out infinite;
+      }
+      .ping.off::after {
+        display: none;
+      }
+      @keyframes ping {
+        0% {
+          transform: scale(1);
+          opacity: 0.9;
+        }
+        100% {
+          transform: scale(3);
+          opacity: 0;
+        }
+      }
+      @keyframes pulse {
+        50% {
+          opacity: 0.25;
+        }
+      }
+      .pulse {
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+
+      /* Dots: flat, on a line */
+      .dots {
+        display: flex;
+        align-items: center;
+        gap: var(--dg, 3px);
+        min-width: 0;
+      }
+      .dots i {
+        flex: 0 1 var(--ds, 12px);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        min-width: 0;
+        box-shadow: inset 0 0 0 1px var(--edge);
+        transition: transform 0.15s;
+      }
+      .dots i:hover {
+        transform: scale(1.45);
+      }
+      .dots.fix i {
+        flex: none;
+        width: var(--ds, 12px);
+      }
+      .dots .a {
+        background: var(--a);
+      }
+      .dots .b {
+        background: var(--b);
+      }
+      .dots .h {
+        background: linear-gradient(90deg, var(--a) 50%, var(--b) 50%);
+      }
+      .dots .m {
+        flex-basis: calc(var(--ds, 12px) * 1.5);
+      }
+      .dots .l {
+        flex-basis: calc(var(--ds, 12px) * 2.1);
+      }
+      .dots.fix .m {
+        width: calc(var(--ds, 12px) * 1.5);
+      }
+      .dots.fix .l {
+        width: calc(var(--ds, 12px) * 2.1);
+      }
+      .dots .s {
+        transform: scale(0.55);
+        background: var(--ink3);
+        box-shadow: none;
+      }
+      .dots .o {
+        box-shadow: inset 0 0 0 1.5px var(--rest);
+      }
+      .dots .n {
+        box-shadow: inset 0 0 0 2px var(--ink);
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+      .dots .g {
+        flex: 0 1 var(--dh, 8px);
+        aspect-ratio: auto;
+        box-shadow: none;
+      }
+      .dots .x {
+        box-shadow: none;
+      }
+      .dots .p1 {
+        background: #00c978;
+      }
+      .dots .p2 {
+        background: #ff8a00;
+      }
+      .dots .p3 {
+        background: #7a5cff;
+      }
+      .dots .p4 {
+        background: #19a8ff;
+      }
+      .dots .num {
+        display: grid;
+        place-items: center;
+        font:
+          700 9px "Gabarito",
+          sans-serif;
+        color: #0a0b0e;
+      }
+      .dots .land {
+        animation: land 0.34s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+      }
+      @keyframes land {
+        0% {
+          transform: scale(0);
+        }
+      }
+
+      /* A team is a flat disc with its short name. No logos, no gradients. */
+      .av {
+        --s: 44px;
+        width: var(--s);
+        height: var(--s);
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: calc(var(--s) * 0.28);
+        letter-spacing: -0.02em;
+        flex: none;
+        box-shadow: inset 0 0 0 1px var(--edge);
+        line-height: 1;
+      }
+      .av.a {
+        background: var(--a);
+        color: var(--ak);
+      }
+      .av.b {
+        background: var(--b);
+        color: var(--bk);
+      }
+      .duo {
+        --s: 34px;
+        width: var(--s);
+        height: var(--s);
+        border-radius: 50%;
+        background: conic-gradient(var(--ink) calc(var(--q, 0) * 1%), var(--rest) 0);
+        display: grid;
+        place-items: center;
+        flex: none;
+      }
+      .duo::after {
+        content: "";
+        width: calc(var(--s) - 8px);
+        height: calc(var(--s) - 8px);
+        border-radius: 50%;
+        background: linear-gradient(90deg, var(--a) 50%, var(--b) 50%);
+        border: 2px solid var(--surface);
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: var(--sunk);
+        white-space: nowrap;
+      }
+
+      /* The live card, and four ways for it to carry the teams' colours. None of them is a gradient. */
+      .lc {
+        position: relative;
+        border-radius: 22px;
+        background: var(--surface);
+        border: 1px solid var(--hair);
+        box-shadow: var(--sh);
+        overflow: hidden;
+        isolation: isolate;
+      }
+      .lc.wash {
+        background: linear-gradient(
+          90deg,
+          color-mix(in srgb, var(--a) var(--w), var(--surface)) 0 var(--p),
+          color-mix(in srgb, var(--b) var(--w), var(--surface)) var(--p) 100%
+        );
+      }
+      .lc.wash .pill {
+        background: color-mix(in srgb, var(--surface) 70%, transparent);
+      }
+      .lc.band::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 8px;
+        background: linear-gradient(90deg, var(--a) 0 var(--p), var(--b) var(--p) 100%);
+      }
+      .lc.spines::before,
+      .lc.spines::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 10px;
+      }
+      .lc.spines::before {
+        left: 0;
+        background: var(--a);
+      }
+      .lc.spines::after {
+        right: 0;
+        background: var(--b);
+      }
+
+      /* Wide live header */
+      .stage {
+        padding: 22px 22px 24px;
+        background: var(--stage);
+        border-color: transparent;
+      }
+      .bk {
+        margin: 0 auto;
+        height: 46px;
+        border-radius: 16px 16px 0 0;
+        background: var(--surface);
+        border: 1px solid var(--hair);
+        border-bottom: 0;
+        font-size: 10.5px;
+        font-weight: 600;
+        padding: 4px 12px 0;
+        color: var(--ink2);
+        white-space: nowrap;
+        overflow: hidden;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 7px;
+      }
+      .bk .duo {
+        --s: 14px;
+        background: none;
+        margin-top: 1px;
+      }
+      .bk .duo::after {
+        width: 12px;
+        height: 12px;
+        border: 0;
+        box-shadow: inset 0 0 0 1px var(--edge);
+      }
+      .bk2 {
+        width: 76%;
+        opacity: 0.6;
+      }
+      .bk1 {
+        width: 88%;
+        margin-top: -24px;
+      }
+      .front {
+        margin-top: -22px;
+        padding: 20px 24px 22px;
+      }
+      .lh {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        gap: 12px;
+        margin: 22px 0 28px;
+      }
+      .tm {
+        display: flex;
+        align-items: center;
+        gap: clamp(8px, 2cqw, 14px);
+        min-width: 0;
+        border-radius: 14px;
+        transition: transform 0.15s;
+      }
+      .tm:active {
+        transform: scale(0.97);
+      }
+      .tm.r {
+        flex-direction: row-reverse;
+      }
+      .tm .av {
+        --s: clamp(30px, 7.4cqw, 52px);
+      }
+      .hname {
+        font-size: clamp(20px, 6.2cqw, 44px);
+      }
+      .hscore {
+        font-size: clamp(22px, 7cqw, 50px);
+        font-weight: 400;
+        letter-spacing: -0.03em;
+        line-height: 1;
+        white-space: nowrap;
+      }
+      .stops {
+        display: grid;
+        position: relative;
+      }
+      .stop {
+        position: relative;
+        padding: 38px 8px 0 0;
+        font-size: clamp(10.5px, 2cqw, 13px);
+        line-height: 1.3;
+        min-width: 0;
+      }
+      .stop::before {
+        content: "";
+        position: absolute;
+        top: 9px;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: var(--ink);
+      }
+      .stop::after {
+        content: "";
+        position: absolute;
+        top: 1px;
+        left: 0;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--surface);
+        border: 6px solid var(--ink);
+      }
+      .stop.done::after {
+        background: var(--ink);
+      }
+      .stop.now::before {
+        display: none;
+      }
+      .stop.now::after {
+        width: 30px;
+        height: 30px;
+        top: -2px;
+        left: -3px;
+        border-width: 5px;
+        background: linear-gradient(90deg, var(--a) 50%, var(--b) 50%);
+      }
+      .stop.now .dots {
+        position: absolute;
+        top: 1px;
+        left: 36px;
+        right: 10px;
+        height: 24px;
+        --ds: 13px;
+        --dg: clamp(1px, 0.5cqw, 4px);
+        --dh: clamp(4px, 1.6cqw, 12px);
+      }
+      .stop.fut::before {
+        background: var(--rest);
+      }
+      .stop.fut::after {
+        border-color: var(--rest);
+      }
+      .stop.end::before {
+        background: repeating-linear-gradient(90deg, var(--rest) 0 8px, transparent 8px 14px);
+        right: 20px;
+      }
+      .stop b {
+        display: block;
+        font-weight: 800;
+        font-size: 1.12em;
+        letter-spacing: -0.02em;
+      }
+
+      /* Phone */
+      .phone {
+        width: 100%;
+        max-width: 292px;
+        height: 600px;
+        border-radius: 40px;
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
+        background: var(--ground);
+        color: var(--ink);
+        box-shadow:
+          0 0 0 7px var(--surface),
+          0 0 0 8px var(--edge),
+          0 22px 44px -18px rgba(10, 20, 40, 0.45);
+        transition: background 0.3s;
+      }
+      .view {
+        position: absolute;
+        inset: 0;
+        padding: 22px 16px 84px;
+        opacity: 0;
+        transform: translateY(10px);
+        pointer-events: none;
+        transition:
+          opacity 0.2s,
+          transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .view.on {
+        opacity: 1;
+        transform: none;
+        pointer-events: auto;
+      }
+      .view.match {
+        opacity: 1;
+        transform: translateX(104%);
+        background: var(--ground);
+        z-index: 2;
+        transition:
+          transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+          background 0.3s;
+      }
+      .view.match.on {
+        transform: none;
+      }
+      .vh {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 6px 2px;
+      }
+      .plab {
+        font: 500 9.5px var(--mono);
+        letter-spacing: 0.08em;
+        color: var(--ink2);
+        margin: 13px 8px -4px;
+      }
+      .card {
+        border-radius: 24px;
+        padding: 12px 14px;
+        margin-top: 10px;
+        background: var(--surface);
+        border: 1px solid var(--hair);
+        box-shadow: var(--sh);
+        transition: background 0.3s;
+      }
+      .lr {
+        display: grid;
+        grid-template-columns: 36px 40px minmax(0, 1fr) auto;
+        gap: 9px;
+        align-items: center;
+        padding: 8px 0;
+        font-size: 12.5px;
+        line-height: 1.3;
+        border-top: 1px solid var(--hair);
+      }
+      .lr:first-child {
+        border-top: 0;
+      }
+      .er {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        padding: 8px 0;
+        font-size: 12.5px;
+        border-top: 1px solid var(--hair);
+        min-height: 38px;
+      }
+      .er:first-child {
+        border-top: 0;
+      }
+      .half {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        margin-top: 7px;
+      }
+      .half span {
+        font: 500 10px var(--mono);
+        color: var(--ink2);
+      }
+      .ch {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: 12.5px;
+      }
+      .ch b {
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .press {
+        transition: transform 0.15s;
+        display: block;
+        width: 100%;
+      }
+      .press:active {
+        transform: scale(0.975);
+      }
+      .chips {
+        display: flex;
+        gap: 6px;
+        margin-top: 12px;
+      }
+      .chips button {
+        flex: 1;
+        border-radius: 14px;
+        padding: 7px 0 6px;
+        text-align: center;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--ink2);
+        background: var(--surface);
+        border: 1px solid var(--hair);
+        line-height: 1.2;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+      .chips button b {
+        display: block;
+        font-size: 16px;
+        font-weight: 800;
+        color: inherit;
+      }
+      .chips button.on {
+        background: var(--ink);
+        color: var(--surface);
+        border-color: var(--ink);
+      }
+      .star {
+        width: 30px;
+        height: 30px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        color: var(--ink3);
+      }
+      .star[aria-pressed="true"] {
+        color: var(--ink);
+      }
+      .star[aria-pressed="true"] .ic {
+        fill: currentColor;
+      }
+      .field {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        padding: 0 14px;
+        height: 42px;
+        margin-top: 12px;
+        background: var(--surface);
+        border: 1px solid var(--hair);
+        color: var(--ink2);
+      }
+      .field input {
+        all: unset;
+        flex: 1;
+        min-width: 0;
+        font:
+          500 13px "Gabarito",
+          sans-serif;
+        color: var(--ink);
+      }
+      .field input::placeholder {
+        color: var(--ink3);
+      }
+      .tab {
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        bottom: 14px;
+        height: 56px;
+        border-radius: 999px;
+        padding: 5px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        background: var(--nav);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid var(--hair);
+        box-shadow: var(--sh);
+        z-index: 3;
+      }
+      .tab .ind {
+        position: absolute;
+        top: 5px;
+        bottom: 5px;
+        left: 5px;
+        width: calc((100% - 10px) / 4);
+        border-radius: 999px;
+        background: var(--sunk);
+        transition: transform 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.15);
+      }
+      .tab button {
+        position: relative;
+        display: grid;
+        place-items: center;
+        align-content: center;
+        gap: 2px;
+        font-size: 9.5px;
+        font-weight: 600;
+        color: var(--ink3);
+        transition: color 0.2s;
+      }
+      .tab button.on {
+        color: var(--ink);
+      }
+      .tab button:active .ic {
+        transform: scale(0.86);
+      }
+      .tab .ic {
+        transition: transform 0.15s;
+      }
+      .try {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 11px;
+        font-size: 13px;
+        line-height: 1.45;
+        color: var(--ink2);
+      }
+      .try b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      /* Comparison tiles */
+      .opt {
+        display: block;
+        width: 100%;
+        border-radius: 18px;
+        padding: 14px;
+        background: var(--stage);
+        border: 1px solid transparent;
+        transition: border-color 0.2s;
+      }
+      .opt.on {
+        border-color: var(--ink);
+      }
+      .opt h3 {
+        margin: 0 0 3px;
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+      .mini {
+        padding: 12px 14px 14px;
+        margin: 10px 0;
+        border-radius: 18px;
+      }
+      .mini .mh {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 10px;
+        font-size: 15px;
+      }
+      .ns {
+        border-radius: 18px;
+        padding: 14px;
+        background: var(--ground);
+        border: 1px solid var(--hair);
+        display: block;
+        width: 100%;
+      }
+      .ns.on {
+        outline: 2px solid var(--foreground, #111);
+        outline-offset: 2px;
+      }
+
+      .dots .sa {
+        background: var(--a);
+        transform: scale(0.55);
+      }
+      .dots .sb {
+        background: var(--b);
+        transform: scale(0.55);
+      }
+      .vars {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .var {
+        border-radius: 14px;
+        padding: 12px 14px 14px;
+        background: var(--stage);
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .var h4 {
+        margin: 0;
+        font: 500 10px var(--mono);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 6px;
+        min-height: 20px;
+      }
+      .var .draw {
+        min-height: 62px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 5px;
+        background: var(--surface);
+        border: 1px solid var(--hair);
+        border-radius: 12px;
+        padding: 10px 12px;
+      }
+      .gh {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 10px;
+        margin: 0 0 12px;
+        flex-wrap: wrap;
+      }
+      .gh h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .plot {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr)) 6px repeat(12, minmax(0, 1fr));
+        row-gap: 3px;
+        align-items: center;
+      }
+      .plot i {
+        aspect-ratio: 1;
+        border-radius: 50%;
+        width: min(100% - 2px, 12px);
+        margin: 0 auto;
+      }
+      .plot i.a {
+        background: var(--a);
+        box-shadow: inset 0 0 0 1px var(--edge);
+      }
+      .plot i.b {
+        background: var(--b);
+        box-shadow: inset 0 0 0 1px var(--edge);
+      }
+      .plot i.ax {
+        grid-column: 1 / -1;
+        height: 1.5px;
+        background: var(--ink);
+        aspect-ratio: auto;
+        width: auto;
+        border-radius: 0;
+        margin: 0;
+      }
+      .tl {
+        position: relative;
+        height: 46px;
+      }
+      .tl::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 22px;
+        height: 2px;
+        background: var(--ink);
+      }
+      .tl i {
+        position: absolute;
+        width: var(--z, 12px);
+        height: var(--z, 12px);
+        margin-left: calc(var(--z, 12px) / -2);
+        border-radius: 50%;
+        box-shadow: inset 0 0 0 1px var(--edge);
+        top: calc(23px - var(--z, 12px) / 2);
+      }
+      .tl i.up {
+        top: calc(19px - var(--z, 12px));
+      }
+      .tl i.dn {
+        top: 27px;
+      }
+      .tl span {
+        position: absolute;
+        top: 36px;
+        font: 500 8px var(--mono);
+        color: var(--ink2);
+        transform: translateX(-50%);
+      }
+      .lane {
+        display: grid;
+        grid-template-columns: 62px minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .steps svg {
+        display: block;
+        width: 100%;
+        max-width: 190px;
+        margin: 0 auto 12px;
+      }
+
+      @container (max-width: 520px) {
+        .stage {
+          padding: 14px 12px 16px;
+        }
+        .front {
+          padding: 14px 14px 18px;
+        }
+      }
+      @media (max-width: 600px) {
+        .board {
+          grid-template-columns: minmax(0, 1fr);
+          padding: 12px;
+        }
+        .s2,
+        .s3,
+        .s6 {
+          grid-column: auto;
+        }
+        .vars {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .id *,
+        .id *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="id" id="bearing-r6">
+      <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+        <symbol id="mark" viewBox="0 0 64 64">
+          <path
+            fill="currentColor"
+            d="M56.305 22.767A26 26 0 1 1 41.233 7.695A11 11 0 0 0 35.871 16.475A16 16 0 1 0 47.525 28.129A11 11 0 0 0 56.305 22.767Z"
+          />
+          <circle fill="currentColor" cx="46.85" cy="17.15" r="7.5" />
+        </symbol>
+        <!-- Icons: Lucide 1.73 (ISC licence), the set already installed in the app. -->
+        <symbol id="i-house" viewBox="0 0 24 24">
+          <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+          <path
+            d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+          />
+        </symbol>
+        <symbol id="i-calendar" viewBox="0 0 24 24">
+          <path d="M8 2v3" />
+          <path d="M16 2v3" />
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <path d="M3 9h18" />
+          <path d="M8 13h.01" />
+          <path d="M12 13h.01" />
+          <path d="M16 13h.01" />
+          <path d="M8 17h.01" />
+          <path d="M12 17h.01" />
+          <path d="M16 17h.01" />
+        </symbol>
+        <symbol id="i-star" viewBox="0 0 24 24">
+          <path
+            d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"
+          />
+        </symbol>
+        <symbol id="i-search" viewBox="0 0 24 24">
+          <path d="m21 21-4.34-4.34" />
+          <circle cx="11" cy="11" r="8" />
+        </symbol>
+        <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></symbol>
+        <symbol id="i-play" viewBox="0 0 24 24">
+          <path
+            d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"
+          />
+        </symbol>
+        <symbol id="i-pause" viewBox="0 0 24 24">
+          <rect x="14" y="3" width="5" height="18" rx="1" />
+          <rect x="5" y="3" width="5" height="18" rx="1" />
+        </symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24">
+          <path d="M5 12h14" />
+          <path d="M12 5v14" />
+        </symbol>
+      </svg>
+
+      <p class="intro">
+        This page is live: the match plays itself, and everything on the phone can be tapped. The
+        colour fades are gone, the sample teams change, and nothing on it is a brand colour. Use the
+        switches to compare; your choices apply to the whole page.
+      </p>
+
+      <!-- ═════════ 1 · Try it ═════════ -->
+      <section class="sec">
+        <div class="rhead">
+          <span class="rletter">1</span><span class="rname">Try it</span>
+          <span class="rline"
+            >A best-of-three being played. Rounds land every couple of seconds; when it ends, the
+            next match steps forward.</span
+          >
+        </div>
+        <div class="ctl">
+          <div>
+            <span>Team colour</span><button data-set="tone:clean">None</button
+            ><button data-set="tone:spines">Edges</button><button data-set="tone:band">Bar</button
+            ><button data-set="tone:wash" class="on">Tint</button>
+          </div>
+          <div>
+            <span>Neutrals</span><button data-set="neutral:nt" class="on">Soft</button
+            ><button data-set="neutral:np">Pure black and white</button>
+          </div>
+          <div>
+            <span>Mode</span><button data-set="mode:ml" class="on">Light</button
+            ><button data-set="mode:md">Dark</button>
+          </div>
+          <div>
+            <span>Teams</span><button data-set="pair:0" class="on">Fnatic v Liquid</button
+            ><button data-set="pair:1">Falcons v MOUZ</button
+            ><button data-set="pair:2">G2 v Heroic</button
+            ><button data-set="pair:3">NAVI v Vitality</button>
+          </div>
+          <div>
+            <span>Match</span
+            ><button data-act="pause">
+              <svg class="ic"><use href="#i-pause" /></svg><span>Pause</span></button
+            ><button data-act="a">
+              <svg class="ic"><use href="#i-plus" /></svg><span data-b="an">Fnatic</span></button
+            ><button data-act="b">
+              <svg class="ic"><use href="#i-plus" /></svg><span data-b="bn">Liquid</span></button
+            ><button data-act="next">Next match</button>
+          </div>
+        </div>
+        <div class="board px nt ml" data-follow>
+          <div class="tile s6 hero stage">
+            <div class="bk bk2">
+              <span class="duo" style="--a: #19a8ff; --b: #ff5fa2"></span>21:15 · KC v BDS · Rocket
+              League
+            </div>
+            <div class="bk bk1">
+              <span class="duo" style="--a: #1a1a1c; --b: #e2012d"></span>20:30 · Gen.G v T1 ·
+              League of Legends · in 50 min
+            </div>
+            <div class="lc front wash" data-tone data-step>
+              <div class="row btw" style="gap: 8px; flex-wrap: wrap">
+                <span class="pill"
+                  ><i class="ping" data-b="ping"></i
+                  ><span data-b="status">Live · round 17</span></span
+                ><span class="pill">CS2 · IEM Cologne · Semi-final</span>
+              </div>
+              <div class="lh">
+                <button class="tm" data-act="a" title="Give this team the round">
+                  <span class="av a" data-b="at">FNC</span
+                  ><span class="dsp hname" data-b="an">Fnatic</span>
+                </button>
+                <div class="hscore tnum" data-b="score">9 – 7</div>
+                <button class="tm r" data-act="b" title="Give this team the round">
+                  <span class="av b" data-b="bt">TL</span
+                  ><span class="dsp hname" data-b="bn">Liquid</span>
+                </button>
+              </div>
+              <div class="stops" data-b="stops"></div>
+            </div>
+          </div>
+
+          <div class="tile s3">
+            <div class="phone">
+              <!-- Today -->
+              <div class="view on" data-view="today">
+                <div class="vh">
+                  <span class="row" style="gap: 8px"
+                    ><svg width="24" height="24"><use href="#mark" /></svg
+                    ><span class="dsp" style="font-size: 26px">Today</span></span
+                  >
+                  <span class="mono" style="font-size: 10.5px; color: var(--ink2)">MON 16 NOV</span>
+                </div>
+                <button class="press" data-open="match" style="margin-top: 10px">
+                  <div
+                    class="lc wash"
+                    data-tone
+                    data-step
+                    style="border-radius: 28px; padding: 14px 16px 15px"
+                  >
+                    <div class="row btw" style="font-size: 11px; font-weight: 600">
+                      <span class="row" style="gap: 7px"
+                        ><i class="ping" data-b="ping"></i
+                        ><span data-b="status">Live · round 17</span></span
+                      ><span style="color: var(--ink2)">CS2 · Semi-final</span>
+                    </div>
+                    <div class="row btw" style="margin: 13px 0 3px">
+                      <span class="row" style="gap: 6px; min-width: 0"
+                        ><span class="av a" style="--s: 22px" data-b="at">FNC</span
+                        ><b class="dsp" style="font-size: 17px" data-b="an">Fnatic</b></span
+                      >
+                      <span
+                        class="tnum"
+                        style="
+                          font-size: 20px;
+                          letter-spacing: -0.03em;
+                          line-height: 1;
+                          white-space: nowrap;
+                          padding: 0 6px;
+                        "
+                        data-b="score"
+                        >9 – 7</span
+                      >
+                      <span class="row" style="gap: 6px; min-width: 0"
+                        ><b class="dsp" style="font-size: 17px" data-b="bn">Liquid</b
+                        ><span class="av b" style="--s: 22px" data-b="bt">TL</span></span
+                      >
+                    </div>
+                    <div class="row btw sub" style="font-weight: 600">
+                      <span data-b="ma">1 map</span><span data-b="mapname">Anubis</span
+                      ><span data-b="mb">0 maps</span>
+                    </div>
+                    <div
+                      class="dots"
+                      data-live="h1"
+                      style="margin-top: 12px; --ds: 13px; --dg: 4.5px; justify-content: center"
+                    ></div>
+                    <div
+                      class="dots"
+                      data-live="h2"
+                      style="
+                        margin-top: 5px;
+                        --ds: 13px;
+                        --dg: 4.5px;
+                        justify-content: center;
+                        min-height: 13px;
+                      "
+                    ></div>
+                  </div>
+                </button>
+                <div class="plab">NEXT</div>
+                <div class="card" style="padding: 4px 14px">
+                  <div class="lr">
+                    <span class="duo" style="--a: #1a1a1c; --b: #e2012d; --q: 72"></span
+                    ><span class="mono tnum" style="font-weight: 500">20:30</span
+                    ><span
+                      ><b style="font-weight: 600">Gen.G v T1</b><br /><span class="sub"
+                        >LoL · Final</span
+                      ></span
+                    ><span class="sub mono">50m</span>
+                  </div>
+                  <div class="lr">
+                    <span class="duo" style="--a: #19a8ff; --b: #ff5fa2; --q: 47"></span
+                    ><span class="mono tnum" style="font-weight: 500">21:15</span
+                    ><span
+                      ><b style="font-weight: 600">KC v BDS</b><br /><span class="sub"
+                        >Rocket League</span
+                      ></span
+                    ><span class="sub mono">1h35</span>
+                  </div>
+                  <div class="lr">
+                    <span class="duo" style="--a: #00c978; --b: #00c978; --q: 22"></span
+                    ><span class="mono tnum" style="font-weight: 500">22:00</span
+                    ><span
+                      ><b style="font-weight: 600">Cup final</b><br /><span class="sub"
+                        >Trackmania</span
+                      ></span
+                    ><span class="sub mono">2h20</span>
+                  </div>
+                </div>
+                <div class="plab">EARLIER</div>
+                <div class="card" style="padding: 4px 14px">
+                  <div class="er" style="--a: #7a5cff; --b: #e4032e">
+                    <span
+                      ><b style="font-weight: 600">Spirit 2–1 FaZe</b>
+                      <span class="sub">CS2</span></span
+                    ><span class="dots fix" style="--ds: 11px; --dg: 4px"
+                      ><i class="a"></i><i class="b"></i><i class="a"></i
+                    ></span>
+                  </div>
+                  <div class="er" style="--a: var(--ink); --b: var(--surface)">
+                    <span><b style="font-weight: 600">Carlsen ½–½ Nakamura</b></span
+                    ><span class="dots fix" style="--ds: 11px; --dg: 4px"><i class="h"></i></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Schedule -->
+              <div class="view" data-view="schedule">
+                <div class="vh">
+                  <span class="dsp" style="font-size: 26px">Schedule</span
+                  ><span class="mono" style="font-size: 10.5px; color: var(--ink2)">NOVEMBER</span>
+                </div>
+                <div class="chips" data-b="days"></div>
+                <div class="card" style="padding: 4px 14px" data-b="daylist"></div>
+              </div>
+
+              <!-- Following -->
+              <div class="view" data-view="following">
+                <div class="vh">
+                  <span class="dsp" style="font-size: 26px">Following</span
+                  ><span class="mono" style="font-size: 10.5px; color: var(--ink2)">LAST FIVE</span>
+                </div>
+                <div class="card" style="padding: 4px 14px" data-b="follows"></div>
+                <p class="sub" style="margin: 12px 8px 0; line-height: 1.45">
+                  A filled dot is a win, an open one a loss. Tap a star to stop or start following.
+                </p>
+              </div>
+
+              <!-- Search -->
+              <div class="view" data-view="search">
+                <div class="vh"><span class="dsp" style="font-size: 26px">Search</span></div>
+                <label class="field"
+                  ><svg class="ic" style="width: 16px; height: 16px"><use href="#i-search" /></svg
+                  ><input type="text" placeholder="Team, player or event" data-b="q"
+                /></label>
+                <div class="plab" data-b="qlab">TEAMS</div>
+                <div class="card" style="padding: 4px 14px" data-b="results"></div>
+              </div>
+
+              <!-- Match page, slides over the others -->
+              <div class="view match" data-view="match">
+                <button
+                  class="row"
+                  data-open="back"
+                  style="gap: 2px; font-size: 12px; font-weight: 600; margin-left: -2px"
+                >
+                  <svg class="ic"><use href="#i-back" /></svg>Today
+                </button>
+                <div class="row btw" style="padding: 0 4px; margin-top: 14px">
+                  <span class="row" style="gap: 9px"
+                    ><span class="av a" style="--s: 36px" data-b="at">FNC</span
+                    ><span
+                      ><b class="dsp" style="font-size: 22px" data-b="an">Fnatic</b><br /><span
+                        class="sub"
+                        style="font-weight: 600"
+                        data-b="ma"
+                        >1 map</span
+                      ></span
+                    ></span
+                  >
+                  <span class="row" style="gap: 9px; text-align: right"
+                    ><span
+                      ><b class="dsp" style="font-size: 22px" data-b="bn">Liquid</b><br /><span
+                        class="sub"
+                        style="font-weight: 600"
+                        data-b="mb"
+                        >0 maps</span
+                      ></span
+                    ><span class="av b" style="--s: 36px" data-b="bt">TL</span></span
+                  >
+                </div>
+                <div style="text-align: center; margin: 6px 0 4px">
+                  <div
+                    class="tnum"
+                    style="font-size: 56px; letter-spacing: -0.04em; line-height: 1"
+                    data-b="score"
+                  >
+                    9 – 7
+                  </div>
+                  <div
+                    class="row"
+                    style="
+                      justify-content: center;
+                      gap: 8px;
+                      font-size: 11px;
+                      font-weight: 600;
+                      margin-top: 6px;
+                    "
+                  >
+                    <i class="ping" data-b="ping"></i><span data-b="status">Live · round 17</span>
+                  </div>
+                </div>
+                <div data-b="mapcards"></div>
+              </div>
+
+              <div class="tab">
+                <i class="ind"></i>
+                <button class="on" data-tab="today">
+                  <svg class="ic"><use href="#i-house" /></svg>Today
+                </button>
+                <button data-tab="schedule">
+                  <svg class="ic"><use href="#i-calendar" /></svg>Schedule
+                </button>
+                <button data-tab="following">
+                  <svg class="ic"><use href="#i-star" /></svg>Following
+                </button>
+                <button data-tab="search">
+                  <svg class="ic"><use href="#i-search" /></svg>Search
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="tile s3">
+            <p class="cap">Things to try</p>
+            <ul class="try">
+              <li>
+                <b>Watch a round land.</b> The dot pops in, the open dot moves on, the score ticks
+                and the tint shifts towards whoever is ahead.
+              </li>
+              <li><b>Click a team's name</b> in the wide header to give it the round yourself.</li>
+              <li>
+                <b>Tap the live card</b> on the phone to open the match, and the arrow to go back.
+              </li>
+              <li>
+                <b>Tap the four icons.</b> The marker slides; each screen is real: pick a day,
+                unfollow a team, type in the search.
+              </li>
+              <li>
+                <b>Let a map finish.</b> The line of stops moves on to the next map. When the series
+                ends, the card says so, then the next match steps forward.
+              </li>
+              <li><b>Hover a dot</b> to see which round it was.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════ 2 · Team colour without fades ═════════ -->
+      <section class="sec">
+        <div class="rhead">
+          <span class="rletter">2</span><span class="rname">Team colour, without fades</span>
+          <span class="rline"
+            >Four flat ways. All four are running the same match as above; click one to use it
+            everywhere.</span
+          >
+        </div>
+        <div class="board px nt ml" data-follow>
+          <button class="opt s3" data-set="tone:clean">
+            <h3>None</h3>
+            <div class="lc clean mini">
+              <div class="mh">
+                <span class="row" style="gap: 7px"
+                  ><span class="av a" style="--s: 24px" data-b="at">FNC</span
+                  ><b class="dsp" data-b="an">Fnatic</b></span
+                ><span class="tnum" data-b="score">9 – 7</span
+                ><span class="row" style="gap: 7px; justify-content: flex-end"
+                  ><b class="dsp" data-b="bn">Liquid</b
+                  ><span class="av b" style="--s: 24px" data-b="bt">TL</span></span
+                >
+              </div>
+              <div
+                class="dots"
+                data-live="all"
+                style="--ds: 11px; --dg: 2.5px; --dh: 7px; justify-content: center"
+              ></div>
+            </div>
+            <p class="note">
+              The card stays plain. A team's colour is only its disc and its dots. The calmest, and
+              it can never clash.
+            </p>
+          </button>
+          <button class="opt s3" data-set="tone:spines">
+            <h3>Edges</h3>
+            <div class="lc spines mini">
+              <div class="mh" style="padding: 0 8px">
+                <span class="row" style="gap: 7px"
+                  ><span class="av a" style="--s: 24px" data-b="at">FNC</span
+                  ><b class="dsp" data-b="an">Fnatic</b></span
+                ><span class="tnum" data-b="score">9 – 7</span
+                ><span class="row" style="gap: 7px; justify-content: flex-end"
+                  ><b class="dsp" data-b="bn">Liquid</b
+                  ><span class="av b" style="--s: 24px" data-b="bt">TL</span></span
+                >
+              </div>
+              <div
+                class="dots"
+                data-live="all"
+                style="--ds: 11px; --dg: 2.5px; --dh: 7px; justify-content: center; padding: 0 8px"
+              ></div>
+            </div>
+            <p class="note">
+              A solid strip of each team's colour down its own side. Says which side is whose; does
+              not change with the score.
+            </p>
+          </button>
+          <button class="opt s3" data-set="tone:band">
+            <h3>Bar</h3>
+            <div class="lc band mini" style="padding-top: 20px">
+              <div class="mh">
+                <span class="row" style="gap: 7px"
+                  ><span class="av a" style="--s: 24px" data-b="at">FNC</span
+                  ><b class="dsp" data-b="an">Fnatic</b></span
+                ><span class="tnum" data-b="score">9 – 7</span
+                ><span class="row" style="gap: 7px; justify-content: flex-end"
+                  ><b class="dsp" data-b="bn">Liquid</b
+                  ><span class="av b" style="--s: 24px" data-b="bt">TL</span></span
+                >
+              </div>
+              <div
+                class="dots"
+                data-live="all"
+                style="--ds: 11px; --dg: 2.5px; --dh: 7px; justify-content: center"
+              ></div>
+            </div>
+            <p class="note">
+              One bar along the top, split where the score stands. The split slides as rounds are
+              won.
+            </p>
+          </button>
+          <button class="opt s3 on" data-set="tone:wash">
+            <h3>Tint <span class="pick">MY PICK</span></h3>
+            <div class="lc wash mini">
+              <div class="mh">
+                <span class="row" style="gap: 7px"
+                  ><span class="av a" style="--s: 24px" data-b="at">FNC</span
+                  ><b class="dsp" data-b="an">Fnatic</b></span
+                ><span class="tnum" data-b="score">9 – 7</span
+                ><span class="row" style="gap: 7px; justify-content: flex-end"
+                  ><b class="dsp" data-b="bn">Liquid</b
+                  ><span class="av b" style="--s: 24px" data-b="bt">TL</span></span
+                >
+              </div>
+              <div
+                class="dots"
+                data-live="all"
+                style="--ds: 11px; --dg: 2.5px; --dh: 7px; justify-content: center"
+              ></div>
+            </div>
+            <p class="note">
+              Each side of the card is a pale, flat tint of its team, with a sharp line between them
+              that moves with the score. The only one where the whole card belongs to the match.
+            </p>
+          </button>
+        </div>
+      </section>
+
+      <!-- ═════════ 3 · Neutrals ═════════ -->
+      <section class="sec">
+        <div class="rhead">
+          <span class="rletter">3</span><span class="rname">Neutrals</span>
+          <span class="rline"
+            >Soft is what you have seen so far. Pure is #000 and #FFF with plain greys. Click one to
+            use it everywhere.</span
+          >
+        </div>
+        <div class="board px nt ml" data-follow>
+          <div
+            class="tile s6"
+            style="
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+              gap: 12px;
+              background: var(--stage);
+            "
+          >
+            <button class="ns px nt ml on" data-set="neutral:nt;mode:ml">
+              <span class="cap" style="display: block">Soft · light</span
+              ><span class="card" style="display: block; margin: 0; border-radius: 16px"
+                ><b class="dsp" style="font-size: 17px"
+                  >Fnatic <span style="font-weight: 400">9 – 7</span></b
+                ><span class="sub" style="display: block; margin-top: 4px"
+                  >Ink #0A0B0E on #EEF0F4</span
+                ></span
+              >
+            </button>
+            <button class="ns px np ml" data-set="neutral:np;mode:ml">
+              <span class="cap" style="display: block">Pure · light</span
+              ><span class="card" style="display: block; margin: 0; border-radius: 16px"
+                ><b class="dsp" style="font-size: 17px"
+                  >Fnatic <span style="font-weight: 400">9 – 7</span></b
+                ><span class="sub" style="display: block; margin-top: 4px">#000 on #FFF</span></span
+              >
+            </button>
+            <button class="ns px nt md" data-set="neutral:nt;mode:md">
+              <span class="cap" style="display: block">Soft · dark</span
+              ><span class="card" style="display: block; margin: 0; border-radius: 16px"
+                ><b class="dsp" style="font-size: 17px"
+                  >Fnatic <span style="font-weight: 400">9 – 7</span></b
+                ><span class="sub" style="display: block; margin-top: 4px"
+                  >#FFF on #0A0B0E</span
+                ></span
+              >
+            </button>
+            <button class="ns px np md" data-set="neutral:np;mode:md">
+              <span class="cap" style="display: block">Pure · dark</span
+              ><span class="card" style="display: block; margin: 0; border-radius: 16px"
+                ><b class="dsp" style="font-size: 17px"
+                  >Fnatic <span style="font-weight: 400">9 – 7</span></b
+                ><span class="sub" style="display: block; margin-top: 4px">#FFF on #000</span></span
+              >
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════ 4 · What a dot is, game by game ═════════ -->
+      <section class="sec">
+        <div class="rhead">
+          <span class="rletter">4</span><span class="rname">What a dot is, game by game</span>
+          <span class="rline"
+            >Three ways to read each game, so you can compare. All flat, all on a line.</span
+          >
+        </div>
+        <div class="board px nt ml" data-follow>
+          <div class="tile s6" style="--a: #ff5900; --b: #14387f">
+            <div class="gh">
+              <h3>Counter-Strike 2</h3>
+              <span class="sub" style="font-weight: 600">Fnatic 9–7 Liquid · Anubis</span>
+            </div>
+            <div class="vars">
+              <div class="var">
+                <h4><span>A · One line</span><span class="pick">MY PICK</span></h4>
+                <div class="draw">
+                  <div
+                    class="dots"
+                    data-seq="aababbaaabbababa"
+                    style="--ds: 11px; --dg: 2px; --dh: 6px"
+                  ></div>
+                </div>
+                <p class="note">
+                  Every round in order, with a gap at half-time. Shows streaks. On a phone it folds
+                  into two rows.
+                </p>
+              </div>
+              <div class="var">
+                <h4><span>B · Above and below</span></h4>
+                <div class="draw"><div class="plot" data-plot="aababbaaabbababa"></div></div>
+                <p class="note">
+                  One team's rounds above the line, the other's below. Momentum is easier to see; it
+                  takes more height.
+                </p>
+              </div>
+              <div class="var">
+                <h4><span>C · Maps only</span></h4>
+                <div class="draw">
+                  <div class="dots fix" style="--ds: 18px; --dg: 6px">
+                    <i class="a"></i><i class="n"></i><i class="o"></i>
+                  </div>
+                  <span class="sub">Map 2 · 9–7 · round 17</span>
+                </div>
+                <p class="note">
+                  A dot is a whole map; the rounds are just a number. Smallest, but it loses the
+                  story of the map.
+                </p>
+              </div>
+            </div>
+            <p class="note" style="margin-top: 12px">
+              My pick is A on cards and headers, with B kept for the match page.
+            </p>
+          </div>
+          <div class="tile s6" style="--a: #1a1a1c; --b: #e2012d">
+            <div class="gh">
+              <h3>League of Legends</h3>
+              <span class="sub" style="font-weight: 600">Gen.G 2–1 T1 · game 4 · 27:10</span>
+            </div>
+            <div class="vars">
+              <div class="var">
+                <h4><span>A · Objectives, by size</span></h4>
+                <div class="draw">
+                  <div class="dots fix" style="--ds: 9px; --dg: 3px">
+                    <i class="a"></i><i class="b"></i><i class="a"></i><i class="a m"></i
+                    ><i class="b"></i><i class="a"></i><i class="b m"></i><i class="a"></i
+                    ><i class="a m"></i><i class="a l"></i><i class="b"></i><i class="n"></i>
+                  </div>
+                </div>
+                <p class="note">
+                  Towers small, dragons medium, barons large, in the order they fell. Compact, but
+                  the sizes have to be learned.
+                </p>
+              </div>
+              <div class="var">
+                <h4><span>B · Objectives on the clock</span></h4>
+                <div class="draw">
+                  <div class="tl">
+                    <i class="up" style="left: 9%; --z: 8px; background: var(--a)"></i
+                    ><i class="dn" style="left: 17%; --z: 8px; background: var(--b)"></i
+                    ><i class="up" style="left: 26%; --z: 8px; background: var(--a)"></i
+                    ><i class="up" style="left: 36%; --z: 12px; background: var(--a)"></i
+                    ><i class="dn" style="left: 43%; --z: 8px; background: var(--b)"></i
+                    ><i class="up" style="left: 50%; --z: 8px; background: var(--a)"></i
+                    ><i class="dn" style="left: 57%; --z: 12px; background: var(--b)"></i
+                    ><i class="up" style="left: 66%; --z: 8px; background: var(--a)"></i
+                    ><i class="up" style="left: 74%; --z: 12px; background: var(--a)"></i
+                    ><i class="up" style="left: 82%; --z: 17px; background: var(--a)"></i
+                    ><i class="dn" style="left: 88%; --z: 8px; background: var(--b)"></i
+                    ><i
+                      class="pulse"
+                      style="
+                        left: 90.5%;
+                        --z: 10px;
+                        background: var(--surface);
+                        box-shadow: inset 0 0 0 2px var(--ink);
+                      "
+                    ></i
+                    ><span style="left: 0%; transform: none">0</span
+                    ><span style="left: 33.3%">10</span><span style="left: 66.6%">20</span
+                    ><span style="left: 100%; transform: translateX(-100%)">30</span>
+                  </div>
+                </div>
+                <p class="note">
+                  The same objectives at the minute they fell, one team above the line and one
+                  below. Shows when the game turned.
+                </p>
+              </div>
+              <div class="var">
+                <h4><span>C · Games only</span><span class="pick">MY PICK</span></h4>
+                <div class="draw">
+                  <div class="dots fix" style="--ds: 18px; --dg: 6px">
+                    <i class="a"></i><i class="b"></i><i class="a"></i><i class="n"></i
+                    ><i class="o"></i>
+                  </div>
+                  <span class="sub">Game 4 · kills 14–9 · 27:10</span>
+                </div>
+                <p class="note">
+                  A dot is a game in the series. What happens inside a game is said in words and
+                  numbers.
+                </p>
+              </div>
+            </div>
+            <p class="note" style="margin-top: 12px">
+              My pick is C on cards, because a League game has no natural string of small wins, with
+              B on the match page.
+            </p>
+          </div>
+          <div class="tile s6" style="--a: #19a8ff; --b: #ff5fa2">
+            <div class="gh">
+              <h3>Rocket League</h3>
+              <span class="sub" style="font-weight: 600"
+                >KC 2–1 BDS · game 4 · 3–2 · 1:12 left</span
+              >
+            </div>
+            <div class="vars">
+              <div class="var">
+                <h4><span>A · Goals on the clock</span></h4>
+                <div class="draw">
+                  <div class="tl">
+                    <i class="" style="left: 14%; --z: 12px; background: var(--a)"></i
+                    ><i class="" style="left: 30%; --z: 12px; background: var(--b)"></i
+                    ><i class="" style="left: 45%; --z: 12px; background: var(--a)"></i
+                    ><i class="" style="left: 61%; --z: 12px; background: var(--a)"></i
+                    ><i class="" style="left: 72%; --z: 12px; background: var(--b)"></i
+                    ><i
+                      class="pulse"
+                      style="
+                        left: 76%;
+                        --z: 10px;
+                        background: var(--surface);
+                        box-shadow: inset 0 0 0 2px var(--ink);
+                      "
+                    ></i
+                    ><span style="left: 0%; transform: none">5:00</span
+                    ><span style="left: 50%">2:30</span
+                    ><span style="left: 100%; transform: translateX(-100%)">0:00</span>
+                  </div>
+                </div>
+                <p class="note">
+                  Each goal at the moment it was scored, across the five minutes. Shows how late the
+                  lead came.
+                </p>
+              </div>
+              <div class="var">
+                <h4><span>B · Goals in order</span></h4>
+                <div class="draw">
+                  <div class="dots fix" style="--ds: 14px; --dg: 5px">
+                    <i class="a"></i><i class="b"></i><i class="a"></i><i class="a"></i
+                    ><i class="b"></i><i class="n"></i>
+                  </div>
+                </div>
+                <p class="note">
+                  The goals as a plain row. Reads exactly like a Counter-Strike map, but says
+                  nothing about time.
+                </p>
+              </div>
+              <div class="var">
+                <h4><span>C · Games only</span><span class="pick">MY PICK</span></h4>
+                <div class="draw">
+                  <div class="dots fix" style="--ds: 18px; --dg: 6px">
+                    <i class="a"></i><i class="b"></i><i class="a"></i><i class="n"></i
+                    ><i class="o"></i><i class="o"></i><i class="o"></i>
+                  </div>
+                  <span class="sub">Game 4 · 3–2 · 1:12 left</span>
+                </div>
+                <p class="note">
+                  A dot is a game in the best-of-seven. The goals of the current game are a number.
+                </p>
+              </div>
+            </div>
+            <p class="note" style="margin-top: 12px">
+              My pick is C on cards, with A on the match page, where the clock matters.
+            </p>
+          </div>
+          <div class="tile s6" style="--a: var(--ink); --b: var(--surface)">
+            <div class="gh">
+              <h3>Chess</h3>
+              <span class="sub" style="font-weight: 600">Carlsen 2½–1½ Nakamura · game 5 of 6</span>
+            </div>
+            <div class="vars">
+              <div class="var">
+                <h4><span>A · A draw is shared</span><span class="pick">MY PICK</span></h4>
+                <div class="draw">
+                  <div class="dots fix" style="--ds: 18px; --dg: 6px">
+                    <i class="h"></i><i class="a"></i><i class="h"></i><i class="h"></i
+                    ><i class="n"></i><i class="o"></i>
+                  </div>
+                </div>
+                <p class="note">
+                  A dot is a game; a drawn game is half one player's and half the other's. One row,
+                  and the score can be counted from it.
+                </p>
+              </div>
+              <div class="var">
+                <h4><span>B · A draw is small</span></h4>
+                <div class="draw">
+                  <div class="dots fix" style="--ds: 18px; --dg: 6px">
+                    <i class="s"></i><i class="a"></i><i class="s"></i><i class="s"></i
+                    ><i class="n"></i><i class="o"></i>
+                  </div>
+                </div>
+                <p class="note">
+                  Only decisive games get a full dot; draws shrink to a grey point. Wins stand out,
+                  but the points are harder to add up.
+                </p>
+              </div>
+              <div class="var">
+                <h4><span>C · A row each</span></h4>
+                <div class="draw">
+                  <div class="lane">
+                    <span>Carlsen</span
+                    ><span class="dots fix" style="--ds: 11px; --dg: 3px"
+                      ><i class="sa"></i><i class="a"></i><i class="sa"></i><i class="sa"></i></span
+                    ><span class="mono" style="font-weight: 500">2½</span>
+                  </div>
+                  <div class="lane">
+                    <span>Nakamura</span
+                    ><span class="dots fix" style="--ds: 11px; --dg: 3px"
+                      ><i class="sb"></i><i class="x"></i><i class="sb"></i><i class="sb"></i></span
+                    ><span class="mono" style="font-weight: 500">1½</span>
+                  </div>
+                </div>
+                <p class="note">
+                  Each player has a row: a full dot for a win, a small one for a draw, a space for a
+                  loss. Clearest for the score, twice the height.
+                </p>
+              </div>
+            </div>
+            <p class="note" style="margin-top: 12px">
+              My pick is A. It keeps chess on one line like every other game.
+            </p>
+          </div>
+          <div class="tile s6" style="">
+            <div class="gh">
+              <h3>Trackmania</h3>
+              <span class="sub" style="font-weight: 600">Cup final · round 8</span>
+            </div>
+            <div class="vars">
+              <div class="var">
+                <h4><span>A · Who won each round</span></h4>
+                <div class="draw">
+                  <div class="dots fix" style="--ds: 14px; --dg: 4px">
+                    <i class="p1"></i><i class="p2"></i><i class="p1"></i><i class="p3"></i
+                    ><i class="p1"></i><i class="p4"></i><i class="p2"></i><i class="n"></i>
+                  </div>
+                </div>
+                <p class="note">
+                  A dot is a round in the colour of its winner. Shows the run of play, but you have
+                  to count to see who leads.
+                </p>
+              </div>
+              <div class="var">
+                <h4><span>B · Where your driver finished</span></h4>
+                <div class="draw">
+                  <div class="dots fix" style="--ds: 18px; --dg: 4px">
+                    <i class="p1 num">1</i><i class="o num" style="color: var(--ink)">3</i
+                    ><i class="p1 num">1</i><i class="o num" style="color: var(--ink)">2</i
+                    ><i class="p1 num">1</i><i class="o num" style="color: var(--ink)">4</i
+                    ><i class="o num" style="color: var(--ink)">2</i><i class="n"></i>
+                  </div>
+                </div>
+                <p class="note">
+                  Only the driver you follow: the place they took in each round, filled when they
+                  won it. Personal, but it hides the others.
+                </p>
+              </div>
+              <div class="var">
+                <h4><span>C · A row each</span><span class="pick">MY PICK</span></h4>
+                <div class="draw">
+                  <div class="lane">
+                    <span>Affi</span
+                    ><span class="dots fix" style="--ds: 11px; --dg: 3px"
+                      ><i class="p1"></i><i class="p1"></i><i class="p1"></i></span
+                    ><span class="mono" style="font-weight: 500">3</span>
+                  </div>
+                  <div class="lane">
+                    <span>Mudda</span
+                    ><span class="dots fix" style="--ds: 11px; --dg: 3px"
+                      ><i class="p2"></i><i class="p2"></i></span
+                    ><span class="mono" style="font-weight: 500">2</span>
+                  </div>
+                  <div class="lane">
+                    <span>Otaaaq</span
+                    ><span class="dots fix" style="--ds: 11px; --dg: 3px"><i class="p3"></i></span
+                    ><span class="mono" style="font-weight: 500">1</span>
+                  </div>
+                  <div class="lane">
+                    <span>Bren</span
+                    ><span class="dots fix" style="--ds: 11px; --dg: 3px"><i class="p4"></i></span
+                    ><span class="mono" style="font-weight: 500">1</span>
+                  </div>
+                </div>
+                <p class="note">
+                  One row per driver, a dot for each round won. The standings are visible at a
+                  glance, which is what a final is about.
+                </p>
+              </div>
+            </div>
+            <p class="note" style="margin-top: 12px">
+              My pick is C. With four or more competitors, the order they stand in matters more than
+              the order the rounds fell.
+            </p>
+          </div>
+          <div class="tile s6">
+            <p class="note">
+              <b>The rule I'd draw from this:</b> on a card, a dot is whatever the headline score
+              counts: rounds in a Counter-Strike map, games in a League, Rocket League or chess
+              match, rounds won by a driver. The finer picture, such as goals or objectives on the
+              clock, belongs on the match page.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════ 5 · Logo construction, redrawn ═════════ -->
+      <section class="sec">
+        <div class="rhead">
+          <span class="rletter">5</span><span class="rname">How the logo is drawn</span>
+          <span class="rline"
+            >Last time this drawing was wrong: the mark sat about 12% too large against its own
+            guide lines. Here it is in three steps.</span
+          >
+        </div>
+        <div class="board px nt ml" data-follow>
+          <div class="tile s2 steps">
+            <svg viewBox="0 0 64 64">
+              <circle
+                cx="32"
+                cy="32"
+                r="21"
+                fill="none"
+                style="stroke: var(--ink)"
+                stroke-width="10"
+              />
+              <path
+                d="M6 32H16M6 29.5v5M16 29.5v5"
+                fill="none"
+                style="stroke: var(--surface)"
+                stroke-width="0.8"
+              />
+            </svg>
+            <p class="cap">1 · A ring</p>
+            <p class="note">
+              The small bar marks how thick it is. Everything else is measured against that.
+            </p>
+          </div>
+          <div class="tile s2 steps">
+            <svg viewBox="0 0 64 64">
+              <circle
+                cx="32"
+                cy="32"
+                r="21"
+                fill="none"
+                style="stroke: var(--ink)"
+                stroke-width="10"
+              />
+              <circle
+                cx="46.85"
+                cy="17.15"
+                r="7.5"
+                style="fill: var(--ink3); stroke: var(--surface)"
+                stroke-width="0.8"
+              />
+            </svg>
+            <p class="cap">2 · A ball on it</p>
+            <p class="note">
+              One and a half times as wide as the ring is thick. Its centre sits in the middle of
+              the ring's band, up and to the right at 45°.
+            </p>
+          </div>
+          <div class="tile s2 steps">
+            <svg viewBox="0 0 64 64" style="color: var(--ink)">
+              <use href="#mark" width="64" height="64" />
+            </svg>
+            <p class="cap">3 · Cut the ring back</p>
+            <p class="note">
+              The ring is trimmed around the ball, leaving an even gap a third of the ring's
+              thickness. That is the finished mark.
+            </p>
+          </div>
+          <div class="tile s6">
+            <p class="note">
+              <b>What changes:</b> nothing in the logo itself; the logo files in the repo were
+              always correct. The mark is one colour. I have dropped the version with a coloured
+              ball, since no colour should read as the brand's.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <script>
+        (function () {
+          var root = document.getElementById("bearing-r6");
+          var $$ = function (s, p) {
+            return Array.prototype.slice.call((p || root).querySelectorAll(s));
+          };
+          var still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+          // Sample matches. Colours are the teams' own; none of them is a brand colour.
+          var PAIRS = [
+            { a: ["Fnatic", "FNC", "#ff5900", "#0a0b0e"], b: ["Liquid", "TL", "#14387f", "#fff"] },
+            { a: ["Falcons", "FLC", "#00a86b", "#fff"], b: ["MOUZ", "MOUZ", "#e30613", "#fff"] },
+            { a: ["G2", "G2", "#1a1a1c", "#fff"], b: ["Heroic", "HERO", "#c8102e", "#fff"] },
+            // Both yellow, so the second-named team falls back to its second colour.
+            {
+              a: ["NAVI", "NAVI", "#ffe600", "#0a0b0e"],
+              b: ["Vitality", "VIT", "#0a0b0e", "#ffd400"],
+            },
+          ];
+          var MAPS = ["Mirage", "Anubis", "Inferno"];
+          var MIR = "abaababbaabaabaabababa"; // 13–9
+          var PRE = "aababbaaabbababa"; // 9–7 after sixteen rounds
+          var ui = { tone: "wash", neutral: "nt", mode: "ml", pair: 0, paused: false };
+          var S;
+
+          function reset() {
+            S = {
+              map: 2,
+              hist: [MIR.split(""), PRE.split(""), []],
+              res: ["13–9", null, null],
+              ma: 1,
+              mb: 0,
+              over: false,
+              wait: false,
+            };
+          }
+          function count(seq) {
+            var a = 0;
+            seq.forEach(function (c) {
+              if (c === "a") a++;
+            });
+            return { a: a, b: seq.length - a };
+          }
+          function plural(n) {
+            return n + (n === 1 ? " map" : " maps");
+          }
+          function esc(s) {
+            return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+          }
+
+          // One row of dots for a map. from/to picks a half; live adds the open dot and the ones to come.
+          function dots(seq, from, to, live, gap, land) {
+            var P = PAIRS[ui.pair],
+              h = "";
+            for (var i = from; i < to; i++) {
+              if (gap && i === 12) h += '<i class="g"></i>';
+              if (i < seq.length)
+                h +=
+                  '<i class="' +
+                  seq[i] +
+                  (land && i === seq.length - 1 ? " land" : "") +
+                  '" title="Round ' +
+                  (i + 1) +
+                  " · " +
+                  esc(P[seq[i]][0]) +
+                  '"></i>';
+              else if (live)
+                h +=
+                  '<i class="' +
+                  (i === seq.length ? "n" : "o") +
+                  '" title="Round ' +
+                  (i + 1) +
+                  '"></i>';
+            }
+            return h;
+          }
+
+          function set(key, val, tick) {
+            $$('[data-b="' + key + '"]').forEach(function (n) {
+              if (n.textContent === val) return;
+              n.textContent = val;
+              if (tick && !still && n.animate)
+                n.animate(
+                  [
+                    { transform: "translateY(0.3em)", opacity: 0 },
+                    { transform: "none", opacity: 1 },
+                  ],
+                  { duration: 260, easing: "cubic-bezier(.2,.8,.2,1)" },
+                );
+            });
+          }
+
+          function render(land) {
+            var P = PAIRS[ui.pair],
+              seq = S.hist[S.map - 1],
+              c = count(seq),
+              live = !S.over && !S.wait;
+            root.style.setProperty("--a", P.a[2]);
+            root.style.setProperty("--ak", P.a[3]);
+            root.style.setProperty("--b", P.b[2]);
+            root.style.setProperty("--bk", P.b[3]);
+            var total = S.over ? S.ma + S.mb : seq.length,
+              lead = S.over ? S.ma : c.a;
+            root.style.setProperty(
+              "--p",
+              (total ? Math.max(34, Math.min(66, 50 + (lead / total - 0.5) * 90)) : 50) + "%",
+            );
+            set("an", P.a[0]);
+            set("bn", P.b[0]);
+            set("at", P.a[1]);
+            set("bt", P.b[1]);
+            set("score", S.over ? S.ma + " – " + S.mb : c.a + " – " + c.b, true);
+            set("ma", plural(S.ma));
+            set("mb", plural(S.mb));
+            set("mapname", MAPS[S.map - 1]);
+            var winner = c.a > c.b ? P.a[0] : P.b[0];
+            set(
+              "status",
+              S.over
+                ? "Final · " + (S.ma > S.mb ? P.a[0] : P.b[0]) + " win"
+                : S.wait
+                  ? MAPS[S.map - 1] + " to " + winner
+                  : "Live · round " + (seq.length + 1),
+            );
+            $$('[data-b="ping"]').forEach(function (n) {
+              n.classList.toggle("off", S.over);
+            });
+
+            // The line of stops in the wide header.
+            var cols = [],
+              h = "";
+            for (var i = 0; i < 3; i++) {
+              var now = i === S.map - 1 && !S.over,
+                done = S.res[i] && !now;
+              cols.push(now ? "2.2fr" : "0.62fr");
+              if (now)
+                h +=
+                  '<div class="stop now"><div class="dots">' +
+                  dots(seq, 0, 24, live, true, land) +
+                  "</div><b>" +
+                  MAPS[i] +
+                  '</b><span style="font-weight:600">' +
+                  (S.wait ? S.res[i] : "Round " + (seq.length + 1) + ", first to 13") +
+                  "</span></div>";
+              else if (done)
+                h +=
+                  '<div class="stop done"><b>' +
+                  MAPS[i] +
+                  '</b><span class="sub" style="font-size:1em">' +
+                  S.res[i] +
+                  "</span></div>";
+              else
+                h +=
+                  '<div class="stop fut"><b>' +
+                  MAPS[i] +
+                  '</b><span class="sub" style="font-size:1em">' +
+                  (S.over ? "not needed" : "if needed") +
+                  "</span></div>";
+            }
+            h +=
+              '<div class="stop fut end"><b>Final</b><span class="sub" style="font-size:1em">Sun 18:00</span></div>';
+            $$('[data-b="stops"]').forEach(function (n) {
+              n.style.gridTemplateColumns = cols.join(" ") + " 0.5fr";
+              n.innerHTML = h;
+            });
+
+            // Dot rows on the phone and in the comparison tiles.
+            $$("[data-live]").forEach(function (n) {
+              var k = n.getAttribute("data-live");
+              n.innerHTML =
+                k === "h1"
+                  ? dots(seq, 0, 12, live, false, land)
+                  : k === "h2"
+                    ? dots(seq, 12, 24, live, false, land)
+                    : dots(seq, 0, 24, live, true, land);
+            });
+
+            // Map cards on the phone's match page.
+            var m = "";
+            for (var j = S.map - 1; j >= 0; j--) {
+              var q = S.hist[j],
+                cur = j === S.map - 1 && !S.over,
+                h1 = count(q.slice(0, 12)),
+                h2 = count(q.slice(12));
+              m +=
+                '<div class="card"><div class="ch"><b>' +
+                MAPS[j] +
+                '</b><span class="sub mono">MAP ' +
+                (j + 1) +
+                " · " +
+                (cur && !S.wait ? "FIRST TO 13" : S.res[j]) +
+                "</span></div>" +
+                '<div class="half"><div class="dots" style="--ds:13px;--dg:4px">' +
+                dots(q, 0, 12, cur && live, false, cur && land) +
+                "</div><span>" +
+                h1.a +
+                "–" +
+                h1.b +
+                "</span></div>" +
+                (q.length > 12 || cur
+                  ? '<div class="half"><div class="dots" style="--ds:13px;--dg:4px;min-height:13px">' +
+                    dots(q, 12, 24, cur && live, false, cur && land) +
+                    "</div><span>" +
+                    h2.a +
+                    "–" +
+                    h2.b +
+                    "</span></div>"
+                  : "") +
+                "</div>";
+            }
+            if (S.map < 3 && !S.over)
+              m +=
+                '<div class="card" style="padding:10px 14px"><div class="ch"><b style="color:var(--ink2)">' +
+                MAPS[S.map] +
+                '</b><span class="sub mono">MAP ' +
+                (S.map + 1) +
+                " · IF NEEDED</span></div></div>";
+            $$('[data-b="mapcards"]').forEach(function (n) {
+              n.innerHTML = m;
+            });
+          }
+
+          function win(w) {
+            if (S.over || S.wait) return;
+            var seq = S.hist[S.map - 1],
+              c = count(seq);
+            if (c.a === 12 && c.b === 11) w = "a"; // keep the sample out of overtime
+            if (c.b === 12 && c.a === 11) w = "b";
+            seq.push(w);
+            c = count(seq);
+            if (c.a === 13 || c.b === 13) {
+              S.res[S.map - 1] = c.a + "–" + c.b;
+              if (c.a > c.b) S.ma++;
+              else S.mb++;
+              if (S.ma === 2 || S.mb === 2) {
+                S.over = true;
+                render(true);
+                setTimeout(next, 3400);
+              } else {
+                S.wait = true;
+                render(true);
+                setTimeout(function () {
+                  S.map++;
+                  S.wait = false;
+                  render(false);
+                }, 2400);
+              }
+            } else render(true);
+          }
+          function next(pair) {
+            ui.pair = typeof pair === "number" ? pair : (ui.pair + 1) % PAIRS.length;
+            reset();
+            render(false);
+            mark();
+            if (!still)
+              $$("[data-step]").forEach(function (n) {
+                if (n.animate)
+                  n.animate(
+                    [
+                      { transform: "translateY(-22px) scale(0.94)", opacity: 0.3 },
+                      { transform: "none", opacity: 1 },
+                    ],
+                    { duration: 520, easing: "cubic-bezier(.2,.8,.2,1)" },
+                  );
+              });
+          }
+
+          // Switches.
+          function mark() {
+            $$("[data-set]").forEach(function (b) {
+              var ok = b
+                .getAttribute("data-set")
+                .split(";")
+                .every(function (kv) {
+                  var p = kv.split(":");
+                  return String(ui[p[0]]) === p[1];
+                });
+              b.classList.toggle("on", ok);
+            });
+            $$("[data-follow]").forEach(function (n) {
+              n.classList.remove("nt", "np", "ml", "md");
+              n.classList.add(ui.neutral, ui.mode);
+            });
+            $$("[data-tone]").forEach(function (n) {
+              n.classList.remove("clean", "spines", "band", "wash");
+              n.classList.add(ui.tone);
+            });
+          }
+          $$("[data-set]").forEach(function (b) {
+            b.addEventListener("click", function () {
+              b.getAttribute("data-set")
+                .split(";")
+                .forEach(function (kv) {
+                  var p = kv.split(":");
+                  if (p[0] === "pair") next(+p[1]);
+                  else ui[p[0]] = p[1];
+                });
+              mark();
+            });
+          });
+          $$("[data-act]").forEach(function (b) {
+            b.addEventListener("click", function () {
+              var act = b.getAttribute("data-act");
+              if (act === "a" || act === "b") win(act);
+              else if (act === "next") next();
+              else if (act === "pause") {
+                ui.paused = !ui.paused;
+                b.querySelector("use").setAttribute("href", ui.paused ? "#i-play" : "#i-pause");
+                b.querySelector("span").textContent = ui.paused ? "Play" : "Pause";
+              }
+            });
+          });
+
+          // Phone: tabs, the match page, and three small real screens.
+          var tabs = $$("[data-tab]"),
+            ind = root.querySelector(".tab .ind");
+          function show(name) {
+            $$("[data-view]").forEach(function (v) {
+              if (v.getAttribute("data-view") !== "match")
+                v.classList.toggle("on", v.getAttribute("data-view") === name);
+            });
+            root.querySelector('[data-view="match"]').classList.remove("on");
+            tabs.forEach(function (t, i) {
+              var on = t.getAttribute("data-tab") === name;
+              t.classList.toggle("on", on);
+              if (on) ind.style.transform = "translateX(" + i * 100 + "%)";
+            });
+          }
+          tabs.forEach(function (t) {
+            t.addEventListener("click", function () {
+              show(t.getAttribute("data-tab"));
+            });
+          });
+          $$("[data-open]").forEach(function (b) {
+            b.addEventListener("click", function () {
+              root
+                .querySelector('[data-view="match"]')
+                .classList.toggle("on", b.getAttribute("data-open") === "match");
+            });
+          });
+
+          var DAYS = [
+            [
+              "Mon",
+              16,
+              [
+                ["18:45", "Fnatic v Liquid", "CS2 · Semi-final", "#ff5900", "#14387f"],
+                ["20:30", "Gen.G v T1", "LoL · Final", "#1a1a1c", "#e2012d"],
+                ["21:15", "KC v BDS", "Rocket League", "#19a8ff", "#ff5fa2"],
+                ["22:00", "Cup final", "Trackmania", "#00c978", "#00c978"],
+              ],
+            ],
+            [
+              "Tue",
+              17,
+              [
+                ["17:00", "Carlsen v Nakamura", "Chess · Game 5", "#0a0b0e", "#fff"],
+                ["18:00", "Spirit v MOUZ", "CS2 · Semi-final", "#7a5cff", "#e30613"],
+              ],
+            ],
+            ["Wed", 18, [["19:00", "Falcons v Vitality", "Rocket League", "#00a86b", "#ffd400"]]],
+            [
+              "Sun",
+              22,
+              [
+                ["18:00", "CS2 final", "IEM Cologne", "#8e95a1", "#8e95a1"],
+                ["20:00", "Chess final game", "Speed Chess", "#0a0b0e", "#fff"],
+              ],
+            ],
+          ];
+          function day(k) {
+            root.querySelector('[data-b="days"]').innerHTML = DAYS.map(function (d, i) {
+              return (
+                '<button class="' +
+                (i === k ? "on" : "") +
+                '" data-day="' +
+                i +
+                '">' +
+                d[0] +
+                "<b>" +
+                d[1] +
+                "</b></button>"
+              );
+            }).join("");
+            root.querySelector('[data-b="daylist"]').innerHTML = DAYS[k][2]
+              .map(function (r) {
+                return (
+                  '<div class="lr" style="grid-template-columns:36px 40px minmax(0,1fr)"><span class="duo" style="--a:' +
+                  r[3] +
+                  ";--b:" +
+                  r[4] +
+                  '"></span><span class="mono tnum" style="font-weight:500">' +
+                  r[0] +
+                  '</span><span><b style="font-weight:600">' +
+                  r[1] +
+                  '</b><br><span class="sub">' +
+                  r[2] +
+                  "</span></span></div>"
+                );
+              })
+              .join("");
+            $$("[data-day]").forEach(function (b) {
+              b.addEventListener("click", function () {
+                day(+b.getAttribute("data-day"));
+              });
+            });
+          }
+          day(0);
+
+          var TEAMS = [
+            ["Fnatic", "CS2", "#ff5900", "wwlww"],
+            ["Liquid", "CS2", "#14387f", "lwwlw"],
+            ["T1", "League of Legends", "#e2012d", "wwwwl"],
+            ["Karmine Corp", "Rocket League", "#19a8ff", "wlwww"],
+            ["Falcons", "CS2", "#00a86b", "lwlww"],
+            ["MOUZ", "CS2", "#e30613", "wwllw"],
+            ["Gen.G", "League of Legends", "#b8902f", "wlwlw"],
+            ["Spirit", "CS2", "#7a5cff", "wwwlw"],
+          ];
+          function teamRow(t, star) {
+            return (
+              '<div class="er" style="--a:' +
+              t[2] +
+              '"><span class="row" style="gap:9px;min-width:0"><span class="av a" style="--s:26px;--ak:transparent"></span><span style="min-width:0"><b style="font-weight:600">' +
+              t[0] +
+              '</b><br><span class="sub" style="white-space:nowrap">' +
+              t[1].replace("League of Legends", "LoL") +
+              '</span></span></span><span class="row" style="gap:8px"><span class="dots fix" style="--ds:9px;--dg:3px">' +
+              t[3]
+                .split("")
+                .map(function (r) {
+                  return '<i class="' + (r === "w" ? "a" : "o") + '"></i>';
+                })
+                .join("") +
+              "</span>" +
+              (star
+                ? '<button class="star" aria-pressed="true" aria-label="Following ' +
+                  t[0] +
+                  '"><svg class="ic" style="width:16px;height:16px"><use href="#i-star"></use></svg></button>'
+                : "") +
+              "</span></div>"
+            );
+          }
+          root.querySelector('[data-b="follows"]').innerHTML = TEAMS.slice(0, 5)
+            .map(function (t) {
+              return teamRow(t, true);
+            })
+            .join("");
+          $$(".star").forEach(function (b) {
+            b.addEventListener("click", function () {
+              b.setAttribute(
+                "aria-pressed",
+                b.getAttribute("aria-pressed") === "true" ? "false" : "true",
+              );
+              if (!still && b.animate)
+                b.animate(
+                  [
+                    { transform: "scale(1)" },
+                    { transform: "scale(1.35)" },
+                    { transform: "scale(1)" },
+                  ],
+                  { duration: 300, easing: "cubic-bezier(.2,1.5,.4,1)" },
+                );
+            });
+          });
+          var q = root.querySelector('[data-b="q"]');
+          function search() {
+            var v = q.value.trim().toLowerCase(),
+              hit = TEAMS.filter(function (t) {
+                return !v || (t[0] + " " + t[1]).toLowerCase().indexOf(v) >= 0;
+              }).slice(0, 6);
+            root.querySelector('[data-b="qlab"]').textContent = v
+              ? hit.length + (hit.length === 1 ? " RESULT" : " RESULTS")
+              : "TEAMS";
+            root.querySelector('[data-b="results"]').innerHTML = hit.length
+              ? hit
+                  .map(function (t) {
+                    return teamRow(t, false);
+                  })
+                  .join("")
+              : '<div class="er"><span class="sub">Nothing found for "' +
+                esc(q.value) +
+                '".</span></div>';
+          }
+          q.addEventListener("input", search);
+          search();
+
+          $$("[data-seq]").forEach(function (n) {
+            var seq = n.getAttribute("data-seq"),
+              h = "";
+            for (var i = 0; i < 24; i++) {
+              if (i === 12) h += '<i class="g"></i>';
+              h +=
+                '<i class="' + (i < seq.length ? seq[i] : i === seq.length ? "n" : "o") + '"></i>';
+            }
+            n.innerHTML = h;
+          });
+          $$("[data-plot]").forEach(function (n) {
+            var seq = n.getAttribute("data-plot"),
+              h = "";
+            ["a", "ax", "b"].forEach(function (kind) {
+              if (kind === "ax") {
+                h += '<i class="ax"></i>';
+                return;
+              }
+              for (var i = 0; i < 24; i++) {
+                if (i === 12) h += "<span></span>";
+                h += '<i class="' + (seq[i] === kind ? kind : "") + '"></i>';
+              }
+            });
+            n.innerHTML = h;
+          });
+
+          reset();
+          render(false);
+          mark();
+          if (!still)
+            setInterval(function () {
+              if (!ui.paused) win(Math.random() < 0.52 ? "a" : "b");
+            }, 1900);
+        })();
+      </script>
+    </div>
+  </body>
+</html>

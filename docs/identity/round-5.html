@@ -1,0 +1,1248 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bearing identity, round 5</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400..800&family=Funnel+Display:wght@400..800&family=Gabarito:wght@400..800&family=Geist+Mono:wght@400;500&family=Geom:wght@400..800&family=Golos+Text:wght@400..800&family=Hanken+Grotesk:wght@400..800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      .id {
+        --face: "Gabarito";
+        --dw: 800;
+        --dt: -0.03em;
+        --ink: #0a0b0e;
+        --ink2: #555b66;
+        --mute: #8e95a1;
+        --mono: "Geist Mono", monospace;
+        font-family: var(--font-sans, system-ui, sans-serif);
+        color: var(--foreground, #111);
+      }
+      .id *,
+      .id *::before,
+      .id *::after {
+        box-sizing: border-box;
+      }
+      .intro {
+        font-size: 14px;
+        line-height: 1.55;
+        color: var(--muted-foreground, #666);
+        margin: 0 0 18px;
+        max-width: 66ch;
+      }
+      .faces {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        align-items: center;
+        margin: 0 0 26px;
+        font-size: 12.5px;
+        color: var(--muted-foreground, #666);
+      }
+      .faces button {
+        font: inherit;
+        color: var(--foreground, #111);
+        background: transparent;
+        border: 1px solid var(--border, #ccc);
+        border-radius: 999px;
+        padding: 5px 12px;
+        cursor: pointer;
+      }
+      .faces button.on {
+        background: var(--foreground, #111);
+        color: var(--background, #fff);
+        border-color: var(--foreground, #111);
+      }
+      .sec {
+        margin: 0 0 40px;
+      }
+      .sec:last-of-type {
+        margin-bottom: 8px;
+      }
+      .rhead {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 0 0 12px;
+      }
+      .rletter {
+        font-family: var(--font-mono, monospace);
+        font-size: 12px;
+        padding: 2px 8px;
+        border: 1px solid var(--border, #ccc);
+        border-radius: 999px;
+        color: var(--muted-foreground, #666);
+      }
+      .rname {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .rline {
+        font-size: 14px;
+        color: var(--muted-foreground, #666);
+        flex: 1 1 260px;
+      }
+      .board {
+        border-radius: var(--radius, 12px);
+        padding: 16px;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 12px;
+        background: #eef0f4;
+        color: var(--ink);
+        font-family: var(--face), system-ui, sans-serif;
+      }
+      .tile {
+        border-radius: 18px;
+        padding: 16px;
+        min-width: 0;
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.95);
+        box-shadow: 0 10px 26px -18px rgba(10, 20, 40, 0.3);
+      }
+      .s2 {
+        grid-column: span 2;
+      }
+      .s3 {
+        grid-column: span 3;
+      }
+      .s6 {
+        grid-column: span 6;
+      }
+      .hero {
+        container-type: inline-size;
+      }
+      .cap {
+        font: 500 10.5px var(--mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin: 0 0 12px;
+        color: var(--mute);
+      }
+      .mono {
+        font-family: var(--mono);
+      }
+      .dsp {
+        font-weight: var(--dw);
+        letter-spacing: var(--dt);
+        line-height: 1;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+      }
+      .btw {
+        justify-content: space-between;
+      }
+      .tnum {
+        font-variant-numeric: tabular-nums;
+      }
+      .sub {
+        color: var(--ink2);
+        font-size: 11px;
+      }
+      .ping {
+        position: relative;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        display: inline-block;
+        flex: none;
+      }
+      .ping::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 1.5px solid currentColor;
+        animation: ping 1.8s ease-out infinite;
+      }
+      @keyframes ping {
+        0% {
+          transform: scale(1);
+          opacity: 0.9;
+        }
+        100% {
+          transform: scale(3);
+          opacity: 0;
+        }
+      }
+      .pulse {
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        50% {
+          opacity: 0.25;
+        }
+      }
+
+      /* The one rule: a dot is one thing won, in the colour of whoever won it. Always flat, always on a line. */
+      .dots {
+        display: flex;
+        align-items: center;
+        gap: var(--dg, 3px);
+        min-width: 0;
+      }
+      .dots i {
+        flex: 0 1 var(--ds, 12px);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        min-width: 0;
+        box-shadow: inset 0 0 0 1px rgba(10, 11, 14, 0.16);
+      }
+      .dots .a {
+        background: var(--a);
+      }
+      .dots .b {
+        background: var(--b);
+      }
+      .dots .h {
+        background: linear-gradient(90deg, var(--a) 50%, var(--b) 50%);
+      }
+      .dots .o {
+        box-shadow: inset 0 0 0 1.5px rgba(10, 11, 14, 0.2);
+      }
+      .dots .n {
+        box-shadow: inset 0 0 0 2px var(--ink);
+        animation: pulse 1.6s ease-in-out infinite;
+      }
+      .dots .g {
+        flex: 0 1 var(--dh, 8px);
+        aspect-ratio: auto;
+        box-shadow: none;
+      }
+      .dots.fix i {
+        flex: none;
+        width: var(--ds, 12px);
+      }
+
+      .light {
+        position: absolute;
+        inset: 0;
+        background: #f4f5f8;
+        overflow: hidden;
+        z-index: -1;
+      }
+      .light i {
+        position: absolute;
+        width: 70%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        filter: blur(44px);
+        opacity: 0.85;
+      }
+      .light i:first-child {
+        left: -24%;
+        top: -34%;
+        background: var(--a);
+        animation: drift 14s ease-in-out infinite;
+      }
+      .light i:last-child {
+        right: -24%;
+        bottom: -44%;
+        background: var(--b);
+        animation: drift 14s ease-in-out infinite reverse;
+      }
+      @keyframes drift {
+        50% {
+          transform: translate(9%, 7%) scale(1.08);
+        }
+      }
+      .glass {
+        background: rgba(255, 255, 255, 0.52);
+        -webkit-backdrop-filter: blur(22px) saturate(180%);
+        backdrop-filter: blur(22px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.75);
+        box-shadow: 0 10px 28px -14px rgba(10, 20, 40, 0.3);
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        white-space: nowrap;
+      }
+      .lit {
+        background:
+          radial-gradient(
+            46% 140% at 0% 50%,
+            color-mix(in srgb, var(--a) var(--k, 46%), transparent),
+            transparent 72%
+          ),
+          radial-gradient(
+            46% 140% at 100% 50%,
+            color-mix(in srgb, var(--b) var(--k, 46%), transparent),
+            transparent 72%
+          ),
+          #fff;
+      }
+
+      /* Live header */
+      .stage {
+        padding: 22px 22px 24px;
+        background: linear-gradient(180deg, #e6e9ee, #d9dde4);
+        border: 0;
+      }
+      .bk {
+        margin: 0 auto;
+        height: 46px;
+        border-radius: 16px 16px 0 0;
+        font-size: 10.5px;
+        font-weight: 600;
+        text-align: center;
+        padding-top: 5px;
+        color: var(--ink2);
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .bk2 {
+        width: 76%;
+        opacity: 0.55;
+        --k: 30%;
+      }
+      .bk1 {
+        width: 88%;
+        opacity: 0.92;
+        margin-top: -24px;
+        --k: 38%;
+        box-shadow: 0 -6px 14px -8px rgba(16, 24, 40, 0.18);
+      }
+      .front {
+        position: relative;
+        margin-top: -22px;
+        border-radius: 22px;
+        padding: 18px 22px 22px;
+        box-shadow:
+          0 1px 1px rgba(16, 24, 40, 0.05),
+          0 6px 14px -4px rgba(16, 24, 40, 0.12),
+          0 28px 46px -18px rgba(16, 24, 40, 0.32);
+      }
+      .lh {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: baseline;
+        gap: 12px;
+        margin: 24px 0 30px;
+      }
+      .hname {
+        font-size: clamp(22px, 7cqw, 50px);
+      }
+      .hscore {
+        font-size: clamp(22px, 7cqw, 50px);
+        font-weight: 400;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .stops {
+        display: grid;
+        grid-template-columns: 0.62fr 2.2fr 0.62fr 0.5fr;
+        position: relative;
+      }
+      .stop {
+        position: relative;
+        padding: 38px 8px 0 0;
+        font-size: clamp(10.5px, 2cqw, 13px);
+        line-height: 1.3;
+      }
+      .stop::before {
+        content: "";
+        position: absolute;
+        top: 9px;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: var(--ink);
+      }
+      .stop::after {
+        content: "";
+        position: absolute;
+        top: 1px;
+        left: 0;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #fff;
+        border: 6px solid var(--ink);
+      }
+      .stop.done::after {
+        background: var(--ink);
+      }
+      .stop.now::before {
+        display: none;
+      }
+      .stop.now::after {
+        width: 30px;
+        height: 30px;
+        top: -2px;
+        left: -3px;
+        border-width: 5px;
+        background: linear-gradient(90deg, var(--a) 50%, var(--b) 50%);
+      }
+      .stop.now .dots {
+        position: absolute;
+        top: 1px;
+        left: 36px;
+        right: 10px;
+        height: 24px;
+        --ds: 13px;
+        --dg: clamp(1px, 0.5cqw, 4px);
+        --dh: clamp(4px, 1.6cqw, 12px);
+      }
+      .stop.fut::before {
+        background: rgba(10, 11, 14, 0.14);
+      }
+      .stop.fut::after {
+        border-color: #c9cdd4;
+      }
+      .stop.end::before {
+        background: repeating-linear-gradient(
+          90deg,
+          rgba(10, 11, 14, 0.16) 0 8px,
+          transparent 8px 14px
+        );
+        right: 20px;
+      }
+      .stop b {
+        display: block;
+        font-weight: var(--dw);
+        font-size: 1.12em;
+        letter-spacing: -0.02em;
+      }
+
+      /* Phones */
+      .phone {
+        width: 100%;
+        max-width: 292px;
+        height: 600px;
+        border-radius: 40px;
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
+        background: #f4f5f8;
+        box-shadow:
+          0 0 0 7px #fff,
+          0 0 0 8px #d6dae1,
+          0 22px 44px -18px rgba(10, 20, 40, 0.45);
+      }
+      .plab {
+        font: 500 9.5px var(--mono);
+        letter-spacing: 0.08em;
+        color: rgba(10, 11, 14, 0.55);
+        margin: 13px 8px -4px;
+      }
+      .pcap {
+        text-align: center;
+        font: 500 10.5px var(--mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--mute);
+        margin: 0 0 14px;
+      }
+      .card {
+        border-radius: 24px;
+        padding: 12px 14px;
+        margin-top: 10px;
+      }
+      .lr {
+        display: grid;
+        grid-template-columns: 36px 40px minmax(0, 1fr) auto;
+        gap: 9px;
+        align-items: center;
+        padding: 8px 0;
+        font-size: 12.5px;
+        line-height: 1.3;
+        border-top: 1px solid rgba(10, 11, 14, 0.08);
+      }
+      .lr:first-child {
+        border-top: 0;
+      }
+      .er {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        padding: 7px 0;
+        font-size: 12.5px;
+        border-top: 1px solid rgba(10, 11, 14, 0.08);
+      }
+      .er:first-of-type {
+        border-top: 0;
+      }
+      .duo {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: conic-gradient(var(--ink) calc(var(--p) * 1%), rgba(10, 11, 14, 0.13) 0);
+        display: grid;
+        place-items: center;
+      }
+      .duo::after {
+        content: "";
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: linear-gradient(90deg, var(--a) 50%, var(--b) 50%);
+        border: 2px solid #fff;
+      }
+      .tab {
+        position: absolute;
+        left: 22px;
+        right: 22px;
+        bottom: 14px;
+        height: 50px;
+        border-radius: 999px;
+        padding: 0 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 10.5px;
+        font-weight: 600;
+        color: var(--ink2);
+      }
+      .half {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        margin-top: 7px;
+      }
+      .half span {
+        font: 500 10px var(--mono);
+        color: var(--ink2);
+      }
+      .ch {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: 12.5px;
+      }
+      .ch b {
+        font-weight: var(--dw);
+        letter-spacing: -0.02em;
+      }
+
+      /* Logos */
+      .lg {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .lg .wm {
+        font-size: 32px;
+        font-weight: var(--dw);
+        letter-spacing: var(--dt);
+        line-height: 1;
+      }
+      .lg p {
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.45;
+        color: var(--ink2);
+      }
+      .ico {
+        display: grid;
+        place-items: center;
+        flex: none;
+        overflow: hidden;
+      }
+      .i56 {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+      }
+      .i16 {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+      }
+      .pick {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        font: 500 9.5px var(--mono);
+        letter-spacing: 0.06em;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: #fff;
+      }
+
+      /* Type specimens */
+      .ty {
+        cursor: pointer;
+      }
+      .ty.on {
+        outline: 2px solid var(--ink);
+        outline-offset: -2px;
+      }
+      .ty h3 {
+        margin: 0;
+        font: 500 10.5px var(--mono);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--mute);
+      }
+      .ty .big {
+        font-size: 38px;
+        line-height: 1;
+        margin: 14px 0 8px;
+      }
+      .ty .num {
+        font-size: 19px;
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+      }
+      .ty p {
+        margin: 8px 0 0;
+        font-size: 12.5px;
+        line-height: 1.45;
+        color: var(--ink2);
+      }
+
+      @container (max-width: 520px) {
+        .stage {
+          padding: 14px 12px 16px;
+        }
+        .front {
+          padding: 14px 14px 18px;
+        }
+      }
+      @media (max-width: 600px) {
+        .board {
+          grid-template-columns: minmax(0, 1fr);
+          padding: 12px;
+        }
+        .s2,
+        .s3,
+        .s6 {
+          grid-column: auto;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .id *,
+        .id *::after {
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="id" id="bearing-r5">
+      <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+        <defs>
+          <mask id="mk-seat" maskUnits="userSpaceOnUse" x="0" y="0" width="32" height="32">
+            <rect width="32" height="32" fill="#fff" />
+            <circle cx="23.5" cy="8.5" r="5.6" fill="#000" />
+          </mask>
+          <mask id="mk-b" maskUnits="userSpaceOnUse" x="0" y="0" width="32" height="32">
+            <rect width="32" height="32" fill="#fff" />
+            <circle cx="24.1" cy="14" r="5" fill="#000" />
+          </mask>
+          <mask id="mk-two" maskUnits="userSpaceOnUse" x="0" y="0" width="32" height="32">
+            <rect width="32" height="32" fill="#fff" />
+            <circle cx="22.43" cy="9.57" r="5.3" fill="#000" />
+          </mask>
+        </defs>
+        <symbol id="l-arc" viewBox="0 0 32 32">
+          <path
+            d="M26.34 14.18 A10.5 10.5 0 1 1 17.82 5.66"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="5"
+            stroke-linecap="round"
+          />
+          <circle cx="23.42" cy="8.58" r="2.8" fill="var(--d1, currentColor)" />
+        </symbol>
+        <symbol id="l-seat" viewBox="0 0 32 32">
+          <circle
+            cx="16"
+            cy="16"
+            r="10.6"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="5.2"
+            mask="url(#mk-seat)"
+          />
+          <circle cx="23.5" cy="8.5" r="3.9" fill="var(--d1, currentColor)" />
+        </symbol>
+        <symbol id="l-b" viewBox="0 0 32 32">
+          <rect x="5" y="1.5" width="4.8" height="29" rx="2.4" fill="currentColor" />
+          <circle
+            cx="18.2"
+            cy="19.8"
+            r="8.3"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="4.8"
+            mask="url(#mk-b)"
+          />
+          <circle cx="24.1" cy="14" r="3.4" fill="var(--d1, currentColor)" />
+        </symbol>
+        <symbol id="l-two" viewBox="0 0 32 32">
+          <g mask="url(#mk-two)" fill="none" stroke="currentColor" stroke-width="3.2">
+            <circle cx="16" cy="16" r="12.3" />
+            <circle cx="16" cy="16" r="5.9" />
+          </g>
+          <circle cx="22.43" cy="9.57" r="3.4" fill="var(--d1, currentColor)" />
+        </symbol>
+      </svg>
+
+      <p class="intro">
+        Three changes since the last page. The circle of rounds is gone: rounds are always dots on a
+        line, on every screen. Logo A has been reworked three ways to make it less generic. And the
+        typefaces are a new shortlist, picked from about fifty lesser-used ones for round forms and
+        solid numbers.
+      </p>
+      <div class="faces" role="group" aria-label="Typeface">
+        <span>Typeface on this page:</span>
+        <button data-face="Gabarito" data-dw="800" data-dt="-0.03em" class="on">Gabarito</button>
+        <button data-face="Geom" data-dw="800" data-dt="-0.04em">Geom</button>
+        <button data-face="Golos Text" data-dw="800" data-dt="-0.045em">Golos Text</button>
+        <button data-face="Albert Sans" data-dw="800" data-dt="-0.045em">Albert Sans</button>
+        <button data-face="Funnel Display" data-dw="800" data-dt="-0.035em">Funnel Display</button>
+        <button data-face="Hanken Grotesk" data-dw="800" data-dt="-0.05em">
+          Hanken Grotesk (last page)
+        </button>
+      </div>
+
+      <!-- ═════════ 1 · The direction ═════════ -->
+      <section class="sec">
+        <div class="rhead">
+          <span class="rletter">1</span><span class="rname">One way to show a score</span>
+          <span class="rline"
+            >Dots on a line, everywhere: the desktop header, the home screen, the match page.</span
+          >
+        </div>
+        <div class="board">
+          <div class="tile s6 hero stage">
+            <div class="bk bk2 lit" style="--a: #19a8ff; --b: #ff5fa2">
+              21:15 · KC v BDS · Rocket League
+            </div>
+            <div class="bk bk1 lit" style="--a: #17171a; --b: #e2012d">
+              20:30 · G2 v T1 · League of Legends · in 50 min
+            </div>
+            <div class="front lit" style="--a: #ffd400; --b: #12b5ae">
+              <div class="row btw" style="gap: 8px; flex-wrap: wrap">
+                <span class="pill"><i class="ping"></i>Live · round 17</span
+                ><span class="pill">CS2 · IEM Cologne · Semi-final</span>
+              </div>
+              <div class="lh">
+                <div class="dsp hname">Vitality</div>
+                <div class="hscore tnum">9 – 7</div>
+                <div class="dsp hname" style="text-align: right">Aurora</div>
+              </div>
+              <div class="stops">
+                <div class="stop done">
+                  <b>Mirage</b><span class="sub" style="font-size: 1em">13–9</span>
+                </div>
+                <div class="stop now">
+                  <div class="dots" data-seq="VVAVAAVVVAAVAVAV" data-live></div>
+                  <b>Anubis</b><span style="font-weight: 600">Round 17, first to 13</span>
+                </div>
+                <div class="stop fut">
+                  <b>Inferno</b><span class="sub" style="font-size: 1em">if needed</span>
+                </div>
+                <div class="stop fut end">
+                  <b>Final</b><span class="sub" style="font-size: 1em">Sun 18:00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tile s3">
+            <p class="pcap">Phone · home</p>
+            <div class="phone" style="--a: #ffd400; --b: #12b5ae">
+              <div class="light">
+                <i style="width: 120%; left: -50%; top: -8%"></i
+                ><i style="width: 120%; right: -55%; bottom: 30%"></i>
+              </div>
+              <div style="position: relative; padding: 22px 16px 0">
+                <div class="row btw" style="align-items: baseline; padding: 0 6px 2px">
+                  <span class="dsp" style="font-size: 28px">Today</span
+                  ><span class="mono" style="font-size: 10.5px; color: rgba(10, 11, 14, 0.6)"
+                    >MON 16 NOV</span
+                  >
+                </div>
+                <div class="glass card" style="border-radius: 28px; padding: 13px 16px 14px">
+                  <div class="row btw" style="font-size: 11px; font-weight: 600">
+                    <span class="row" style="gap: 7px"><i class="ping"></i>Live · round 17</span
+                    ><span style="color: var(--ink2)">CS2 · Semi-final</span>
+                  </div>
+                  <div class="row btw" style="align-items: baseline; margin: 14px 0 2px">
+                    <b class="dsp" style="font-size: 21px">Vitality</b
+                    ><span
+                      class="tnum"
+                      style="font-size: 24px; letter-spacing: -0.03em; line-height: 1"
+                      >9 – 7</span
+                    ><b class="dsp" style="font-size: 21px">Aurora</b>
+                  </div>
+                  <div class="row btw sub" style="font-weight: 600">
+                    <span>1 map</span><span>Anubis</span><span>0 maps</span>
+                  </div>
+                  <div
+                    class="dots"
+                    data-seq="VVAVAAVVVAAVAVAV"
+                    data-live
+                    data-range="0-12"
+                    style="margin-top: 12px; --ds: 13px; --dg: 4.5px; justify-content: center"
+                  ></div>
+                  <div
+                    class="dots"
+                    data-seq="VVAVAAVVVAAVAVAV"
+                    data-live
+                    data-range="12-24"
+                    style="margin-top: 5px; --ds: 13px; --dg: 4.5px; justify-content: center"
+                  ></div>
+                </div>
+                <div class="plab">NEXT</div>
+                <div class="glass card" style="padding: 4px 14px">
+                  <div class="lr">
+                    <span class="duo" style="--a: #17171a; --b: #e2012d; --p: 72"></span
+                    ><span class="mono tnum" style="font-weight: 500">20:30</span
+                    ><span
+                      ><b style="font-weight: 600">G2 v T1</b><br /><span class="sub"
+                        >LoL · Final</span
+                      ></span
+                    ><span class="sub mono">50m</span>
+                  </div>
+                  <div class="lr">
+                    <span class="duo" style="--a: #19a8ff; --b: #ff5fa2; --p: 47"></span
+                    ><span class="mono tnum" style="font-weight: 500">21:15</span
+                    ><span
+                      ><b style="font-weight: 600">KC v BDS</b><br /><span class="sub"
+                        >Rocket League</span
+                      ></span
+                    ><span class="sub mono">1h35</span>
+                  </div>
+                  <div class="lr">
+                    <span class="duo" style="--a: #00c978; --b: #00c978; --p: 22"></span
+                    ><span class="mono tnum" style="font-weight: 500">22:00</span
+                    ><span
+                      ><b style="font-weight: 600">Cup final</b><br /><span class="sub"
+                        >Trackmania</span
+                      ></span
+                    ><span class="sub mono">2h20</span>
+                  </div>
+                </div>
+                <div class="plab">EARLIER</div>
+                <div class="glass card" style="padding: 6px 14px">
+                  <div class="er" style="--a: #ffe600; --b: #e4032e">
+                    <span
+                      ><b style="font-weight: 600">NAVI 2–1 FaZe</b>
+                      <span class="sub">CS2</span></span
+                    ><span class="dots fix" style="--ds: 11px; --dg: 4px"
+                      ><i class="a"></i><i class="b"></i><i class="a"></i
+                    ></span>
+                  </div>
+                  <div class="er" style="--a: #0a0b0e; --b: #fff">
+                    <span><b style="font-weight: 600">Carlsen ½–½ Nakamura</b></span
+                    ><span class="dots fix" style="--ds: 11px; --dg: 4px"><i class="h"></i></span>
+                  </div>
+                </div>
+              </div>
+              <div class="tab glass">
+                <span style="color: var(--ink)">Today</span><span>Schedule</span
+                ><span>Following</span><span>Search</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tile s3">
+            <p class="pcap">Phone · match page</p>
+            <div class="phone" style="--a: #ffd400; --b: #12b5ae">
+              <div class="light">
+                <i style="width: 120%; left: -50%; top: -8%"></i
+                ><i style="width: 120%; right: -55%; bottom: 30%"></i>
+              </div>
+              <div style="position: relative; padding: 22px 16px 0">
+                <div class="row btw" style="font-size: 11px; font-weight: 600; padding: 0 6px">
+                  <span>‹ Today</span
+                  ><span style="color: rgba(10, 11, 14, 0.62)">IEM Cologne · Semi-final</span>
+                </div>
+                <div
+                  class="row btw"
+                  style="align-items: baseline; padding: 0 6px; margin-top: 16px"
+                >
+                  <span
+                    ><b class="dsp" style="font-size: 25px">Vitality</b><br /><span
+                      class="sub"
+                      style="font-weight: 600; color: rgba(10, 11, 14, 0.62)"
+                      >1 map</span
+                    ></span
+                  >
+                  <span style="text-align: right"
+                    ><b class="dsp" style="font-size: 25px">Aurora</b><br /><span
+                      class="sub"
+                      style="font-weight: 600; color: rgba(10, 11, 14, 0.62)"
+                      >0 maps</span
+                    ></span
+                  >
+                </div>
+                <div style="text-align: center; margin: 2px 0 12px">
+                  <div
+                    class="tnum"
+                    style="font-size: 58px; letter-spacing: -0.04em; line-height: 1"
+                  >
+                    9 – 7
+                  </div>
+                  <div
+                    class="row"
+                    style="
+                      justify-content: center;
+                      gap: 8px;
+                      font-size: 11px;
+                      font-weight: 600;
+                      margin-top: 6px;
+                    "
+                  >
+                    <i class="ping"></i>Live · round 17
+                  </div>
+                </div>
+                <div class="glass card">
+                  <div class="ch">
+                    <b>Anubis</b><span class="sub mono">MAP 2 · FIRST TO 13</span>
+                  </div>
+                  <div class="half">
+                    <div
+                      class="dots"
+                      data-seq="VVAVAAVVVAAVAVAV"
+                      data-live
+                      data-range="0-12"
+                      style="--ds: 13px; --dg: 4px"
+                    ></div>
+                    <span>7–5</span>
+                  </div>
+                  <div class="half">
+                    <div
+                      class="dots"
+                      data-seq="VVAVAAVVVAAVAVAV"
+                      data-live
+                      data-range="12-24"
+                      style="--ds: 13px; --dg: 4px"
+                    ></div>
+                    <span>2–2</span>
+                  </div>
+                </div>
+                <div class="glass card">
+                  <div class="ch"><b>Mirage</b><span class="sub mono">MAP 1 · 13–9</span></div>
+                  <div class="half">
+                    <div
+                      class="dots"
+                      data-seq="VAVVAVAAVVAVVAVVAVAVAV"
+                      data-range="0-12"
+                      style="--ds: 13px; --dg: 4px"
+                    ></div>
+                    <span>7–5</span>
+                  </div>
+                  <div class="half">
+                    <div
+                      class="dots"
+                      data-seq="VAVVAVAAVVAVVAVVAVAVAV"
+                      data-range="12-24"
+                      style="--ds: 13px; --dg: 4px"
+                    ></div>
+                    <span>6–4</span>
+                  </div>
+                </div>
+                <div class="glass card" style="padding: 10px 14px">
+                  <div class="ch">
+                    <b style="color: var(--ink2)">Inferno</b
+                    ><span class="sub mono">MAP 3 · IF NEEDED</span>
+                  </div>
+                  <div class="ch" style="margin-top: 6px">
+                    <b>Final</b><span class="sub mono">SUN 18:00 · V SPIRIT OR MOUZ</span>
+                  </div>
+                </div>
+              </div>
+              <div class="tab glass">
+                <span style="color: var(--ink)">Match</span><span>Rounds</span><span>Players</span
+                ><span>Bracket</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════ 2 · Logo ═════════ -->
+      <section class="sec">
+        <div class="rhead">
+          <span class="rletter">2</span><span class="rname">Logo A, made its own</span>
+          <span class="rline"
+            >You are right that an open ring with a dot is a common shape. Three ways to make it
+            specific to a bearing, next to the original.</span
+          >
+        </div>
+        <div class="board">
+          <div class="tile s3 lg">
+            <p class="cap" style="margin: 0">A · As it was</p>
+            <div class="row" style="gap: 12px">
+              <svg width="48" height="48"><use href="#l-arc" /></svg><span class="wm">bearing</span>
+            </div>
+            <div class="row" style="gap: 10px; align-items: flex-end">
+              <span class="ico i56" style="background: #0a0b0e; color: #fff"
+                ><svg width="38" height="38"><use href="#l-arc" /></svg
+              ></span>
+              <span
+                class="ico i56"
+                style="
+                  background: #fff;
+                  --d1: #ffd400;
+                  box-shadow: 0 6px 14px -8px rgba(10, 20, 40, 0.4);
+                "
+                ><svg width="38" height="38"><use href="#l-arc" /></svg
+              ></span>
+              <span class="ico i16" style="background: #0a0b0e; color: #fff"
+                ><svg width="12" height="12"><use href="#l-arc" /></svg
+              ></span>
+            </div>
+            <p>
+              A ring that stops short, with a small dot in the gap. Clean, but the same idea as many
+              progress, power and loading icons.
+            </p>
+          </div>
+          <div class="tile s3 lg">
+            <span class="pick">MY PICK</span>
+            <p class="cap" style="margin: 0">A2 · Seated</p>
+            <div class="row" style="gap: 12px">
+              <svg width="48" height="48"><use href="#l-seat" /></svg
+              ><span class="wm">bearing</span>
+            </div>
+            <div class="row" style="gap: 10px; align-items: flex-end">
+              <span class="ico i56" style="background: #0a0b0e; color: #fff"
+                ><svg width="40" height="40"><use href="#l-seat" /></svg
+              ></span>
+              <span
+                class="ico i56"
+                style="
+                  background: #fff;
+                  --d1: #ffd400;
+                  box-shadow: 0 6px 14px -8px rgba(10, 20, 40, 0.4);
+                "
+                ><svg width="40" height="40"><use href="#l-seat" /></svg
+              ></span>
+              <span class="ico i16" style="background: #0a0b0e; color: #fff"
+                ><svg width="12" height="12"><use href="#l-seat" /></svg
+              ></span>
+            </div>
+            <p>
+              The ball is larger than the ring is thick, and the ring is cut to hold it with an even
+              gap all round. That is how a ball sits in a real bearing, and it is the detail other
+              ring logos do not have.
+            </p>
+          </div>
+          <div class="tile s3 lg">
+            <p class="cap" style="margin: 0">A3 · Letter</p>
+            <div class="row" style="gap: 12px">
+              <svg width="48" height="48"><use href="#l-b" /></svg><span class="wm">bearing</span>
+            </div>
+            <div class="row" style="gap: 10px; align-items: flex-end">
+              <span class="ico i56" style="background: #0a0b0e; color: #fff"
+                ><svg width="40" height="40"><use href="#l-b" /></svg
+              ></span>
+              <span
+                class="ico i56"
+                style="
+                  background: #fff;
+                  --d1: #12b5ae;
+                  box-shadow: 0 6px 14px -8px rgba(10, 20, 40, 0.4);
+                "
+                ><svg width="40" height="40"><use href="#l-b" /></svg
+              ></span>
+              <span class="ico i16" style="background: #0a0b0e; color: #fff"
+                ><svg width="12" height="12"><use href="#l-b" /></svg
+              ></span>
+            </div>
+            <p>
+              The same seated ball, with a stem: a lowercase b. It can only be this name, which
+              makes it the most ownable. It is also the busiest of the four.
+            </p>
+          </div>
+          <div class="tile s3 lg">
+            <p class="cap" style="margin: 0">A4 · Two races</p>
+            <div class="row" style="gap: 12px">
+              <svg width="48" height="48"><use href="#l-two" /></svg><span class="wm">bearing</span>
+            </div>
+            <div class="row" style="gap: 10px; align-items: flex-end">
+              <span class="ico i56" style="background: #0a0b0e; color: #fff"
+                ><svg width="40" height="40"><use href="#l-two" /></svg
+              ></span>
+              <span
+                class="ico i56"
+                style="
+                  background: #fff;
+                  --d1: #ffd400;
+                  box-shadow: 0 6px 14px -8px rgba(10, 20, 40, 0.4);
+                "
+                ><svg width="40" height="40"><use href="#l-two" /></svg
+              ></span>
+              <span class="ico i16" style="background: #0a0b0e; color: #fff"
+                ><svg width="12" height="12"><use href="#l-two" /></svg
+              ></span>
+            </div>
+            <p>
+              A crossed with the two-ring logo you called not too bad: the ball seated between an
+              inner and an outer ring. The most literal bearing, and the weakest at 16 pixels.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════ 3 · Typeface ═════════ -->
+      <section class="sec">
+        <div class="rhead">
+          <span class="rletter">3</span><span class="rname">Typeface</span>
+          <span class="rline"
+            >Five that fit, none of them common. The rank is how widely each is used among 1,961
+            families on Google Fonts; Inter is 5.</span
+          >
+        </div>
+        <div class="board">
+          <div
+            class="tile s3 ty on"
+            data-face="Gabarito"
+            data-dw="800"
+            data-dt="-0.03em"
+            style="font-family: &quot;Gabarito&quot;, sans-serif"
+          >
+            <span class="pick">MY PICK</span>
+            <h3>Gabarito · rank 319</h3>
+            <div class="big" style="font-weight: 800; letter-spacing: -0.03em">bearing</div>
+            <div class="num">9–7 · 20:30 · 2½–1½ · T1</div>
+            <p>
+              Round bowls and round dots, so the letters belong to the same family as the dots on
+              the page. Sturdy and compact, with numbers that line up in columns and a 1 that cannot
+              be read as a letter.
+            </p>
+          </div>
+          <div
+            class="tile s3 ty"
+            data-face="Geom"
+            data-dw="800"
+            data-dt="-0.04em"
+            style="font-family: &quot;Geom&quot;, sans-serif"
+          >
+            <h3>Geom · rank 1,238</h3>
+            <div class="big" style="font-weight: 800; letter-spacing: -0.04em">bearing</div>
+            <div class="num">9–7 · 20:30 · 2½–1½ · T1</div>
+            <p>
+              The purest fit by shape: everything is drawn from circles, and it is so new that
+              almost nobody uses it. Two real faults for a scores product: its numbers do not line
+              up in columns, and its 1 looks like a capital I.
+            </p>
+          </div>
+          <div
+            class="tile s2 ty"
+            data-face="Golos Text"
+            data-dw="800"
+            data-dt="-0.045em"
+            style="font-family: &quot;Golos Text&quot;, sans-serif"
+          >
+            <h3>Golos Text · rank 253</h3>
+            <div class="big" style="font-weight: 800; letter-spacing: -0.045em">bearing</div>
+            <div class="num">9–7 · 20:30 · 2½–1½</div>
+            <p>
+              The closest to the header you liked in route 8, with round dots where Hanken's are
+              square. Solid and neutral; the safe second choice.
+            </p>
+          </div>
+          <div
+            class="tile s2 ty"
+            data-face="Albert Sans"
+            data-dw="800"
+            data-dt="-0.045em"
+            style="font-family: &quot;Albert Sans&quot;, sans-serif"
+          >
+            <h3>Albert Sans · rank 181</h3>
+            <div class="big" style="font-weight: 800; letter-spacing: -0.045em">bearing</div>
+            <div class="num">9–7 · 20:30 · 2½–1½</div>
+            <p>
+              A Scandinavian grotesk: geometric but calm. The quietest of the five. Its numbers do
+              not line up in columns either.
+            </p>
+          </div>
+          <div
+            class="tile s2 ty"
+            data-face="Funnel Display"
+            data-dw="800"
+            data-dt="-0.035em"
+            style="font-family: &quot;Funnel Display&quot;, sans-serif"
+          >
+            <h3>Funnel Display · rank 503</h3>
+            <div class="big" style="font-weight: 800; letter-spacing: -0.035em">bearing</div>
+            <div class="num">9–7 · 20:30 · 2½–1½</div>
+            <p>
+              The most distinctive letters, with small cuts where strokes meet. Memorable in
+              headlines, busier in long lists.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <script>
+        (function () {
+          var root = document.getElementById("bearing-r5");
+
+          // Dot rows from a round-by-round record. V and A are the two teams. data-live adds the round
+          // being played and the ones still to come; data-range="from-to" gives one half of 24.
+          root.querySelectorAll("[data-seq]").forEach(function (n) {
+            var seq = n.getAttribute("data-seq"),
+              live = n.hasAttribute("data-live");
+            var r = (n.getAttribute("data-range") || "0-24").split("-"),
+              from = +r[0],
+              to = +r[1],
+              whole = !n.hasAttribute("data-range");
+            for (var i = from; i < to; i++) {
+              if (whole && i === 12) n.appendChild(document.createElement("i")).className = "g";
+              var c =
+                i < seq.length
+                  ? seq[i] === "V"
+                    ? "a"
+                    : "b"
+                  : live
+                    ? i === seq.length
+                      ? "n"
+                      : "o"
+                    : "";
+              if (!c) continue;
+              n.appendChild(document.createElement("i")).className = c;
+            }
+          });
+
+          // Typeface switch: the buttons at the top and the specimen tiles both set it.
+          function setFace(src) {
+            root.style.setProperty("--face", '"' + src.getAttribute("data-face") + '"');
+            root.style.setProperty("--dw", src.getAttribute("data-dw"));
+            root.style.setProperty("--dt", src.getAttribute("data-dt"));
+            root.querySelectorAll("[data-face]").forEach(function (b) {
+              b.classList.toggle(
+                "on",
+                b.getAttribute("data-face") === src.getAttribute("data-face"),
+              );
+            });
+          }
+          root.querySelectorAll("[data-face]").forEach(function (b) {
+            b.addEventListener("click", function () {
+              setFace(b);
+            });
+          });
+        })();
+      </script>
+    </div>
+  </body>
+</html>
