@@ -2,7 +2,7 @@ import "@fontsource-variable/gabarito";
 import "@fontsource-variable/geist-mono";
 import "./bearing.css";
 
-import { Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { Link, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
 import { CalendarDays, House, Search, Star } from "lucide-react";
 import { type ReactNode, createContext, useContext, useEffect, useRef } from "react";
 import { usePrefs } from "../lib/prefs";
@@ -97,6 +97,16 @@ export function ShellWaiting() {
 export function Shell() {
   useSamplePlayer();
   useTrail();
+  // The four tabs are a press away at any moment: their code is fetched as soon as the first
+  // page stands, so that pressing one never waits on the network.
+  const router = useRouter();
+  useEffect(() => {
+    const fetchTabs = () => {
+      for (const tab of TABS) void router.preloadRoute({ to: tab.to }).catch(() => undefined);
+    };
+    const timer = setTimeout(fetchTabs, 600);
+    return () => clearTimeout(timer);
+  }, [router]);
   const path = useRouterState({ select: (s) => s.location.pathname });
   const found = tabOf(path);
   // A page further in (a match, a team) belongs to the tab it was opened from.
