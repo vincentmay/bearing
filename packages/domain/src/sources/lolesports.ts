@@ -151,15 +151,18 @@ export function readGame(
   blue: number,
 ): Pick<
   GameResult,
-  "clock" | "scores" | "objectives" | "events" | "firstSide" | "startedAt"
+  "clock" | "scores" | "objectives" | "events" | "firstSide" | "startedAt" | "lead"
 > | null {
   const first = frames[0];
   if (!first) return null;
   const startedAt = Date.parse(first.rfc460Timestamp);
   const events: GameEvent[] = [];
+  // The looks are a minute apart, so the lead in gold at each of them is the lead by the minute.
+  const lead: number[] = [];
   let before: LolState | undefined;
   for (const frame of frames) {
     const state = stateOf(frame, startedAt, blue);
+    lead.push((state.gold[0] ?? 0) - (state.gold[1] ?? 0));
     events.push(...between(before, state));
     before = state;
     if (state.finished) break;
@@ -177,6 +180,7 @@ export function readGame(
       gold: last.gold,
     },
     events,
+    lead,
   };
 }
 

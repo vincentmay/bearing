@@ -37,6 +37,7 @@ function keepDetail(before: Doc | undefined, fresh: Doc): Doc {
         rounds: game.rounds ?? old.rounds,
         lines: game.lines ?? old.lines,
         draft: game.draft ?? old.draft,
+        lead: game.lead ?? old.lead,
       };
     }),
   };

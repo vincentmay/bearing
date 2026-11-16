@@ -204,6 +204,8 @@ export interface GameResult {
   clock?: number;
   /** Things that happened at a known moment, in order: Rocket League goals, League objectives. */
   events?: GameEvent[];
+  /** LoL: how far the first side led in gold at each minute of the game; negative when behind. */
+  lead?: number[];
   /** LoL: which champions each side took and which it denied the other. */
   draft?: Draft;
 }

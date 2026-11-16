@@ -1326,6 +1326,29 @@ body {
 .bx-game > .bx-dots {
   margin-top: 9px;
 }
+/* Who led in gold, minute by minute: above the line one side, below it the other. */
+.bx-gold {
+  position: relative;
+  margin-top: 10px;
+}
+.bx-gold svg {
+  display: block;
+  width: 100%;
+  height: 44px;
+  border-radius: 6px;
+  background: linear-gradient(var(--hair), var(--hair)) 0 50% / 100% 1px no-repeat;
+  opacity: 0.92;
+}
+.bx-gold .bx-sub {
+  position: absolute;
+  top: 0;
+  left: 0;
+  text-transform: uppercase;
+}
+.bx-gold .bx-sub b {
+  color: var(--ink);
+  font-weight: 700;
+}
 /*
  * A game of League as it was played: lane against lane. Each half is a champion, the player
  * and their line; the right half is the left one mirrored, so the two meet at the lane's sign.

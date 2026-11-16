@@ -184,6 +184,7 @@ export const game = v.object({
       }),
     ),
   ),
+  lead: v.optional(v.array(v.number())),
   draft: v.optional(
     v.object({
       patch: maybeText,

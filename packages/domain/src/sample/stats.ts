@@ -227,6 +227,15 @@ export function decorateLol(matches: Match[], rosters: Map<string, string[]>) {
       g.clock = min * 60 + sec;
       g.events = lolEvents(r, g.objectives, g.clock);
       g.draft = draftOf(r);
+      // The lead in gold by the minute: it wanders, and ends where the totals say.
+      const end = gold[0]! - gold[1]!;
+      const minutes = Math.max(2, Math.round(g.clock / 60));
+      let drift = 0;
+      g.lead = Array.from({ length: minutes + 1 }, (_, i) => {
+        const part = i / minutes;
+        drift = drift * 0.82 + (r() - 0.5) * 1800;
+        return Math.round(end * part ** 1.6 + drift * Math.sin(Math.PI * part));
+      });
       if (sideRosters.some((x) => !x || x.length < 5)) continue;
       const lines: PlayerLine[] = [];
       sideRosters.forEach((roster, side) => {

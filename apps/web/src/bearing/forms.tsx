@@ -1,7 +1,7 @@
 import type { GameResult, PlayerLine } from "@bearing/domain";
 import { formatPoints, seriesScore } from "@bearing/domain";
 import { ChessGame } from "./chessboard";
-import type { CSSProperties } from "react";
+import { type CSSProperties, useId } from "react";
 import {
   type Dot,
   type MatchView,
@@ -154,6 +154,45 @@ function toCome(view: MatchView, index: number): string {
   const need = Math.floor(view.match.bestOf / 2) + 1;
   const lead = Math.max(0, ...seriesScore(view.match));
   return index < played + (need - lead) ? "to come" : "if needed";
+}
+
+/**
+ * Who led in gold through a game of League, minute by minute: above the line the first side
+ * is ahead, below it the second, each in its own colour, and at the end by how much.
+ */
+function GoldLead({ lead, sides }: { lead: number[]; sides: SideView[] }) {
+  const id = useId();
+  const top = Math.max(1500, ...lead.map(Math.abs));
+  const last = lead.length - 1;
+  const y = (value: number) => 20 - (value / top) * 18;
+  const line = lead.map((value, i) => `${i ? "L" : "M"}${i},${y(value).toFixed(2)}`).join("");
+  const area = `${line}L${last},20L0,20Z`;
+  const end = lead[last] ?? 0;
+  const ahead = sides[end >= 0 ? 0 : 1];
+  return (
+    <div className="bx-gold">
+      <svg viewBox={`0 0 ${last} 40`} preserveAspectRatio="none" aria-hidden>
+        <clipPath id={`${id}a`}>
+          <rect x="0" y="0" width={last} height="20" />
+        </clipPath>
+        <clipPath id={`${id}b`}>
+          <rect x="0" y="20" width={last} height="20" />
+        </clipPath>
+        <path d={area} fill={sides[0]?.color} clipPath={`url(#${id}a)`} />
+        <path d={area} fill={sides[1]?.color} clipPath={`url(#${id}b)`} />
+      </svg>
+      <span className="bx-sub bx-mono">
+        Gold{" "}
+        {Math.abs(end) >= 100 && ahead ? (
+          <b>
+            {ahead.label} +{thousands(Math.abs(end))}
+          </b>
+        ) : (
+          <b>level</b>
+        )}
+      </span>
+    </div>
+  );
 }
 
 const LANE = ["top", "jungle", "mid", "bot", "support"];
@@ -333,6 +372,7 @@ export function GameRow({
             labels={marks}
           />
         ) : null}
+        {game.lead && game.lead.length > 2 ? <GoldLead lead={game.lead} sides={sides} /> : null}
         <Scoreboard game={game} />
       </div>
     );

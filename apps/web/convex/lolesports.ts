@@ -92,7 +92,7 @@ export const targets = internalQuery({
         row.doc.sides.length === 2 &&
         row.doc.sides.every((s) => s.competitorId) &&
         (row.doc.status === "live" ||
-          row.doc.games.some((g) => g.status === "finished" && !g.events)),
+          row.doc.games.some((g) => g.status === "finished" && (!g.events || !g.lead))),
     );
     const out = [];
     for (const row of wanted.slice(0, 40)) {
@@ -115,7 +115,8 @@ export const targets = internalQuery({
           status: g.status,
           startedAt: g.startedAt,
           clock: g.clock,
-          known: !!g.events,
+          // A finished game is known once its course is: what fell when, and the lead in gold.
+          known: !!g.events && (g.status !== "finished" || !!g.lead),
           towers: g.objectives?.towers,
           dragons: g.objectives?.dragons,
           barons: g.objectives?.barons,
@@ -146,6 +147,8 @@ export const apply = internalMutation({
     /** The whole list for a game read from its start; only the new ones for a game in progress. */
     events: v.array(event),
     append: v.boolean(),
+    /** The lead in gold by the minute, for a game read from its start. */
+    lead: v.optional(numbers),
   },
   handler: async (ctx, args) => {
     const row = await ctx.db
@@ -157,10 +160,21 @@ export const apply = internalMutation({
     const events: GameEvent[] = args.append
       ? [...(game.events ?? []), ...args.events]
       : args.events;
+    // A game in progress gains the lead of the minute it is in; the minutes not looked at
+    // take the lead before them.
+    let lead = args.lead ?? game.lead;
+    if (args.append) {
+      const minute = Math.floor(args.clock / 60);
+      const now = (args.objectives.gold[0] ?? 0) - (args.objectives.gold[1] ?? 0);
+      lead = [...(game.lead ?? [])];
+      while (lead.length < minute) lead.push(lead.at(-1) ?? 0);
+      lead[minute] = now;
+    }
     const games = row.doc.games.map((g, i) =>
       i === args.index
         ? {
             ...g,
+            lead,
             startedAt: args.startedAt ?? g.startedAt,
             firstSide: args.firstSide,
             // A finished game keeps the length PandaScore gives it, which is the official one.
@@ -274,6 +288,7 @@ export const enrich = internalAction({
           objectives: read.objectives,
           events: read.events ?? [],
           append: false,
+          lead: read.lead,
         });
       }
     }
