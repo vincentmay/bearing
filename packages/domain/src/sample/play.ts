@@ -9,6 +9,7 @@ import type {
   Tournament,
   World,
 } from "../model.ts";
+import { SAMPLE_GAMES } from "./games.ts";
 import { pick, shuffle, type Rand } from "./kit.ts";
 import { CUP_LIMIT, CUP_POINTS } from "./trackmania.ts";
 
@@ -344,29 +345,28 @@ function stepChess(m: Match, r: Rand): Match {
   if (i < 0) return r() < 0.6 ? openNext(m, "chess", r) : m;
   if (r() > 0.5) return m;
   const g = m.games[i]!;
-  const move = (g.chess?.move ?? 1) + 1;
-  const opening = g.detail?.split(" · ")[0];
-  // The sample has no real moves, so the position and clocks it started with are dropped
-  // rather than shown out of date.
-  const chess = { fen: g.chess?.fen ?? "", move };
-  if (!(move >= 30 && (r() < 0.06 || move >= 90))) {
-    return withGame(m, i, {
-      ...g,
-      chess,
-      detail: opening ? `${opening} · move ${move}` : `Move ${move}`,
-    });
+  const sofar = g.moves ?? [];
+  // The game on the board is one from the shelf; a new game takes one at random.
+  const line =
+    SAMPLE_GAMES.find((x) => sofar.length && sofar.every((san, k) => x.moves[k] === san)) ??
+    pick(r, SAMPLE_GAMES);
+  const moves = line.moves.slice(0, sofar.length + 1);
+  const move = Math.ceil(moves.length / 2);
+  const chess = { fen: "", move };
+  if (moves.length < line.moves.length) {
+    return withGame(m, i, { ...g, chess, moves, detail: `${line.opening} · move ${move}` });
   }
   const white = g.firstSide ?? 0;
-  const roll = r();
-  const winner = roll < 0.6 ? ("draw" as const) : roll < 0.84 ? white : 1 - white;
+  const winner = line.result === 0.5 ? ("draw" as const) : line.result === 1 ? white : 1 - white;
   return settle(
     withGame(m, i, {
       ...g,
       status: "finished",
       chess,
+      moves,
       winner,
       scores: m.sides.map((_, s) => (winner === "draw" ? 0.5 : winner === s ? 1 : 0)),
-      detail: opening ? `${opening} · ${move} moves` : `${move} moves`,
+      detail: `${line.opening} · ${move} moves`,
     }),
   );
 }

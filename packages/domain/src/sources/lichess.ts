@@ -1,3 +1,4 @@
+import { movesOfPgn } from "../chess.ts";
 import type { GameResult, Match, Player, Stage, StageFormat, Tournament } from "../model.ts";
 
 /**
@@ -132,6 +133,28 @@ export interface LichessGame {
   lastMove?: string;
   /** "1-0", "0-1", "½-½", or "*" while it is not over. */
   status?: string;
+  /** From the round's written games, where they were fetched: the moves, and the opening's name. */
+  moves?: string[];
+  opening?: string;
+}
+
+/**
+ * The games of a round out of its written record (one PGN after another), by game id: the moves
+ * of each and the name of its opening where Lichess has worked one out.
+ */
+export function gamesOfPgn(pgn: string): Record<string, { moves: string[]; opening?: string }> {
+  const games: Record<string, { moves: string[]; opening?: string }> = {};
+  for (const one of pgn.split(/\n\s*\n(?=\[Event )/)) {
+    const tag = (name: string) => new RegExp(`\\[${name} "([^"]*)"\\]`).exec(one)?.[1];
+    const id = (tag("GameURL") ?? tag("Site"))?.split("/").at(-1);
+    if (!id) continue;
+    const opening = tag("Opening");
+    games[id] = {
+      moves: movesOfPgn(one),
+      opening: opening && opening !== "?" ? opening : undefined,
+    };
+  }
+  return games;
 }
 
 export interface LichessBroadcast {
@@ -219,11 +242,15 @@ function toMatch(
   // The last field of a FEN is the number of the move being played.
   const move = Number(game.fen?.trim().split(/\s+/)[5]);
   const clocks = [white?.clock, black?.clock];
+  const played = game.moves?.length ? Math.ceil(game.moves.length / 2) : undefined;
+  const length = played ? (over ? `${played} moves` : `move ${played}`) : undefined;
   const state: GameResult = {
     label: `Board ${board + 1}`,
     status,
     firstSide: 0,
     winner,
+    detail: [game.opening, length].filter(Boolean).join(" · ") || undefined,
+    moves: game.moves?.length ? game.moves : undefined,
     scores:
       winner === undefined
         ? undefined

@@ -1356,6 +1356,145 @@ body {
   text-overflow: ellipsis;
 }
 /*
+ * A game of chess: the board as an object in black, white and two greys, the same on either
+ * ground, and the moves beside it.
+ */
+.bx-game:has(.bx-chess) {
+  container-type: inline-size;
+}
+.bx-chess {
+  display: grid;
+  gap: 14px;
+  margin-top: 12px;
+}
+@container (min-width: 470px) {
+  .bx-chess {
+    grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+  }
+}
+.bx-chess-name {
+  margin: 0;
+  padding: 6px 2px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.bx-board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  container-type: inline-size;
+  user-select: none;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.2);
+}
+.bx-board:focus-visible {
+  outline-offset: 3px;
+  border-radius: 12px;
+}
+.bx-board i {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  background: #f0f0f0;
+  transition: box-shadow 0.18s var(--out);
+}
+.bx-board i[data-dark] {
+  background: #bcbcbc;
+}
+.bx-board i[data-from] {
+  box-shadow: inset 0 0 0 2px rgb(0 0 0 / 0.45);
+}
+.bx-board i[data-to] {
+  box-shadow: inset 0 0 0 3px #000;
+}
+.bx-board span {
+  font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "Apple Symbols", "DejaVu Sans", sans-serif;
+  font-size: 9.4cqw;
+  line-height: 1;
+  color: #000;
+}
+.bx-board span[data-white] {
+  color: #fff;
+  -webkit-text-stroke: 0.42cqw #000;
+  paint-order: stroke fill;
+}
+.bx-board span[data-landed] {
+  animation: bx-pop 0.26s var(--spring);
+}
+.bx-chess-keys {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+.bx-chess-keys button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  transition:
+    background-color 0.16s var(--out),
+    transform 0.15s,
+    opacity 0.16s;
+}
+.bx-chess-keys button:active {
+  transform: scale(0.88);
+}
+.bx-chess-keys button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.bx-chess-keys button[data-main] {
+  background: var(--ink);
+  color: var(--surface);
+}
+.bx-moves {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 1px 14px;
+  align-content: start;
+  max-height: 300px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  font-size: 13px;
+}
+.bx-moves li {
+  display: grid;
+  grid-template-columns: 20px 1fr 1fr;
+  align-items: center;
+  gap: 2px;
+}
+.bx-moves li > i {
+  font: 400 10px var(--mono);
+  color: var(--ink3);
+}
+.bx-moves button {
+  padding: 4px 6px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  transition: background-color 0.14s var(--out);
+}
+.bx-moves button[aria-current] {
+  background: var(--ink);
+  color: var(--surface);
+  font-weight: 700;
+}
+@media (hover: hover) {
+  .bx-moves button:not([aria-current]):hover,
+  .bx-chess-keys button:not(:disabled):not([data-main]):hover {
+    background: var(--hover);
+  }
+}
+
+/*
  * Swiss, as a flow. Records are places, teams stand at the record they hold, lines are the
  * results that took them there: ink for a win, grey for a loss.
  */

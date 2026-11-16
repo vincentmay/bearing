@@ -1,4 +1,5 @@
 import type { Match, Player, Round, Tournament } from "../model.ts";
+import { SAMPLE_GAMES, type SampleGame } from "./games.ts";
 import { SAMPLE_PROVENANCE, cet, pick, rng, type Rand } from "./kit.ts";
 
 const p = (
@@ -60,21 +61,6 @@ const LIVE: Record<
   },
 };
 
-const OPENINGS = [
-  "Ruy Lopez, Berlin Defence",
-  "Queen's Gambit Declined",
-  "Sicilian, Najdorf",
-  "Italian Game, Giuoco Pianissimo",
-  "Catalan, Open",
-  "Nimzo-Indian, Rubinstein",
-  "Sicilian, Rossolimo",
-  "English, Four Knights",
-  "Grünfeld, Exchange",
-  "Petroff Defence",
-  "Caro-Kann, Advance",
-  "Semi-Slav, Meran",
-];
-
 /** Berger table: round-robin pairings with alternating colours. */
 function berger(n: number): [number, number][][] {
   const rounds: [number, number][][] = [];
@@ -101,6 +87,23 @@ function play(r: Rand, white: Player, black: Player) {
   return r() < expected ? (0 as const) : (1 as const);
 }
 
+/** A game from the shelf that ended the way this one is said to have ended. */
+function gameFor(r: Rand, result: 0 | 1 | "draw"): SampleGame {
+  const wanted = result === "draw" ? 0.5 : result === 0 ? 1 : 0;
+  return pick(
+    r,
+    SAMPLE_GAMES.filter((g) => g.result === wanted),
+  );
+}
+
+/** The games being played in round 6, by board, and how far each has got. */
+const ON_THE_BOARDS: Record<number, { game: SampleGame; move: number }> = {
+  0: { game: SAMPLE_GAMES.find((g) => g.opening === "Grünfeld Defence")!, move: 27 },
+  1: { game: SAMPLE_GAMES.find((g) => g.opening === "Petroff Defence")!, move: 12 },
+  3: { game: SAMPLE_GAMES.find((g) => g.opening === "Evans Gambit")!, move: 15 },
+};
+const QUICK_DRAW = SAMPLE_GAMES.find((g) => g.opening === "Berlin Defence")!;
+
 export function buildChess() {
   const r = rng(20261110);
   const tid = "chess-fall-classic-2026";
@@ -121,11 +124,10 @@ export function buildChess() {
       const white = chessPlayers[w]!;
       const black = chessPlayers[b]!;
       const id = `${tid}-r${ri + 1}-b${gi + 1}`;
-      const opening = pick(r, OPENINGS);
       let match: Match;
       if (ri < 5) {
         const result = play(r, white, black);
-        const moves = result === "draw" ? 28 + Math.floor(r() * 40) : 36 + Math.floor(r() * 40);
+        const played = gameFor(r, result);
         match = {
           id,
           tournamentId: tid,
@@ -142,14 +144,16 @@ export function buildChess() {
               firstSide: 0,
               winner: result,
               scores: result === "draw" ? [0.5, 0.5] : result === 0 ? [1, 0] : [0, 1],
-              detail: `${opening} · ${moves} moves`,
+              detail: `${played.opening} · ${Math.ceil(played.moves.length / 2)} moves`,
+              moves: played.moves,
             },
           ],
         };
       } else if (ri === 5) {
         // Round 6 is in progress: one quick draw, three games still being played.
         const done = gi === 2;
-        const move = [27, 31, 22, 34][gi]!;
+        const on = ON_THE_BOARDS[gi];
+        const move = on?.move ?? 22;
         match = {
           id,
           tournamentId: tid,
@@ -167,20 +171,17 @@ export function buildChess() {
                   firstSide: 0,
                   winner: "draw",
                   scores: [0.5, 0.5],
-                  detail: `Petroff Defence · ${move} moves`,
+                  detail: `${QUICK_DRAW.opening} · ${Math.ceil(QUICK_DRAW.moves.length / 2)} moves`,
+                  moves: QUICK_DRAW.moves,
                 }
               : {
                   label: `Board ${gi + 1}`,
                   status: "live",
                   firstSide: 0,
-                  detail: `${LIVE[gi]!.opening} · move ${move}`,
-                  chess: {
-                    fen: LIVE[gi]!.fen,
-                    move,
-                    clocks: LIVE[gi]!.clocks,
-                    eval: LIVE[gi]!.eval,
-                    lastMove: LIVE[gi]!.lastMove,
-                  },
+                  detail: `${on!.game.opening} · move ${move}`,
+                  chess: { fen: "", move, clocks: LIVE[gi]!.clocks },
+                  // White has just made move number `move`.
+                  moves: on!.game.moves.slice(0, move * 2 - 1),
                 },
           ],
           stream: { label: "Commentary", url: "#" },

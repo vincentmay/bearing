@@ -1,5 +1,6 @@
 import type { GameResult } from "@bearing/domain";
 import { formatPoints, seriesScore } from "@bearing/domain";
+import { ChessGame } from "./chessboard";
 import type { CSSProperties } from "react";
 import {
   type Dot,
@@ -329,9 +330,19 @@ export function GameRow({
             {live ? `move ${game.chess?.move ?? 1}` : `${result}${length ? ` · ${length}` : ""}`}
           </span>
         </div>
-        <span className="bx-sub">
-          {white?.name} {live ? "has" : "had"} the white pieces.{opening ? ` ${opening}.` : ""}
-        </span>
+        {opening ? <span className="bx-sub">{opening}</span> : null}
+        {game.moves?.length ? (
+          <ChessGame
+            moves={game.moves}
+            live={live}
+            white={white?.name ?? "White"}
+            black={sides[1 - (game.firstSide ?? 0)]?.name ?? "Black"}
+          />
+        ) : (
+          <span className="bx-sub">
+            {white?.name} {live ? "has" : "had"} the white pieces.
+          </span>
+        )}
       </div>
     );
   }

@@ -189,6 +189,7 @@ const game = v.object({
       lastMove: maybeText,
     }),
   ),
+  moves: v.optional(v.array(text)),
   cup: v.optional(
     v.object({
       limit: v.number(),

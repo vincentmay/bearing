@@ -3,6 +3,7 @@ import {
   type LichessGame,
   type LichessRound,
   type LichessTour,
+  gamesOfPgn,
   mapBroadcast,
   roundsToFetch,
 } from "@bearing/domain/lichess";
@@ -34,6 +35,14 @@ async function get<T>(path: string): Promise<T | null> {
   return (await response.json()) as T;
 }
 
+async function text(path: string): Promise<string> {
+  const response = await fetch(`${BASE}${path}`, {
+    headers: { "User-Agent": "Bearing (esports schedule viewer)" },
+  });
+  if (response.status === 429) throw new Error("Lichess asked for a pause (429).");
+  return response.ok ? response.text() : "";
+}
+
 interface Top {
   active?: { tour: LichessTour }[];
   upcoming?: { tour: LichessTour }[];
@@ -46,7 +55,10 @@ async function fetchBroadcast(tourId: string): Promise<LichessBroadcast | null> 
   const games: Record<string, LichessGame[]> = {};
   for (const round of wanted) {
     const answer = await get<{ games?: LichessGame[] }>(`/-/-/${round.id}`);
-    if (answer?.games) games[round.id] = answer.games;
+    if (!answer?.games) continue;
+    // The moves are in the round's written games, which is a second address.
+    const written = gamesOfPgn(await text(`/round/${round.id}.pgn`));
+    games[round.id] = answer.games.map((game) => ({ ...game, ...written[game.id] }));
   }
   return { tour: detail.tour, rounds: detail.rounds, games };
 }

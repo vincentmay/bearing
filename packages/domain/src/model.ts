@@ -189,6 +189,8 @@ export interface GameResult {
   objectives?: { towers: number[]; dragons: number[]; barons: number[]; gold: number[] };
   /** Chess: current or final position, clocks, engine evaluation (white's view). */
   chess?: { fen: string; move: number; clocks?: string[]; eval?: number; lastMove?: string };
+  /** Chess: the moves played so far, as they are written down ("e4", "Nf3", "O-O"). */
+  moves?: string[];
   /**
    * Trackmania cup: the point limit, the round being raced, who has reached the limit, and the
    * finishing order of every round raced so far (side indices, first place first).
