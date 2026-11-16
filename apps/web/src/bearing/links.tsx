@@ -1,7 +1,7 @@
 import type { Follow } from "@bearing/domain";
 import { Link, useRouter } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
-import { type CSSProperties, type ReactNode, useEffect } from "react";
+import { type CSSProperties, type MouseEvent, type ReactNode, useEffect } from "react";
 import { visit } from "../lib/recents";
 import { useAtlas } from "../lib/world";
 import { useOrigin } from "./shell";
@@ -11,6 +11,20 @@ import { nameOf, usePrevious } from "./trail";
  * A link to the page of a team, a player or an event. Organisations and whole games have no
  * page of their own, so for those it is plain text.
  */
+/**
+ * When a row with one mark leads to the page of whoever the mark is, the mark travels: it is
+ * named for the moment of the change of pages, and the page's own large mark carries the same
+ * name, so the browser moves one into the other. A mark already named on this page lets go of
+ * the name first, since two of a name cancel the whole movement.
+ */
+function travel(event: MouseEvent<HTMLAnchorElement>) {
+  const marks = event.currentTarget.querySelectorAll<HTMLElement>(".bx-disc");
+  if (marks.length !== 1) return;
+  for (const held of document.querySelectorAll<HTMLElement>(".bx-entity > .bx-disc"))
+    held.style.viewTransitionName = "none";
+  marks[0]!.style.viewTransitionName = "bx-mark";
+}
+
 export function Go({
   to,
   className,
@@ -25,13 +39,13 @@ export function Go({
   const rest = { className, style };
   if (to.kind === "team")
     return (
-      <Link to="/team/$teamId" params={{ teamId: to.id }} {...rest}>
+      <Link to="/team/$teamId" params={{ teamId: to.id }} onClick={travel} {...rest}>
         {children}
       </Link>
     );
   if (to.kind === "player")
     return (
-      <Link to="/player/$playerId" params={{ playerId: to.id }} {...rest}>
+      <Link to="/player/$playerId" params={{ playerId: to.id }} onClick={travel} {...rest}>
         {children}
       </Link>
     );

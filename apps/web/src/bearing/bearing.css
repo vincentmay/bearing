@@ -340,6 +340,20 @@ body {
   .bx-nav > i {
     view-transition-name: bx-tab;
   }
+  /* The large mark at the head of a team's or a player's page: a mark in a row travels into it. */
+  .bx-entity > .bx-disc {
+    view-transition-name: bx-mark;
+  }
+  ::view-transition-group(bx-mark) {
+    animation-duration: 0.44s;
+    animation-timing-function: cubic-bezier(0.2, 0.9, 0.25, 1);
+  }
+  ::view-transition-old(bx-mark),
+  ::view-transition-new(bx-mark) {
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
   ::view-transition-old(root),
   ::view-transition-new(root) {
     animation: none;
