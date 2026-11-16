@@ -184,6 +184,10 @@ The home screen. Answers questions 1 to 3.
   against lane, each player with their champion and their kills, deaths and assists, and what
   each side banned. The owner: "in my dream scenario we could rely on this application for all
   this data, rosters, history, how each game played out".
+- **G14 (Agreed on 2026-11-16).** A country is shown with its flag. A team's people are listed
+  in the order of their positions (League: top, jungle, mid, bot, support), with substitutes
+  and staff in lists of their own. A role is written as its word, then its sign; League's five
+  positions use the game's own signs.
 - **G13 (Agreed on 2026-11-16).** Bearing is meant to carry the depth itself, so that nobody
   has to leave for HLTV or Liquipedia, wherever a source for it can be had free or for little.
   The owner turned down the smaller aim ("a dumbed down version").
@@ -191,7 +195,14 @@ The home screen. Answers questions 1 to 3.
 ### 4.4 Schedule
 
 - **S1.** A row of days; the selected day is a filled circle. Today is selected first.
-- **S2.** All matches of that day in time order, across all games, each in the row of G11.
+- **S2 (changed on 2026-11-16).** The matches of the chosen day, event by event: each event
+  that plays that day leads with its name, its stage and which of its days this is, and its
+  matches follow in time order, each in the row of G11. The owner: "what about events, events
+  span over a longer time period, what about part of events".
+- **S5 (Agreed on 2026-11-16).** The strip of days moves a week at a time in either direction,
+  without end; a day that has matches carries a mark; one press leads back to today.
+- **S6 (Agreed on 2026-11-16).** Beside the day's matches stand the events running that day and
+  those beginning within two weeks, with their dates.
 - **S3.** A switch between "everything" and "what I follow".
 - **S4 (dropped on 2026-11-16).** Matches that overlap in time were joined by a line; the owner
   found the schedule hard to follow, and the line went with the redesign.
@@ -232,11 +243,14 @@ The home screen. Answers questions 1 to 3.
 
 - **TO1.** Name, dates, place, organiser, prize, and where its facts come from.
 - **TO2.** The format explained in plain language (the model has `Stage.explainer`).
-- **TO3.** Each stage drawn for its format. Single elimination is a bracket of plates joined
-  by lines; pointing at a team lights its way through. Swiss is a flow: records are places,
-  teams stand at the record they hold, the lines are the results that took them there, and a
-  team that is pointed at or picked has its way drawn out and told round by round. Round robin
-  is a table, a Trackmania cup is heats. Double elimination is still a list of rounds.
+- **TO3.** Each stage drawn for its format, never as a bare list where the format is known.
+  Single elimination is a bracket of plates joined by lines; pointing at a team lights its way
+  through. Double elimination is two such brackets, upper above lower, sharing their columns
+  and tracing a team through both. Swiss is a flow: records are places, teams stand at the
+  record they hold, the lines are the results that took them there, and a team that is pointed
+  at or picked has its way drawn out and told round by round. Round robin is a table, a
+  Trackmania cup is heats. A long round of single games (a chess open) is a list of pairings,
+  each with flags, titles and ratings, White first.
 - **TO4.** Brackets follow the dot rule: a decided match shows the winner's dot.
 - **TO5.** Final placements and prize money once known.
 

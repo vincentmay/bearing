@@ -2,13 +2,23 @@ import {
   type Atlas,
   type Follow,
   type Match,
+  type Tournament,
   champion,
+  dateRange,
   form,
   tournamentStatus,
   winnerOf,
 } from "@bearing/domain";
 import { Link } from "@tanstack/react-router";
-import { Gamepad2, Rows3, Search as SearchIcon, Trophy, Users } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Gamepad2,
+  Rows3,
+  Search as SearchIcon,
+  Trophy,
+  Users,
+} from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { bundle, scoreLine, upcomingForYou } from "../lib/view";
 import { useRecents } from "../lib/recents";
@@ -28,25 +38,86 @@ const SCOPES = [
   { value: "mine", label: "What I follow" },
 ] as const;
 
-/** A row of days; under it, everything on the selected day in time order, across all games. */
+const dayNumber = (date: string) => Math.round(Date.parse(`${date}T12:00:00Z`) / DAY);
+
+/**
+ * A strip of days that can be moved a week at a time, as far as anyone likes. Under it the
+ * chosen day: each event that plays that day with its matches in time order, and beside them
+ * the events that are running or about to begin, since an event is longer than its matches.
+ */
 export function Schedule() {
   const board = useBoard();
   const { atlas, now, times } = board;
   const wide = useWide();
   const [scope, setScope] = useState<(typeof SCOPES)[number]["value"]>("all");
   const [offset, setOffset] = useState(0);
-  const offsets = wide ? [-3, -2, -1, 0, 1, 2, 3, 4, 5, 6] : [-2, -1, 0, 1, 2, 3, 4];
+  const span = wide ? 10 : 7;
+  // The first day shown; today sits a few days in, so that yesterday is at hand.
+  const [first, setFirst] = useState<number>();
+  const start = first ?? (wide ? -3 : -2);
+  const offsets = Array.from({ length: span }, (_, i) => start + i);
   const day = now + offset * DAY;
   const key = times.dayKey(day);
+  const move = (by: number) => {
+    setFirst(start + by);
+    setOffset(offset + by);
+  };
+  const today = () => {
+    setFirst(undefined);
+    setOffset(0);
+  };
 
   // What the viewer follows includes matches a followed team only reaches by winning first.
   const maybe = new Set(upcomingForYou(atlas).map((u) => u.match.id));
   const mine = (m: Match) => atlas.isFollowed(m) || maybe.has(m.id);
-  const matches = atlas.world.matches
-    .filter((m) => times.dayKey(m.scheduledAt) === key && (scope === "all" || mine(m)))
+  const wanted = atlas.world.matches.filter((m) => scope === "all" || mine(m));
+  const perDay = new Map<string, number>();
+  for (const m of wanted) {
+    const k = times.dayKey(m.scheduledAt);
+    perDay.set(k, (perDay.get(k) ?? 0) + 1);
+  }
+  const matches = wanted
+    .filter((m) => times.dayKey(m.scheduledAt) === key)
     .sort((x, y) => x.scheduledAt.localeCompare(y.scheduledAt));
 
-  const rows = bundle(atlas, matches);
+  // The day's matches, event by event, in the order the events begin their day.
+  const groups = new Map<string, Match[]>();
+  for (const m of matches) groups.set(m.tournamentId, [...(groups.get(m.tournamentId) ?? []), m]);
+
+  const followed = new Set(
+    atlas.world.follows.filter((f) => f.kind === "tournament").map((f) => f.id),
+  );
+  const shown = atlas.world.tournaments.filter(
+    (t) => scope === "all" || followed.has(t.id) || wanted.some((m) => m.tournamentId === t.id),
+  );
+  const tier = (t: Tournament) => "SAB".indexOf(t.tier);
+  const running = shown
+    .filter((t) => t.start <= key && key <= t.end)
+    .sort((x, y) => tier(x) - tier(y) || x.start.localeCompare(y.start));
+  const soon = shown
+    .filter((t) => t.start > key && dayNumber(t.start) - dayNumber(key) <= 14)
+    .sort((x, y) => x.start.localeCompare(y.start) || tier(x) - tier(y));
+
+  /** Where an event stands on the chosen day: its stage, and which of its days this is. */
+  const standing = (t: Tournament) => {
+    const stage = t.stages.find((s) => s.start <= key && key <= s.end);
+    const days = dayNumber(t.end) - dayNumber(t.start) + 1;
+    return [
+      stage && t.stages.length > 1 ? stage.name : undefined,
+      days > 1 ? `Day ${dayNumber(key) - dayNumber(t.start) + 1} of ${days}` : undefined,
+    ].filter(Boolean);
+  };
+  const eventRow = (t: Tournament, note: string[]) => (
+    <Go key={t.id} to={{ kind: "tournament", id: t.id }} className="bx-line bx-event-line">
+      <span style={{ minWidth: 0 }}>
+        <b>{t.name}</b>
+        <span className="bx-sub">
+          {[atlas.discipline(t.discipline).short, ...note].join(" · ")}
+        </span>
+      </span>
+      <span className="bx-sub bx-mono">{dateRange(t.start, t.end)}</span>
+    </Go>
+  );
 
   return (
     <>
@@ -54,53 +125,131 @@ export function Schedule() {
         <h1 className="bx-title">Schedule</h1>
         <span className="bx-date">{times.month(day)}</span>
       </header>
-      <div className="bx-days" role="group" aria-label="Day">
-        {offsets.map((i) => {
-          const d = now + i * DAY;
-          return (
-            <button
-              key={i}
-              type="button"
-              aria-pressed={i === offset}
-              aria-label={times.date(d)}
-              data-today={i === 0 ? "" : undefined}
-              onClick={() => setOffset(i)}
-            >
-              {i === 0 ? "Today" : times.weekday(d)}
-              <b>{times.dayOfMonth(d)}</b>
-            </button>
-          );
-        })}
-      </div>
-      <div className={wide ? "bx-page-narrow" : undefined} style={wide ? { margin: 0 } : undefined}>
-        <Segmented options={SCOPES} value={scope} onChange={setScope} label="Which matches" />
-        <Section
-          label={`${times.day(day, now)} · ${matches.length} ${matches.length === 1 ? "match" : "matches"}`}
+      <div className="bx-daybar">
+        <button
+          type="button"
+          className="bx-iconbtn"
+          aria-label="A week earlier"
+          onClick={() => move(-7)}
         >
-          <div className="bx-list">
-            {rows.map((item) =>
-              item.kind === "match" ? (
-                <ScheduleRow key={item.match.id} match={item.match} board={board} />
-              ) : (
-                <RoundRow key={item.key} matches={item.matches} board={board} />
-              ),
-            )}
-            {matches.length ? null : (
+          <ChevronLeft size={16} strokeWidth={2.4} aria-hidden />
+        </button>
+        <div className="bx-days" role="group" aria-label="Day">
+          {offsets.map((i) => {
+            const d = now + i * DAY;
+            const count = perDay.get(times.dayKey(d)) ?? 0;
+            return (
+              <button
+                key={i}
+                type="button"
+                aria-pressed={i === offset}
+                aria-label={`${times.date(d)}, ${count} ${count === 1 ? "match" : "matches"}`}
+                data-today={i === 0 ? "" : undefined}
+                data-busy={count ? "" : undefined}
+                onClick={() => setOffset(i)}
+              >
+                {i === 0 ? "Today" : times.weekday(d)}
+                <b>{times.dayOfMonth(d)}</b>
+                <i aria-hidden />
+              </button>
+            );
+          })}
+        </div>
+        <button
+          type="button"
+          className="bx-iconbtn"
+          aria-label="A week later"
+          onClick={() => move(7)}
+        >
+          <ChevronRight size={16} strokeWidth={2.4} aria-hidden />
+        </button>
+      </div>
+      <div className="bx-daytools">
+        <Segmented options={SCOPES} value={scope} onChange={setScope} label="Which matches" />
+        {offset !== 0 || first !== undefined ? (
+          <button type="button" className="bx-pill" onClick={today}>
+            Today
+          </button>
+        ) : null}
+      </div>
+      <div className="bx-cols bx-cols-main">
+        <div>
+          <h2 className="bx-dayname">
+            {times.day(day, now)}
+            <span className="bx-sub">
+              {matches.length
+                ? `${matches.length} ${matches.length === 1 ? "match" : "matches"} in ${groups.size} ${groups.size === 1 ? "event" : "events"}`
+                : ""}
+            </span>
+          </h2>
+          {[...groups].map(([id, list]) => {
+            const t = atlas.tournament(id);
+            if (!t) return null;
+            return (
+              <section key={id} className="bx-dayevent">
+                <Go to={{ kind: "tournament", id }} className="bx-dayevent-head">
+                  <span>
+                    <b>{t.name}</b>
+                    <span className="bx-sub">
+                      {[atlas.discipline(t.discipline).name, ...standing(t)].join(" · ")}
+                    </span>
+                  </span>
+                  <ChevronRight size={15} strokeWidth={2.4} aria-hidden />
+                </Go>
+                <div className="bx-list">
+                  {bundle(atlas, list).map((item) =>
+                    item.kind === "match" ? (
+                      <ScheduleRow key={item.match.id} match={item.match} board={board} inEvent />
+                    ) : (
+                      <RoundRow key={item.key} matches={item.matches} board={board} inEvent />
+                    ),
+                  )}
+                </div>
+              </section>
+            );
+          })}
+          {matches.length ? null : (
+            <div className="bx-list">
               <p className="bx-empty">
                 {scope === "mine"
                   ? "Nothing you follow is on this day."
                   : "Nothing is on this day."}
               </p>
-            )}
-          </div>
-        </Section>
+            </div>
+          )}
+        </div>
+        <div>
+          {running.length ? (
+            <Section label={`Events · ${times.day(day, now)}`}>
+              <div className="bx-list">
+                {running.map((t) => eventRow(t, standing(t) as string[]))}
+              </div>
+            </Section>
+          ) : null}
+          {soon.length ? (
+            <Section label="Beginning soon">
+              <div className="bx-list">
+                {soon.map((t) => eventRow(t, [`Starts ${times.day(`${t.start}T12:00:00Z`, now)}`]))}
+              </div>
+            </Section>
+          ) : null}
+        </div>
       </div>
     </>
   );
 }
 
 /** A whole round of an event on one line: how many games, and how many are being played. */
-export function RoundRow({ matches, board }: { matches: Match[]; board: Board }) {
+export function RoundRow({
+  matches,
+  board,
+  inEvent,
+}: {
+  matches: Match[];
+  board: Board;
+  /** Shown under its event's name, which then is not said again. */
+  inEvent?: boolean;
+}) {
   const first = matches[0]!;
   const { atlas, times } = board;
   const tournament = atlas.tournamentOf(first);
@@ -137,11 +286,13 @@ export function RoundRow({ matches, board }: { matches: Match[]; board: Board })
           <span className="bx-disc bx-disc-plain" style={{ "--s": "20px" } as never} aria-hidden>
             <Rows3 size={11} strokeWidth={2.4} />
           </span>
-          <b>{tournament.name}</b>
+          <b>{inEvent ? round : tournament.name}</b>
           <i className="bx-num">{matches.length}</i>
         </span>
         <span className="bx-sub">
-          {atlas.discipline(tournament.discipline).short} · {round} · {state}
+          {inEvent
+            ? state
+            : `${atlas.discipline(tournament.discipline).short} · ${round} · ${state}`}
         </span>
       </span>
     </Go>
