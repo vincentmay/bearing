@@ -167,6 +167,9 @@ export interface Account {
   /** "none": this copy of Bearing has no accounts. */
   state: "none" | "loading" | "out" | "in";
   email?: string;
+  /** What to call the viewer, and their own picture if they have set one. */
+  name?: string;
+  image?: string;
   signIn: () => void;
   signOut: () => void;
   manage: () => void;
@@ -185,6 +188,8 @@ function useClerkAccount(): Account {
   return {
     state: !isLoaded ? "loading" : isSignedIn ? "in" : "out",
     email: user?.primaryEmailAddress?.emailAddress,
+    name: user?.firstName ?? user?.username ?? user?.primaryEmailAddress?.emailAddress,
+    image: user?.hasImage ? user.imageUrl : undefined,
     signIn: () => clerk.openSignIn(),
     signOut: () => void clerk.signOut(),
     manage: () => clerk.openUserProfile(),

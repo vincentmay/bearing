@@ -1,6 +1,8 @@
 import type { Follow, GameEvent } from "@bearing/domain";
-import { Star } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Settings, Star, UserRound } from "lucide-react";
 import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
+import { useAccount } from "../lib/account";
 import { useAtlas, useFollow } from "../lib/world";
 import type { Dot, MatchView, SideView } from "./model";
 import type { Times } from "./time";
@@ -104,6 +106,37 @@ export function Duo({
     >
       <i style={{ background: split(sides) }} />
     </span>
+  );
+}
+
+/**
+ * The way to the viewer's own corner: their picture or initial when signed in, a figure when
+ * not, and a plain gear where there are no accounts at all.
+ */
+export function AccountLink({ className }: { className?: string }) {
+  const account = useAccount();
+  const signedIn = account.state === "in";
+  const label = signedIn ? "Your account and settings" : "Settings";
+  return (
+    <Link
+      to="/settings"
+      className={className ? `bx-iconbtn ${className}` : "bx-iconbtn"}
+      aria-label={label}
+      title={label}
+      data-account={signedIn ? "" : undefined}
+    >
+      {signedIn ? (
+        account.image ? (
+          <img src={account.image} alt="" />
+        ) : (
+          <span aria-hidden>{(account.name ?? "?").slice(0, 1).toUpperCase()}</span>
+        )
+      ) : account.state === "none" ? (
+        <Settings size={18} />
+      ) : (
+        <UserRound size={18} />
+      )}
+    </Link>
   );
 }
 

@@ -6,7 +6,10 @@ import { type Dot, type MatchView, type SideView, placeOf, stopsOf } from "./mod
 import { type Times, until } from "./time";
 import { Disc, Dots, Ping, Problem, Score, Section } from "./ui";
 
-/** Where a fact comes from and when it was last checked: shown for every match and event. */
+/**
+ * Where a fact comes from and when it was last checked, for every match and event: one quiet
+ * line. It speaks up only when a match still open has not been confirmed for hours.
+ */
 export function Source({
   provenance,
   now,
@@ -22,30 +25,29 @@ export function Source({
   /** Still to be played or being played: what is shown can go out of date. */
   pending?: boolean;
 }) {
+  if (provenance.source === "Bearing sample data") {
+    return <p className="bx-source">Sample data</p>;
+  }
   const link = provenance.note?.startsWith("http") ? provenance.note : undefined;
   // The sources are asked every hour. Three hours without an answer is worth saying.
   const hours = Math.floor((now - Date.parse(provenance.checkedAt)) / 3_600_000);
+  const day = times.day(provenance.checkedAt, now);
   return (
     <p className="bx-source">
       {pending && hours >= 3 ? (
         <b>
-          The source has not answered for{" "}
-          {hours < 48 ? `${hours} hours` : `${Math.floor(hours / 24)} days`}; this may be out of
-          date.{" "}
+          Not confirmed for {hours < 48 ? `${hours} hours` : `${Math.floor(hours / 24)} days`}.{" "}
         </b>
       ) : null}
-      Source: {provenance.source}, checked {times.day(provenance.checkedAt, now).toLowerCase()} at{" "}
-      {times.clock(provenance.checkedAt)}.{also ? ` ${also}` : ""}
-      {provenance.note && !link ? ` ${provenance.note}` : ""}
       {link ? (
-        <>
-          {" "}
-          <a href={link} target="_blank" rel="noreferrer" style={{ textDecoration: "underline" }}>
-            Open it there
-          </a>
-          .
-        </>
-      ) : null}
+        <a href={link} target="_blank" rel="noreferrer">
+          {provenance.source}
+        </a>
+      ) : (
+        provenance.source
+      )}
+      {also ? `, ${also}` : ""} · {day === "Today" ? "" : `${day} `}
+      {times.clock(provenance.checkedAt)}
     </p>
   );
 }
@@ -276,7 +278,7 @@ export function MatchPage({ matchId }: { matchId: string }) {
   const wide = useWide();
   const { atlas, now, times } = board;
   const match = atlas.match(matchId);
-  const back = <Back />;
+  const back = <Back parent={match ? { kind: "tournament", id: match.tournamentId } : undefined} />;
   if (!match) {
     return (
       <>
@@ -326,7 +328,6 @@ export function MatchPage({ matchId }: { matchId: string }) {
                 <div className="bx-list">
                   <CupPlaces view={view} index={featured} />
                 </div>
-                <p className="bx-note">A filled dot is a round they won.</p>
               </Section>
             </>
           ) : null}
@@ -367,7 +368,7 @@ export function MatchPage({ matchId }: { matchId: string }) {
         pending={match.status !== "finished"}
         also={
           view.discipline.id === "lol" && match.games.some((g) => g.events)
-            ? "What happened inside each game is from the feed of lolesports.com."
+            ? "lolesports.com"
             : undefined
         }
       />

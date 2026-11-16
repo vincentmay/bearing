@@ -142,10 +142,6 @@ function StageDrawing({
         <div className="bx-list">
           <SwissTable stage={stage} tournament={tournament} board={board} />
         </div>
-        <p className="bx-note">
-          One dot per round: filled for a win, open for a loss. {stage.rules?.winsToAdvance ?? 3}{" "}
-          wins and a team is through; {stage.rules?.lossesToExit ?? 3} losses and it is out.
-        </p>
       </>
     );
   }
@@ -155,11 +151,6 @@ function StageDrawing({
         <div className="bx-list bx-pad">
           <CrossTable stage={stage} tournament={tournament} board={board} />
         </div>
-        <p className="bx-note">
-          Read across: the columns are the same players in the same order. A full dot is a win over
-          that player, a small one a draw, an open one a loss. Nothing means they have not played
-          yet.
-        </p>
       </>
     );
   }

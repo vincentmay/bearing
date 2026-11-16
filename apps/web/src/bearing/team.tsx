@@ -136,10 +136,6 @@ function History({
           );
         })}
       </div>
-      <p className="bx-note">
-        A filled dot is the day a player joined, an open one the day they left. A line that runs to
-        the edge is still in the team.
-      </p>
     </Section>
   );
 }
@@ -284,11 +280,6 @@ export function TeamPage({ teamId }: { teamId: string }) {
             </div>
           ) : null}
         </dl>
-      ) : null}
-      {done.length ? (
-        <p className="bx-note" style={{ margin: "8px 0 0" }}>
-          From the {done.length} {done.length === 1 ? "match" : "matches"} Bearing has on record.
-        </p>
       ) : null}
 
       {/* One event is not a line; it is already said in the results below. */}

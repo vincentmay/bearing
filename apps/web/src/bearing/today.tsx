@@ -1,6 +1,5 @@
 import type { Atlas, Match } from "@bearing/domain";
 import { Link } from "@tanstack/react-router";
-import { Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   type Listed,
@@ -16,7 +15,19 @@ import { Stops } from "./forms";
 import { RoundRow } from "./lists";
 import { type MatchView, lineOf, plainName, stopsOf, titleOf } from "./model";
 import { until } from "./time";
-import { Disc, DotRows, Dots, Duo, Mark, Ping, Score, Section, Tick, useReady } from "./ui";
+import {
+  AccountLink,
+  Disc,
+  DotRows,
+  Dots,
+  Duo,
+  Mark,
+  Ping,
+  Score,
+  Section,
+  Tick,
+  useReady,
+} from "./ui";
 
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 /** How many other live matches Today lists before it points to the schedule. */
@@ -310,14 +321,7 @@ export function Today() {
         </span>
         <span>
           <span className="bx-date">{times.date(now)}</span>
-          <Link
-            to="/settings"
-            className="bx-iconbtn bx-phone"
-            aria-label="Settings"
-            title="Settings"
-          >
-            <Settings size={18} />
-          </Link>
+          <AccountLink className="bx-phone" />
         </span>
       </header>
 

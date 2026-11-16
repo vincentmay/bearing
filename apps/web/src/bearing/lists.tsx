@@ -70,7 +70,6 @@ export function Schedule() {
     busyUntil = Math.max(busyUntil, end);
     return { item, overlap };
   });
-  const overlaps = rows.some((r) => r.overlap);
 
   return (
     <>
@@ -122,12 +121,6 @@ export function Schedule() {
               </p>
             )}
           </div>
-          {overlaps ? (
-            <p className="bx-note">
-              A line joins matches that may be on at the same time. Times are in your time zone
-              {times.zone ? ` (${times.zone})` : ""}.
-            </p>
-          ) : null}
         </Section>
       </div>
     </>
@@ -491,9 +484,6 @@ export function Following() {
                 <TargetRow key={item.follow.id} item={item} board={board} line />
               ))}
             </div>
-            <p className="bx-note">
-              A filled dot is a win, an open one a loss, newest first. Tap a star to stop following.
-            </p>
           </Section>
         ) : null}
         <div>
@@ -513,7 +503,6 @@ export function Following() {
                   <TargetRow key={item.follow.id} item={item} board={board} line />
                 ))}
               </div>
-              <p className="bx-note">Following an organisation follows its teams in every game.</p>
             </Section>
           ) : null}
         </div>

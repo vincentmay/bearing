@@ -16,6 +16,10 @@
   --edge: rgb(0 0 0 / 0.18);
   --rest: rgb(0 0 0 / 0.2);
   --sh: 0 1px 1px rgb(0 0 0 / 0.04), 0 10px 24px -14px rgb(0 0 0 / 0.28);
+  /* The lit upper edge of a pane of glass. */
+  --gloss: inset 0 1px 0 rgb(255 255 255 / 0.7);
+  /* What a row or a control takes on under the pointer. */
+  --hover: rgb(0 0 0 / 0.045);
   --face: "Gabarito Variable", system-ui, sans-serif;
   --mono: "Geist Mono Variable", ui-monospace, monospace;
   --out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -42,6 +46,8 @@
     --edge: rgb(255 255 255 / 0.2);
     --rest: rgb(255 255 255 / 0.3);
     --sh: 0 12px 28px -14px #000;
+    --gloss: inset 0 1px 0 rgb(255 255 255 / 0.1);
+    --hover: rgb(255 255 255 / 0.07);
     --nav: rgb(30 30 30 / 0.8);
     color-scheme: dark;
   }
@@ -57,6 +63,8 @@
   --edge: rgb(255 255 255 / 0.2);
   --rest: rgb(255 255 255 / 0.3);
   --sh: 0 12px 28px -14px #000;
+  --gloss: inset 0 1px 0 rgb(255 255 255 / 0.1);
+  --hover: rgb(255 255 255 / 0.07);
   color-scheme: dark;
 }
 /* The page behind the app, for overscroll. */
@@ -192,6 +200,19 @@ body {
 }
 .bx-iconbtn:active {
   transform: scale(0.86);
+}
+/* Signed in: the viewer's own disc, in ink, or their picture. */
+.bx-iconbtn[data-account] {
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--ground);
+  font-size: 13px;
+  font-weight: 800;
+}
+.bx-iconbtn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .bx-note {
   margin: 12px 8px 0;
@@ -865,9 +886,20 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 2px;
+  max-width: 100%;
   font-size: 12px;
   font-weight: 600;
   margin-left: -4px;
+}
+.bx-back span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 28ch;
+}
+.bx-back svg {
+  flex: none;
+  transition: transform 0.2s var(--out);
 }
 .bx-hero {
   container-type: inline-size;
@@ -997,10 +1029,18 @@ body {
   min-width: 34px;
 }
 .bx-source {
-  margin: 22px 8px 0;
-  font-size: 11px;
-  line-height: 1.45;
-  color: var(--ink2);
+  margin: 30px 8px 0;
+  font: 500 9.5px var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+.bx-source a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.bx-source b {
+  color: var(--ink);
 }
 
 /* Team, player and event pages */
@@ -1560,11 +1600,22 @@ body {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   border-radius: 999px;
-  /* Opaque: a see-through capsule would blur team colours as they pass under it. */
+  /* Glass: what scrolls beneath shows through, softened. Where a browser cannot blur, the
+     capsule is solid, so that it never sits unreadable on top of the page. */
   background: var(--surface);
   border: 1px solid var(--hair);
-  box-shadow: var(--sh);
+  box-shadow: var(--sh), var(--gloss);
   z-index: 10;
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .bx-nav {
+    background: color-mix(in srgb, var(--surface) 58%, transparent);
+    -webkit-backdrop-filter: blur(22px) saturate(1.9);
+    backdrop-filter: blur(22px) saturate(1.9);
+  }
+  .bx-nav i {
+    background: color-mix(in srgb, var(--ink) 9%, transparent);
+  }
 }
 .bx-nav i {
   position: absolute;
@@ -1703,6 +1754,102 @@ body {
   .bx-heats > :nth-child(2) {
     border-top: 0;
   }
+}
+
+/*
+ * Under a pointer. Everything that can be pressed answers before it is pressed: a row lights up
+ * as a whole, a card rises a hair, a control darkens. Only where there is a pointer that can
+ * hover; a finger gets the press states above.
+ */
+.bx-list > a,
+.bx-list > .bx-result,
+.bx-list > details > summary {
+  position: relative;
+  isolation: isolate;
+}
+.bx-list > a::after,
+.bx-list > .bx-result::after {
+  content: "";
+  position: absolute;
+  inset: 3px -10px;
+  z-index: -1;
+  border-radius: 15px;
+  background: var(--hover);
+  opacity: 0;
+  transition: opacity 0.16s var(--out);
+  pointer-events: none;
+}
+.bx-card,
+.bx-tie,
+.bx-heat {
+  transition:
+    transform 0.22s var(--out),
+    box-shadow 0.22s var(--out),
+    border-color 0.22s var(--out);
+}
+@media (hover: hover) {
+  .bx-list > a:hover::after,
+  .bx-list > .bx-result:has(> a:hover)::after {
+    opacity: 1;
+  }
+  a.bx-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--edge);
+    box-shadow:
+      0 1px 1px rgb(0 0 0 / 0.04),
+      0 18px 34px -18px rgb(0 0 0 / 0.42);
+  }
+  a.bx-card:active {
+    transform: scale(0.985);
+  }
+  .bx-iconbtn,
+  .bx-star {
+    transition:
+      transform 0.15s,
+      background-color 0.16s var(--out),
+      color 0.16s var(--out);
+  }
+  .bx-iconbtn:not([data-account]):hover,
+  .bx-star:not(:disabled):hover {
+    background: var(--hover);
+    color: var(--ink);
+  }
+  .bx-iconbtn[data-account]:hover {
+    transform: scale(1.06);
+  }
+  .bx-nav a:hover {
+    color: var(--ink);
+  }
+  .bx-back:hover svg {
+    transform: translateX(-3px);
+  }
+  .bx-button {
+    transition:
+      transform 0.15s,
+      opacity 0.16s var(--out);
+  }
+  .bx-button:hover {
+    opacity: 0.86;
+  }
+  .bx-days button:hover {
+    color: var(--ink);
+  }
+  .bx-days button:not([aria-pressed="true"]):hover b {
+    background: var(--hover);
+  }
+  .bx-seg button:hover {
+    color: var(--ink);
+  }
+  .bx-brand:hover svg {
+    transform: rotate(-18deg);
+  }
+  .bx-note a:hover,
+  .bx-source a:hover {
+    color: var(--ink);
+  }
+}
+.bx-brand svg {
+  transition: transform 0.4s var(--spring);
 }
 
 @media (prefers-reduced-motion: reduce) {

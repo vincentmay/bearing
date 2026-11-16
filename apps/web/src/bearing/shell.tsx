@@ -3,11 +3,12 @@ import "@fontsource-variable/geist-mono";
 import "./bearing.css";
 
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { CalendarDays, House, Search, Settings, Star } from "lucide-react";
+import { CalendarDays, House, Search, Star } from "lucide-react";
 import { createContext, useContext, useEffect, useRef } from "react";
 import { usePrefs } from "../lib/prefs";
 import { useSamplePlayer } from "./live";
-import { Mark } from "./ui";
+import { useTrail } from "./trail";
+import { AccountLink, Mark } from "./ui";
 
 const TABS = [
   { to: "/", label: "Today", icon: House },
@@ -32,6 +33,7 @@ export function useOrigin(): Tab {
  */
 export function Shell() {
   useSamplePlayer();
+  useTrail();
   const { theme } = usePrefs();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const found = TABS.findIndex((t) => (t.to === "/" ? path === "/" : path.startsWith(t.to)));
@@ -49,9 +51,7 @@ export function Shell() {
           <Mark size={28} />
           <span aria-hidden>bearing</span>
         </Link>
-        <Link to="/settings" className="bx-iconbtn" aria-label="Settings" title="Settings">
-          <Settings size={18} />
-        </Link>
+        <AccountLink />
       </header>
       <Origin value={TABS[active] ?? TABS[0]}>
         <main key={path} className={inner ? "bx-page bx-view-in" : "bx-page bx-view"}>

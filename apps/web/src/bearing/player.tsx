@@ -119,7 +119,7 @@ export function PlayerPage({ playerId }: { playerId: string }) {
 
   return (
     <>
-      <Back />
+      <Back parent={team ? { kind: "team", id: team.id } : undefined} />
       <header className="bx-entity">
         <Disc side={side} size={72} />
         <div>
@@ -197,9 +197,6 @@ export function PlayerPage({ playerId }: { playerId: string }) {
           <div className="bx-hero">
             <StopLine stops={run} />
           </div>
-          <p className="bx-note">
-            A filled stop is a win, a split one a draw, an empty one a loss.
-          </p>
         </section>
       ) : null}
 
