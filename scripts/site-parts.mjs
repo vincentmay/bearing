@@ -64,7 +64,9 @@ for (let i = 0; i < parts; i++) {
 await page.goBack();
 await page.waitForTimeout(500);
 const after = await page.evaluate(() => location.pathname);
-console.log(`back leads to ${after} ${after === "/" ? "(out of the event)" : "(still inside the event)"}`);
+console.log(
+  `back leads to ${after} ${after === "/" ? "(out of the event)" : "(still inside the event)"}`,
+);
 console.log(thrown.length ? thrown.join("\n") : "nothing thrown");
 console.log(bad || after !== "/" ? "FAILED" : "all parts ok");
 await browser.close();

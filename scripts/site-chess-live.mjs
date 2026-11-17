@@ -56,7 +56,9 @@ for (let t = 0; t < seconds; t += 5) {
     );
     const behind = there ? plies(there.fen) - shown : NaN;
     if (behind > worst) worst = behind;
-    line.push(`${game.name.split(" - ")[0].split(",")[0]} ${shown}/${there ? plies(there.fen) : "?"}`);
+    line.push(
+      `${game.name.split(" - ")[0].split(",")[0]} ${shown}/${there ? plies(there.fen) : "?"}`,
+    );
   }
   console.log(`${String(t).padStart(3)}s  ${line.join("   ")}`);
   await pages[0].page.waitForTimeout(5000);
