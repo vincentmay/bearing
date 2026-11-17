@@ -35,7 +35,23 @@ the owner has ruled out, or in Liquipedia (both below).
 ## Lichess
 
 - Access: open, no key. [API](https://lichess.org/api#tag/Broadcasts).
-- Etiquette: one request at a time; on "too many requests" stop for a while. The adapter does both.
+- Etiquette: one request at a time; on "too many requests" stop for a full minute. All of
+  Bearing's chess jobs keep to both together: one has the turn at any moment, and a refusal
+  quiets them all for seventy seconds. A look at a round under way is three requests (it was
+  nine, which was refused for minutes at a time).
+- A game being played is not followed by asking again and again. The browser listens to
+  `/api/stream/broadcast/round/<id>.pgn`, which sends every game of the round once and then
+  each game again whenever a move is made in it; Lichess asks for exactly this. An address
+  may hold two such lines at once; a third window reads the round whole every twelve seconds.
+- `/api/cloud-eval?fen=…`: the judgements Lichess's users' engines have already worked out,
+  from White's side. Asked from the browser for the position on the board, before Stockfish
+  is started.
+- Each event is looked at when its next round is due, not only once an hour: pairings are
+  often published only as a round begins.
+- A round says what a win and a draw count for where that is not one and a half
+  (`customScoring`); Bearing counts a match's games by it.
+- Lichess sometimes sets a round's games up anew under new names. The games under the old
+  names are removed from the store when the round is read.
 - Cost: none. Nothing to buy.
 
 ## PandaScore
@@ -119,12 +135,11 @@ move how an engine judges the position (`[%eval 0.17]`, `[%eval #-3]`) and the m
 2026-11-16; before, only the moves. Of forty games of one round, thirty-nine had judgements
 and all had clocks.
 
-After a refusal (429) Lichess asks for a full minute of quiet. All of Bearing's chess jobs
-now keep quiet together for three minutes after one, where before each tried again half a
-minute later.
-
-The chess pieces are Colin M.L. Burnett's set as Lichess publishes it
-(`apps/web/public/pieces`), under GPLv2 or later, which this project's licence can take in.
+The chess pieces are three sets as Lichess publishes them (`apps/web/public/chessmen`, with
+who made each and under which licence): Maxime Chupin's (GPLv3 or later), Colin M.L.
+Burnett's and Armando Hernandez Marroquin's Merida (both GPLv2 or later). The engine is
+Stockfish 19 as stockfish.js builds it for the browser (GPLv3), and the rules are chessops
+(GPLv3 or later). This project's licence can take all of them in.
 
 ## Lichess's list of FIDE players
 

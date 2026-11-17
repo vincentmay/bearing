@@ -23,7 +23,8 @@ so there is always something to follow.
 | Path                   | What it is                                                              |
 | ---------------------- | ----------------------------------------------------------------------- |
 | `packages/domain`      | The canonical model, what is derived from it, the sample world, and the |
-|                        | mapping of each real source into the model. No dependencies.            |
+|                        | mapping of each real source into the model. One dependency: chessops,   |
+|                        | for the rules of chess.                                                 |
 | `apps/web/src/bearing` | Every screen, the shared pieces and `bearing.css`.                      |
 | `apps/web/src/lib`     | Where the world comes from, follows, accounts, settings on the device.  |
 | `apps/web/convex`      | The backend: Bearing's own store, the sources that fill it, follows.    |
@@ -50,6 +51,8 @@ node scripts/site-sweep.mjs     # every kind of page, both themes, both sizes; f
 node scripts/site-features.mjs  # every feature used as a person would, each with a check
 node scripts/site-load.mjs      # what a first and a second visit cost, and when things appear
 node scripts/site-tabs.mjs      # what moving between tabs shows and transfers
+node scripts/site-parts.mjs     # moving between the parts of one event keeps the page
+node scripts/site-chess-live.mjs  # a game being played, move for move against Lichess
 vp run -r test               # also runs the backend's own tests (apps/web/convex/*.test.ts)
 ```
 

@@ -185,6 +185,38 @@ The home screen. Answers questions 1 to 3.
   engine's judgement as a bar beside the board and as a graph under it that can be pointed at
   to go to a move; both clocks as they stood at the move shown; players with face, flag, title
   and rating; the opening with its code; the board can be turned; a move is seen to travel.
+- **M16 (Agreed on 2026-11-17).** The chess board, again (the owner: "the bottom line should
+  be the very least the quality of chess.com", "positions should update with animations",
+  "where is stockfish"). It stands at the head of the match's page, across its width.
+  - Every piece is one element for the whole game and is moved, never replaced: a move
+    travels, a capture fades, castling moves two pieces, a jump of twenty moves moves them
+    all. Check lights the king's square; a game that is over marks the winner's king.
+  - The pieces can be moved, by dragging or by two presses. The game's own next move is a
+    step forward; any other starts a line of the viewer's own, shown apart from the game,
+    from which one press leads back. The right button draws arrows and rings.
+  - An engine judges every position shown: Lichess's stored judgement where it has the
+    position, Stockfish 19 in the browser where it has not (the build chess.com runs, in a
+    worker, fetched only when a board needs it). The bar beside the board, the line the
+    engine expects (which can be played onto the board), and, from a quick look at every
+    position of the game, the curve under the board and the marks on the moves (?!, ?, ??).
+    It can be turned off, and can draw the best move as an arrow.
+  - The players sit above and below with what they have taken and by how much they lead;
+    the clocks run while the game does.
+  - Five boards (Ink, Slate, Green, Walnut, Paper) and three sets of pieces (Modern,
+    Classic, Merida) to choose from, kept on the device. **Which is the default is the
+    owner's to say** (Ink with Modern for now).
+  - The rules and the reading of written games are a library's (chessops), not Bearing's
+    own code. The board is Bearing's own, so that it looks and moves like the rest of it;
+    the owner: "visually lichess lacks too... fitting our design book perfectly".
+- **M17 (Agreed on 2026-11-17).** A game of chess that is being played is live: the page
+  listens to Lichess's stream of the round and shows each move as it is made (measured on the
+  live site: move for move with Lichess). The store, which lists read, is looked at twice a
+  minute. The owner: "This currently is so delayed, not live, not updating properly".
+- **M18 (Agreed on 2026-11-17).** A match of several games of chess is written out under its
+  heading the way chess writes a match: a line for each player, a column for each game with
+  what it gave them, the sum at the end. A press on a game puts it on the board. A match
+  that waits for its next game (overnight) leads with how it stands, and says when it
+  continues.
 - **M15 (Agreed on 2026-11-16).** Where nothing is known of the inside of a match's games, the
   match page does not list them a second time: the room goes to head to head and form.
 - **M12 (Agreed on 2026-11-16).** A match shows how its two sides have done against each
@@ -218,6 +250,15 @@ The home screen. Answers questions 1 to 3.
   code is fetched ahead. Between tabs the change is plain and quick; into a page and back out
   of it the page moves a little in the direction of the move. The owner: "that we don't have
   entire page reloads all the time. It should do what is the best it can."
+- **G23 (Agreed on 2026-11-17).** One page gives way to the next by a plain animation of
+  the page that arrives. The browser's own page transitions, used for a day, are gone: for
+  as long as they lasted they drew the navigation's marker over the tab's label and the page
+  without the navigation's blur, and held every press back. The owner: "the element
+  disappears until the animation is done. Like we introduced quite a lot of weird quirks."
+- **G24 (Agreed on 2026-11-17).** The parts of one event (its group stage, its semifinals,
+  its final) are one page: choosing another changes what the page shows. The page is not
+  left and entered again, it stays scrolled where it was, and going back leads out of the
+  event. Measured on the live site: 20 to 100 ms a change.
 - **G22 (Agreed on 2026-11-16).** A page that needs matches from before the weeks a list
   reaches back asks for them by name: a match opened directly, an event that ended weeks ago.
   The page that is not there keeps the frame and says where to go.
@@ -289,6 +330,13 @@ The home screen. Answers questions 1 to 3.
 
 ### 4.9 Tournament (not yet designed)
 
+- **TO6 (Agreed on 2026-11-17).** An event played as matches (the same two players meeting
+  game after game) is shown as its matches, never game by game: each written out as in M18,
+  the ones being played first. The owner, of the list of games it was: "I have no idea how
+  the tournament progresses". It is recognised by who meets whom in rounds next to each
+  other, whatever the event is called ("Future proofing right?"). What a game counts for is
+  the organiser's: a rapid win may be four points, a blitz win one. Which matches lead to
+  which final is not in the source and is not guessed at.
 - **TO1.** Name, dates, place, organiser, prize, and where its facts come from.
 - **TO2.** The format explained in plain language (the model has `Stage.explainer`).
 - **TO3.** Each stage drawn for its format, never as a bare list where the format is known.
@@ -482,6 +530,7 @@ official streams and recordings; a spoiler-free mode; football.
 | Interface | React 19, TanStack Router (file routes), TanStack Query                     | Agreed   |
 | Styling   | Plain CSS scoped to `.bx` in `bearing.css`. Tailwind was unused and removed | Proposed |
 | Icons     | `lucide-react`                                                              | Agreed   |
+| Chess     | `chessops` for the rules and written games; `stockfish` (19, in a worker)   | Agreed   |
 | Fonts     | `@fontsource-variable/gabarito`, `@fontsource-variable/geist-mono`          | Agreed   |
 | Three.js  | Removed with the earlier directions on 2026-11-16                           | Done     |
 | Backend   | Convex (section 8)                                                          | Agreed   |
@@ -606,8 +655,18 @@ In development `window.bearing.pause()` and `window.bearing.step(n)` drive the s
   (every kind of page in both themes and both sizes, every internal link followed),
   `scripts/site-features.mjs` (each feature used and checked), `scripts/site-load.mjs` and
   `scripts/site-tabs.mjs` (what loading and moving between tabs cost).
-- Files with a fingerprint in their name are kept by browsers for a year
-  (`apps/web/public/_headers`).
+- **What a browser may keep (changed on 2026-11-17 after it broke the site).** The rule
+  that had files with a fingerprint in their name kept for a year is gone. While a new
+  version spreads, a file that is not there yet was answered with the page, and that answer
+  was kept for a year under the file's name, by Cloudflare and by browsers; nothing loaded
+  until the files were given new addresses. Now an address that is nothing is answered "not
+  found" and never kept (`public/_redirects` lists the addresses that are something, the
+  build writes `404.html`), the page itself is checked on every visit, and a page whose
+  code is missing asks again a few times. Files are kept four hours, which is the domain's
+  setting and not Bearing's. **After a deploy, load the site in a fresh window and look.**
+- `scripts/site-chess-live.mjs` compares the page of a game being played with Lichess,
+  move for move; `scripts/site-parts.mjs` checks that moving between an event's parts
+  keeps the page.
 - Dependencies were all current on 2026-11-16 except the Vite+ toolchain (1.4.0, latest
   1.6.0): the newer one's type-aware linter is a program this machine's policy does not let
   run. Node is 24, the current long-term release.
