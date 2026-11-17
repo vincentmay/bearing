@@ -1,18 +1,22 @@
-# Files whose names carry a fingerprint of their contents never change: kept for a year.
-/assets/*
-  Cache-Control: public, max-age=31536000, immutable
-
-# The chess pieces change with a release at most.
-/pieces/*
-  Cache-Control: public, max-age=2592000
-
-# The chess engine: its name carries its version.
-/engine/*
-  Cache-Control: public, max-age=2592000
+# How long a browser may keep what: it may keep everything, and has to ask each time it uses
+# a file whether it is still the same ("no-cache"; the answer is a short "unchanged" when it
+# is). Without saying so, Cloudflare lets browsers keep any answer for four hours, a setting
+# of the whole domain, which is not Bearing's to change.
+#
+# There was a rule here that had everything under /assets/ kept for a year, since those
+# files carry a fingerprint of their contents in their names. It broke the site on
+# 2026-11-17. For the seconds a new version takes to spread, a browser can ask one server
+# for a file that only the newer server has, and a site of this kind answers every unknown
+# address with its page. The rule then had that wrong answer kept for a year, by Cloudflare
+# and by the browser, under the name of a script. The same went for the chess pieces and
+# the engine. The code now lives under /static/, the pieces under /chessmen/ and the engine
+# under /stockfish/, so that nothing kept under the old addresses can be used again. Do not
+# put a long-lived rule on any of them.
 
 # The app is not meant to be shown inside another site's page, and asks for nothing of the
 # device it runs on.
 /*
+  Cache-Control: no-cache
   X-Frame-Options: DENY
   Content-Security-Policy: frame-ancestors 'none'
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()

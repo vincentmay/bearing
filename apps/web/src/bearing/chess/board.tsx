@@ -237,7 +237,7 @@ export function Board({
               data-man={man.id}
               data-gone={man.gone ? "" : undefined}
               data-moved={last?.to === man.square && !man.gone ? "" : undefined}
-              src={`/pieces/${set}/${white ? "w" : "b"}${man.piece.toUpperCase()}.svg`}
+              src={`/chessmen/${set}/${white ? "w" : "b"}${man.piece.toUpperCase()}.svg`}
               alt=""
               draggable={false}
               title={
@@ -285,7 +285,7 @@ export function Board({
               }}
             >
               <img
-                src={`/pieces/${set}/${promoting.to < 8 ? "w" : "b"}${kind.toUpperCase()}.svg`}
+                src={`/chessmen/${set}/${promoting.to < 8 ? "w" : "b"}${kind.toUpperCase()}.svg`}
                 alt=""
                 draggable={false}
               />

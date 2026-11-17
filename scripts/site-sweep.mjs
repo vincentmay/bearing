@@ -21,6 +21,8 @@ const PAGES = [
   ["event-single", "/tournament/ps-serie-11014"],
   ["event-double", "/tournament/ps-serie-11189"],
   ["event-chess", "/tournament/lichess-E2Ux0N0V"],
+  ["event-matches", "/tournament/lichess-qEXour3L"],
+  ["match-of-games", "/match/lichess-qEXour3L-24116068-623539"],
   ["event-rl", "/tournament/ps-serie-10903"],
   ["match-lol", "/match/ps-match-1711021"],
   ["match-cs", "/match/ps-match-1762449"],

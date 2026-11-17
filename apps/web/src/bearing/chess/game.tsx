@@ -381,7 +381,7 @@ export function ChessGame({
                   <img
                     key={i}
                     data-new={piece !== mine[i - 1] ? "" : undefined}
-                    src={`/pieces/${prefs.pieces}/${colour ? "w" : "b"}${piece.toUpperCase()}.svg`}
+                    src={`/chessmen/${prefs.pieces}/${colour ? "w" : "b"}${piece.toUpperCase()}.svg`}
                     alt=""
                   />
                 ))}
@@ -560,7 +560,7 @@ export function ChessGame({
                   aria-pressed={prefs.pieces === name}
                   onClick={() => setPrefs({ pieces: name })}
                 >
-                  <img src={`/pieces/${name}/wN.svg`} alt="" />
+                  <img src={`/chessmen/${name}/wN.svg`} alt="" />
                   {PIECE_NAMES[name]}
                 </button>
               ))}

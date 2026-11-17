@@ -2,6 +2,7 @@ import "@fontsource-variable/gabarito";
 import "@fontsource-variable/geist-mono";
 import "./bearing.css";
 
+import type { Atlas } from "@bearing/domain";
 import { Link, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
 import { CalendarDays, House, Search, Star } from "lucide-react";
 import { type ReactNode, createContext, useContext, useEffect, useRef, useState } from "react";
@@ -86,6 +87,18 @@ function Chrome({
   );
 }
 
+/**
+ * Which page an address belongs to. The parts of one event (its group stage, its semifinals,
+ * its final) are one page with several addresses: moving between them changes what the page
+ * shows and does not replace it.
+ */
+function pageOf(atlas: Atlas, path: string): string {
+  const [, kind, raw] = path.split("/");
+  const series =
+    kind === "tournament" && raw ? atlas.tournament(decodeURIComponent(raw))?.series : undefined;
+  return series ? `event:${series}` : path;
+}
+
 /** The frame while the world is on its way: the same frame, with the shape of a page in it. */
 export function ShellWaiting() {
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -148,7 +161,7 @@ export function Shell() {
   return (
     <Chrome active={active} inner={inner}>
       <Origin value={TABS[active] ?? TABS[0]}>
-        <main id="main" key={path} className={`bx-page ${move.how}`}>
+        <main id="main" key={pageOf(atlas, path)} className={`bx-page ${move.how}`}>
           <Outlet />
         </main>
       </Origin>

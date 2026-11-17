@@ -342,122 +342,130 @@ export function TournamentPage({ tournamentId }: { tournamentId: string }) {
       </header>
       {parts.length > 1 ? (
         <nav className="bx-parts" aria-label={`Parts of ${t.series}`}>
+          {/* The parts of one event are one page: choosing another changes what the page
+              shows. Nothing is left and nothing is entered, the page stays where it is
+              scrolled to, and going back leads out of the event, not through its parts. */}
           {parts.map((part) => (
-            <Go
+            <Link
               key={part.id}
-              to={{ kind: "tournament", id: part.id }}
+              to="/tournament/$tournamentId"
+              params={{ tournamentId: part.id }}
+              replace
+              resetScroll={false}
               className="bx-part"
               aria-current={part.id === t.id ? "page" : undefined}
             >
               {partName(part, t.series ?? "")}
-            </Go>
+            </Link>
           ))}
         </nav>
       ) : null}
-      <dl className="bx-facts">
-        <div>
-          <dt className="bx-label">When</dt>
-          <dd>{dateRange(t.start, t.end)}</dd>
-        </div>
-        {where ? (
+      <div key={t.id} className="bx-view">
+        <dl className="bx-facts">
           <div>
-            <dt className="bx-label">Where</dt>
-            <dd>
-              <Flag country={t.location?.country} />
-              {where}
-            </dd>
+            <dt className="bx-label">When</dt>
+            <dd>{dateRange(t.start, t.end)}</dd>
           </div>
-        ) : null}
-        {t.organizer ? (
-          <div>
-            <dt className="bx-label">Organiser</dt>
-            <dd>{t.organizer}</dd>
-          </div>
-        ) : null}
-        {t.prize ? (
-          <div>
-            <dt className="bx-label">Prize money</dt>
-            <dd>{money(t.prize.amount, t.prize.currency)}</dd>
-          </div>
-        ) : null}
-      </dl>
-
-      <div className="bx-cols bx-cols-main">
-        <div>
-          {t.stages.length > 1 && stage ? (
-            <div style={{ marginTop: 6 }}>
-              <Segmented
-                options={stages.map((s) => ({ value: s.id, label: s.name }))}
-                value={stage.id}
-                onChange={setChosen}
-                label="Stage"
-              />
+          {where ? (
+            <div>
+              <dt className="bx-label">Where</dt>
+              <dd>
+                <Flag country={t.location?.country} />
+                {where}
+              </dd>
             </div>
           ) : null}
-          {stage ? (
-            <Section label={stage.name}>
-              {stage.explainer ? <p className="bx-explain">{stage.explainer}</p> : null}
-              <StageDrawing stage={stage} tournament={t} board={board} wide={wide} />
-            </Section>
-          ) : t.blurb ? (
-            <Section label="The event">
-              <p className="bx-explain">{t.blurb}</p>
-            </Section>
+          {t.organizer ? (
+            <div>
+              <dt className="bx-label">Organiser</dt>
+              <dd>{t.organizer}</dd>
+            </div>
           ) : null}
-          {entrants.length && (!stage || status === "upcoming") ? (
-            <Section label={`Taking part · ${entrants.length}`}>
-              <Entrants ids={entrants} board={board} />
-            </Section>
+          {t.prize ? (
+            <div>
+              <dt className="bx-label">Prize money</dt>
+              <dd>{money(t.prize.amount, t.prize.currency)}</dd>
+            </div>
           ) : null}
-        </div>
-        <div>
-          {live.length || next.length ? (
-            <Section label="On now and next">
-              <div className="bx-list">
-                {[...live, ...next].map((m) => (
-                  <ScheduleRow key={m.id} match={m} board={board} day />
-                ))}
-              </div>
-            </Section>
-          ) : null}
-          {t.placements?.length ? (
-            <Section label="Places and prize money">
-              <div className="bx-list">
-                {t.placements.map((p) => (
-                  <div key={p.place} className="bx-place">
-                    <span className="bx-mono">{p.place}</span>
-                    <span>
-                      {p.competitorIds.length ? (
-                        p.competitorIds.map((id) => {
-                          const kind = atlas.competitor(id)?.kind ?? "team";
-                          return (
-                            <Go key={id} to={{ kind, id }} className="bx-row">
-                              <Disc side={sideOf(atlas, id)} size={16} />
-                              <b>{plainName(atlas, id)}</b>
-                            </Go>
-                          );
-                        })
-                      ) : (
-                        <span className="bx-sub">Not decided yet</span>
-                      )}
-                    </span>
-                    <span className="bx-mono bx-num">
-                      {p.prize && t.prize ? money(p.prize, t.prize.currency) : ""}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </Section>
-          ) : null}
-          {entrants.length && stage && status !== "upcoming" ? (
-            <Section label={`Taking part · ${entrants.length}`}>
-              <Entrants ids={entrants} board={board} />
-            </Section>
-          ) : null}
-        </div>
-      </div>
+        </dl>
 
-      <Source provenance={t.provenance} now={now} times={times} pending={status === "live"} />
+        <div className="bx-cols bx-cols-main">
+          <div>
+            {t.stages.length > 1 && stage ? (
+              <div style={{ marginTop: 6 }}>
+                <Segmented
+                  options={stages.map((s) => ({ value: s.id, label: s.name }))}
+                  value={stage.id}
+                  onChange={setChosen}
+                  label="Stage"
+                />
+              </div>
+            ) : null}
+            {stage ? (
+              <Section label={stage.name}>
+                {stage.explainer ? <p className="bx-explain">{stage.explainer}</p> : null}
+                <StageDrawing stage={stage} tournament={t} board={board} wide={wide} />
+              </Section>
+            ) : t.blurb ? (
+              <Section label="The event">
+                <p className="bx-explain">{t.blurb}</p>
+              </Section>
+            ) : null}
+            {entrants.length && (!stage || status === "upcoming") ? (
+              <Section label={`Taking part · ${entrants.length}`}>
+                <Entrants ids={entrants} board={board} />
+              </Section>
+            ) : null}
+          </div>
+          <div>
+            {live.length || next.length ? (
+              <Section label="On now and next">
+                <div className="bx-list">
+                  {[...live, ...next].map((m) => (
+                    <ScheduleRow key={m.id} match={m} board={board} day />
+                  ))}
+                </div>
+              </Section>
+            ) : null}
+            {t.placements?.length ? (
+              <Section label="Places and prize money">
+                <div className="bx-list">
+                  {t.placements.map((p) => (
+                    <div key={p.place} className="bx-place">
+                      <span className="bx-mono">{p.place}</span>
+                      <span>
+                        {p.competitorIds.length ? (
+                          p.competitorIds.map((id) => {
+                            const kind = atlas.competitor(id)?.kind ?? "team";
+                            return (
+                              <Go key={id} to={{ kind, id }} className="bx-row">
+                                <Disc side={sideOf(atlas, id)} size={16} />
+                                <b>{plainName(atlas, id)}</b>
+                              </Go>
+                            );
+                          })
+                        ) : (
+                          <span className="bx-sub">Not decided yet</span>
+                        )}
+                      </span>
+                      <span className="bx-mono bx-num">
+                        {p.prize && t.prize ? money(p.prize, t.prize.currency) : ""}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </Section>
+            ) : null}
+            {entrants.length && stage && status !== "upcoming" ? (
+              <Section label={`Taking part · ${entrants.length}`}>
+                <Entrants ids={entrants} board={board} />
+              </Section>
+            ) : null}
+          </div>
+        </div>
+
+        <Source provenance={t.provenance} now={now} times={times} pending={status === "live"} />
+      </div>
     </>
   );
 }

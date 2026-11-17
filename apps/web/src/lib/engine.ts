@@ -16,7 +16,7 @@ import { useEffect, useMemo, useSyncExternalStore } from "react";
  * and its moves their marks without a server having analysed it.
  */
 
-const ENGINE = "/engine/stockfish-19-lite-single.js";
+const ENGINE = "/stockfish/stockfish-19-lite-single.js";
 /** The position looked at: this deep, or this long, whichever comes first. */
 const DEEP = { depth: 24, ms: 6000 };
 /** Every other position of the game: a glance. */
