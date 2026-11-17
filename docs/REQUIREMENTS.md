@@ -202,7 +202,8 @@ The home screen. Answers questions 1 to 3.
     It can be turned off, and can draw the best move as an arrow.
   - The players sit above and below with what they have taken and by how much they lead;
     the clocks run while the game does.
-  - Five boards (Ink, Slate, Green, Walnut, Paper) and three sets of pieces (Modern,
+  - Four boards (Ink, Slate, Green, Walnut; a fifth, Paper, was removed on the owner's word
+    the same day) and three sets of pieces (Modern,
     Classic, Merida) to choose from, kept on the device. **Which is the default is the
     owner's to say** (Ink with Modern for now).
   - The rules and the reading of written games are a library's (chessops), not Bearing's

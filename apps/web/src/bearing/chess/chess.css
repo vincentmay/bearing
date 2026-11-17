@@ -1,6 +1,6 @@
 /*
  * A game of chess. Everything around the board is the app's own: its type, its hairlines,
- * its capsules. The board is an object set into the page, in one of five styles the viewer
+ * its capsules. The board is an object set into the page, in one of four styles the viewer
  * picks from, and keeps its colours in both appearances the way a wooden board would.
  *
  * Each style is a handful of values: the two squares, how the move just made is marked on
@@ -13,7 +13,7 @@
   --mark-d: #c9aa52;
   --coord-l: rgb(20 22 28 / 0.55);
   --coord-d: rgb(255 255 255 / 0.82);
-  --move: 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  --move: 0.19s cubic-bezier(0.3, 0.1, 0.3, 1);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 14px;
@@ -50,18 +50,6 @@
   --mark-d: #aaa23a;
   --coord-l: rgb(120 82 50 / 0.85);
 }
-.bx-chess[data-board="paper"],
-.bx-swatches [data-board="paper"] {
-  --sq-l: #fbf9f4;
-  --sq-d: #fbf9f4;
-  --mark-l: #f1e3ae;
-  --mark-d: #f1e3ae;
-  --coord-l: rgb(40 36 30 / 0.6);
-  --coord-d: rgb(40 36 30 / 0.6);
-  /* A printed diagram: the dark squares are ruled, not filled. */
-  --rule: repeating-linear-gradient(-45deg, rgb(40 36 30 / 0.5) 0 1px, transparent 1px 5px);
-}
-
 .bx-chess-main {
   display: grid;
   align-content: start;
@@ -227,6 +215,7 @@
 
 .bx-board {
   position: relative;
+  container-type: inline-size;
   aspect-ratio: 1;
   border-radius: 14px;
   overflow: hidden;
@@ -250,7 +239,7 @@
   transition: background-color 0.18s var(--out);
 }
 .bx-squares > i[data-dark] {
-  background: var(--rule, none), var(--sq-d);
+  background: var(--sq-d);
 }
 /* The move just made: both squares it touched take the mark. */
 .bx-squares > i[data-from],
@@ -261,7 +250,7 @@
 .bx-squares > i[data-dark][data-from],
 .bx-squares > i[data-dark][data-to],
 .bx-squares > i[data-dark][data-picked] {
-  background: var(--rule, none), var(--mark-d);
+  background: var(--mark-d);
 }
 /* A king in check: lit from under the piece. */
 .bx-squares > i[data-check]::before {
@@ -338,32 +327,54 @@
   will-change: transform;
   transition:
     transform var(--move),
-    opacity 0.16s ease-out 0.08s,
-    scale 0.2s ease-out;
+    opacity 0.08s linear;
 }
 /* The piece that has just moved passes over the others, and over the one it takes. */
 .bx-men img[data-moved] {
   z-index: 2;
 }
+/* Taken: it is gone as the piece that takes it lands on its square. */
 .bx-men img[data-gone] {
   opacity: 0;
-  scale: 0.6;
   z-index: 1;
+  transition:
+    transform var(--move),
+    opacity 0.09s linear 0.1s;
 }
+/* Carried: above everything, with a little shadow under it. */
 .bx-men img[data-held] {
   z-index: 5;
-  scale: 1.14;
-  transition: scale 0.12s ease-out;
-  filter: drop-shadow(0 7px 7px rgb(0 0 0 / 0.32));
+  filter: drop-shadow(0 5px 6px rgb(0 0 0 / 0.3));
 }
-.bx-board[data-live] {
+.bx-board[data-grab] {
   cursor: grab;
 }
-.bx-board[data-live]:active {
+.bx-board:has(img[data-held]) {
   cursor: grabbing;
 }
+/* The square a carried piece is over. */
+.bx-squares > i[data-over] {
+  box-shadow: inset 0 0 0 calc(0.4px + 0.45cqw) rgb(255 255 255 / 0.78);
+}
+/* A square marked by the viewer: filled, as chess sites do it. */
+.bx-squares > i[data-mark] {
+  box-shadow: inset 0 0 0 99px rgb(235 97 80 / 0.8);
+}
+.bx-squares > i[data-mark="green"] {
+  box-shadow: inset 0 0 0 99px rgb(172 206 89 / 0.8);
+}
+.bx-squares > i[data-mark="blue"] {
+  box-shadow: inset 0 0 0 99px rgb(82 176 220 / 0.8);
+}
+.bx-squares > i[data-mark="red"] {
+  box-shadow: inset 0 0 0 99px rgb(255 170 0 / 0.8);
+}
 
-/* Arrows and rings: the engine's move in the app's own blue, the viewer's own in amber. */
+/*
+ * Arrows: a shaft and a head, as broad as chess sites draw them, see-through enough that the
+ * piece under one still reads. The viewer's own are amber (green, blue and red with a key
+ * held); the engine's move is the app's blue.
+ */
 .bx-shapes {
   position: absolute;
   inset: 0;
@@ -372,30 +383,33 @@
   pointer-events: none;
   z-index: 4;
 }
-.bx-shapes line {
-  stroke-width: 0.17;
-  stroke-linecap: round;
+.bx-shapes g {
+  --tint: rgb(255 170 0);
+  opacity: 0.8;
 }
-.bx-shapes circle {
+.bx-shapes g[data-tint="green"] {
+  --tint: rgb(159 207 63);
+}
+.bx-shapes g[data-tint="blue"] {
+  --tint: rgb(72 193 249);
+}
+.bx-shapes g[data-tint="red"] {
+  --tint: rgb(248 85 63);
+}
+.bx-shapes g[data-kind="hint"] {
+  --tint: #2f81f7;
+  opacity: 0.72;
+  animation: bx-arrive 0.2s var(--out);
+}
+.bx-shapes polyline {
   fill: none;
-  stroke-width: 0.075;
+  stroke: var(--tint);
+  stroke-linejoin: miter;
+  stroke-linecap: butt;
 }
 .bx-shapes polygon {
+  fill: var(--tint);
   stroke: none;
-}
-.bx-shapes [data-kind="drawn"] {
-  stroke: #f5a623;
-  fill: #f5a623;
-  opacity: 0.86;
-}
-.bx-shapes circle[data-kind="drawn"] {
-  fill: none;
-}
-.bx-shapes [data-kind="hint"] {
-  stroke: #2f81f7;
-  fill: #2f81f7;
-  opacity: 0.74;
-  animation: bx-arrive 0.25s var(--out);
 }
 
 /* Over: a small crown on the winner's king, a half on both after a draw. */
@@ -578,10 +592,12 @@
   width: 30px;
   height: 30px;
   border-radius: 7px;
-  background:
-    var(--rule, linear-gradient(transparent, transparent)) 0 0 / 50% 50% no-repeat,
-    var(--rule, linear-gradient(transparent, transparent)) 100% 100% / 50% 50% no-repeat,
-    conic-gradient(var(--sq-d) 90deg, var(--sq-l) 0 180deg, var(--sq-d) 0 270deg, var(--sq-l) 0);
+  background: conic-gradient(
+    var(--sq-d) 90deg,
+    var(--sq-l) 0 180deg,
+    var(--sq-d) 0 270deg,
+    var(--sq-l) 0
+  );
   box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.14);
 }
 .bx-swatches img {

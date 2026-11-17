@@ -18,7 +18,7 @@ export interface Prefs {
   hint: boolean;
 }
 
-export const BOARDS = ["ink", "slate", "green", "walnut", "paper"] as const;
+export const BOARDS = ["ink", "slate", "green", "walnut"] as const;
 export type BoardStyle = (typeof BOARDS)[number];
 export const PIECES = ["mpchess", "cburnett", "merida"] as const;
 export type PieceSet = (typeof PIECES)[number];
@@ -39,7 +39,13 @@ let current: Prefs | null = null;
 function load(): Prefs {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return { ...DEFAULTS, ...(JSON.parse(raw) as Partial<Prefs>) };
+    if (raw) {
+      const kept = { ...DEFAULTS, ...(JSON.parse(raw) as Partial<Prefs>) };
+      // A choice that is no longer offered falls back to the first that is.
+      if (!BOARDS.includes(kept.board)) kept.board = DEFAULTS.board;
+      if (!PIECES.includes(kept.pieces)) kept.pieces = DEFAULTS.pieces;
+      return kept;
+    }
   } catch {
     // Storage unavailable: the defaults apply.
   }

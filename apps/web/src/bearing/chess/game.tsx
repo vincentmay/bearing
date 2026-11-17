@@ -61,7 +61,6 @@ const BOARD_NAMES: Record<string, string> = {
   slate: "Slate",
   green: "Green",
   walnut: "Walnut",
-  paper: "Paper",
 };
 const PIECE_NAMES: Record<string, string> = {
   mpchess: "Modern",
