@@ -54,7 +54,7 @@ export const SAMPLE_GAMES: SampleGame[] = [
     "Petroff Defence",
     0.5,
     `e4 e5 Nf3 Nf6 Nxe5 d6 Nf3 Nxe4 d4 d5 Bd3 Bd6 O-O O-O c4 c6 Re1 Bf5 Qb3 Na6 cxd5 cxd5 Nc3 Be6
-     a3 Nc7 Qc2 f5 Ne2 Qf6 Ng3 Rac8 Be3 Ne6 Qb3 b6 Rac1 Rxc1 Rxc1 f4 Nxe4 dxe4 Bxe4 fxe3 fxe3 Kh8`,
+     a3 Nc7 Qc2 f5 Ne2 Qf6 Ng3 Rac8 Be3 Nxg3 hxg3 f4 gxf4 Bxf4 Bxf4 Qxf4 Qd2 Qxd2 Nxd2 Kh8 Nf3 Rf6`,
   ),
   game("Italian Game", 0, `e4 e5 Nf3 Nc6 Bc4 Nd4 Nxe5 Qg5 Nxf7 Qxg2 Rf1 Qxe4+ Be2 Nf3#`),
   game("Semi-Italian Opening", 1, `e4 e5 Nf3 d6 Bc4 Bg4 Nc3 g6 Nxe5 Bxd1 Bxf7+ Ke7 Nd5#`),

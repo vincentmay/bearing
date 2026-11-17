@@ -342,64 +342,21 @@ body {
   gap: 14px;
 }
 /*
- * From one page to the next: the page that is left fades back while the next comes up, the
- * marker in the navigation travels to its new tab, and everything else stands still.
+ * From one page to the next. The page that arrives comes up over a moment: plainly between
+ * tabs, and a little way from the side going into a page and coming back out of it. The
+ * marker in the navigation travels by itself. Nothing is photographed and nothing is held
+ * back: the frame stays as it is, glass and all, and the page can be used from its first
+ * frame. (The browser's own page transitions were tried here. They draw the marker over the
+ * tab's label and the page without the navigation's blur for as long as they last.)
  */
-@supports (view-transition-name: none) {
-  .bx-view,
-  .bx-view-in {
-    animation: none;
-  }
-  .bx-page {
-    view-transition-name: bx-page;
-  }
-  .bx-nav > i {
-    view-transition-name: bx-tab;
-  }
-  /* The large mark at the head of a team's or a player's page: a mark in a row travels into it. */
-  .bx-entity > .bx-disc {
-    view-transition-name: bx-mark;
-  }
-  ::view-transition-group(bx-mark) {
-    animation-duration: 0.44s;
-    animation-timing-function: cubic-bezier(0.2, 0.9, 0.25, 1);
-  }
-  ::view-transition-old(bx-mark),
-  ::view-transition-new(bx-mark) {
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-  }
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation: none;
-  }
-  /*
-   * Between tabs: the old page is gone at once and the new one is simply there, as tabs are
-   * everywhere. Only the marker travels. Into a page and back out of it the page moves a
-   * little way in the direction of the move. Short, so that nothing waits on it.
-   */
-  ::view-transition-old(bx-page) {
-    animation: bx-leave 0.09s linear both;
-  }
-  ::view-transition-new(bx-page) {
-    animation: bx-arrive 0.16s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  }
-  html:active-view-transition-type(in)::view-transition-new(bx-page) {
-    animation: bx-arrive-in 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  }
-  html:active-view-transition-type(out)::view-transition-new(bx-page) {
-    animation: bx-arrive-out 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  }
-  ::view-transition-group(bx-tab) {
-    animation-duration: 0.3s;
-    animation-timing-function: cubic-bezier(0.3, 1.25, 0.4, 1);
-  }
+.bx-view {
+  animation: bx-arrive 0.18s var(--out) backwards;
 }
-@keyframes bx-leave {
-  to {
-    opacity: 0;
-  }
+.bx-view-in {
+  animation: bx-arrive-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.bx-view-out {
+  animation: bx-arrive-out 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
 }
 @keyframes bx-arrive {
   from {
@@ -409,20 +366,20 @@ body {
 @keyframes bx-arrive-in {
   from {
     opacity: 0;
-    transform: translateX(18px);
+    transform: translateX(16px);
   }
 }
 @keyframes bx-arrive-out {
   from {
     opacity: 0;
-    transform: translateX(-18px);
+    transform: translateX(-16px);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
-    animation: none !important;
+  .bx-view,
+  .bx-view-in,
+  .bx-view-out {
+    animation: none;
   }
 }
 .bx-note {
@@ -502,18 +459,6 @@ body {
     opacity: 0.3;
   }
 }
-@keyframes bx-enter {
-  0% {
-    transform: translateY(10px);
-    opacity: 0;
-  }
-}
-@keyframes bx-slide {
-  0% {
-    transform: translateX(36px);
-    opacity: 0;
-  }
-}
 @keyframes bx-pop {
   50% {
     transform: scale(1.35);
@@ -533,12 +478,6 @@ body {
 }
 .bx-step {
   animation: bx-step 0.5s var(--out);
-}
-.bx-view {
-  animation: bx-enter 0.3s var(--out);
-}
-.bx-view-in {
-  animation: bx-slide 0.4s var(--out);
 }
 .bx-press {
   transition: transform 0.15s;
@@ -1796,362 +1735,6 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/*
- * A game of chess. The board keeps to two quiet greys in both appearances, so that the pieces,
- * which are black and white, read on every square; everything around it is the app's own.
- */
-.bx-chess {
-  --sq-l: #ededed;
-  --sq-d: #bcbcbc;
-  display: grid;
-  gap: 18px;
-  margin-top: 14px;
-}
-.bx[data-theme="dark"] .bx-chess {
-  --sq-l: #cfcfcf;
-  --sq-d: #8b8b8b;
-}
-@media (prefers-color-scheme: dark) {
-  .bx:not([data-theme="light"]) .bx-chess {
-    --sq-l: #cfcfcf;
-    --sq-d: #8b8b8b;
-  }
-}
-.bx-chess-main {
-  display: grid;
-  align-content: start;
-  gap: 10px;
-  min-width: 0;
-}
-/* Who sits where: face, name, what they are rated, and their clock at the move shown. */
-.bx-seat {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-.bx-seat-who {
-  flex: 1;
-  min-width: 0;
-}
-.bx-seat-who b {
-  display: block;
-  font-weight: 750;
-  letter-spacing: -0.01em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.bx-seat-who b i {
-  margin-right: 6px;
-  font: 600 9.5px var(--mono);
-  letter-spacing: 0.04em;
-  color: var(--ink2);
-}
-.bx-seat-who .bx-sub {
-  display: block;
-  font-family: var(--mono);
-  font-variant-numeric: tabular-nums;
-}
-/* Which pieces: a small square of their colour. */
-.bx-seat-piece {
-  flex: none;
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
-  background: #fff;
-  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.55);
-}
-/* Where the disc already is the colour of the pieces, the square would say it twice. */
-.bx-seat:not([data-face]) .bx-seat-piece {
-  display: none;
-}
-.bx-seat:not([data-face]) .bx-disc {
-  box-shadow: inset 0 0 0 1px var(--edge);
-}
-.bx-seat[data-colour="black"] .bx-seat-piece {
-  background: #000;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.55);
-}
-.bx-clock {
-  flex: none;
-  min-width: 62px;
-  padding: 5px 10px;
-  border-radius: 9px;
-  background: var(--sunk);
-  font: 600 13px var(--mono);
-  text-align: center;
-  color: var(--ink2);
-  transition:
-    background 0.2s var(--out),
-    color 0.2s var(--out);
-}
-.bx-clock[data-on] {
-  background: var(--ink);
-  color: var(--ground);
-}
-/* The bar and the board side by side. */
-.bx-chess-table {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 8px;
-}
-.bx-chess-table[data-judged] {
-  grid-template-columns: 18px minmax(0, 1fr);
-}
-/*
- * The engine's judgement as a bar: Black's share from the top, White's from the bottom, the
- * line between them moving with the game. The figure stands at the end of whoever is ahead.
- */
-.bx-eval {
-  position: relative;
-  border-radius: 6px;
-  overflow: hidden;
-  background: #1c1c1c;
-  box-shadow: inset 0 0 0 1px var(--hair);
-}
-.bx-eval i {
-  position: absolute;
-  inset: auto 0 0 0;
-  height: var(--w);
-  background: #f4f4f4;
-  transition: height 0.5s var(--out);
-}
-.bx-eval[data-turned] i {
-  inset: 0 0 auto 0;
-}
-.bx-eval b {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 4px;
-  font: 700 8px var(--mono);
-  letter-spacing: -0.04em;
-  text-align: center;
-  color: #111;
-}
-.bx-eval[data-ahead="black"] b {
-  top: 4px;
-  bottom: auto;
-  color: #f4f4f4;
-}
-.bx-eval[data-turned][data-ahead="white"] b {
-  top: 4px;
-  bottom: auto;
-}
-.bx-eval[data-turned][data-ahead="black"] b {
-  top: auto;
-  bottom: 4px;
-}
-.bx-board {
-  display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-  aspect-ratio: 1;
-  border-radius: 12px;
-  overflow: hidden;
-  outline: none;
-  user-select: none;
-  box-shadow: 0 0 0 1px var(--hair);
-}
-.bx-board:focus-visible {
-  box-shadow:
-    0 0 0 2px var(--surface),
-    0 0 0 4px var(--ink);
-}
-.bx-board > i {
-  position: relative;
-  aspect-ratio: 1;
-  background: var(--sq-l);
-}
-.bx-board > i[data-dark] {
-  background: var(--sq-d);
-}
-/* The move just made: where it left from, lightly, and where it landed, firmly. */
-.bx-board > i[data-from]::after,
-.bx-board > i[data-to]::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  box-shadow: inset 0 0 0 2.5px rgb(0 0 0 / 0.32);
-}
-.bx-board > i[data-to]::after {
-  box-shadow: inset 0 0 0 3px rgb(0 0 0 / 0.78);
-}
-.bx-board u {
-  position: absolute;
-  font: 600 8.5px var(--mono);
-  text-decoration: none;
-  color: rgb(0 0 0 / 0.5);
-  pointer-events: none;
-  z-index: 3;
-}
-.bx-board u[data-rank] {
-  top: 2px;
-  left: 3px;
-}
-.bx-board u[data-file] {
-  right: 3px;
-  bottom: 1px;
-}
-.bx-board img {
-  position: absolute;
-  inset: 3%;
-  width: 94%;
-  height: 94%;
-  z-index: 1;
-}
-/* A piece that has just moved travels from its square to this one. */
-.bx-board img[data-moved] {
-  z-index: 2;
-  animation: bx-piece 0.3s cubic-bezier(0.25, 0.8, 0.3, 1);
-}
-@keyframes bx-piece {
-  from {
-    transform: translate(calc(var(--dx) * 106.4%), calc(var(--dy) * 106.4%));
-  }
-}
-/* The judgement through the whole game: above the middle White is better, below it Black. */
-.bx-evalgraph {
-  display: block;
-  width: 100%;
-  height: 46px;
-  border-radius: 8px;
-  background: linear-gradient(var(--hair), var(--hair)) 0 50% / 100% 1px no-repeat var(--sunk);
-  cursor: pointer;
-  touch-action: none;
-}
-.bx-evalgraph path[data-area] {
-  fill: var(--ink);
-  opacity: 0.14;
-}
-.bx-evalgraph path[data-line] {
-  fill: none;
-  stroke: var(--ink);
-  stroke-width: 1.5;
-  vector-effect: non-scaling-stroke;
-  stroke-linejoin: round;
-}
-.bx-evalgraph line[data-at] {
-  stroke: var(--ink);
-  stroke-width: 1.5;
-  vector-effect: non-scaling-stroke;
-  opacity: 0.55;
-}
-.bx-chess-side {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 0;
-}
-.bx-chess-opening {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.35;
-  color: var(--ink2);
-}
-.bx-chess-keys {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-.bx-chess-keys button {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  color: var(--ink);
-  transition:
-    transform 0.15s var(--out),
-    background 0.16s var(--out),
-    opacity 0.16s var(--out);
-}
-.bx-chess-keys button:active {
-  transform: scale(0.88);
-}
-.bx-chess-keys button:disabled {
-  opacity: 0.28;
-}
-.bx-chess-keys button[data-main] {
-  background: var(--ink);
-  color: var(--ground);
-}
-.bx-chess-keys button[data-turn] {
-  margin-left: 8px;
-  color: var(--ink2);
-}
-.bx-chess-keys button[data-turn][aria-pressed="true"] {
-  background: var(--sunk);
-  color: var(--ink);
-}
-.bx-moves {
-  flex: 1;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  max-height: 168px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
-}
-.bx-moves li {
-  display: grid;
-  grid-template-columns: 26px minmax(0, 1fr) minmax(0, 1fr);
-  align-items: center;
-  gap: 2px;
-}
-.bx-moves li > i {
-  font: 500 10.5px var(--mono);
-  color: var(--ink2);
-}
-.bx-moves button {
-  padding: 5px 8px;
-  border-radius: 8px;
-  font-weight: 650;
-  font-size: 13px;
-  text-align: left;
-  transition:
-    background 0.14s var(--out),
-    color 0.14s var(--out);
-}
-.bx-moves button[aria-current] {
-  background: var(--ink);
-  color: var(--ground);
-}
-@media (hover: hover) {
-  .bx-moves button:not([aria-current]):hover,
-  .bx-chess-keys button:not([data-main]):not(:disabled):hover {
-    background: var(--hover);
-  }
-}
-/*
- * With room, the moves stand beside the board and are exactly as tall as it: the board and the
- * players set the height, and the list scrolls inside what that leaves.
- */
-@media (min-width: 640px) {
-  .bx-chess {
-    position: relative;
-    grid-template-columns: minmax(0, 1fr) 204px;
-  }
-  .bx-chess-side {
-    position: absolute;
-    inset: 0 0 0 auto;
-    width: 204px;
-  }
-  .bx-moves {
-    max-height: none;
-    min-height: 0;
-  }
-}
-@media (hover: hover) {
-  .bx-moves button:not([aria-current]):hover,
-  .bx-chess-keys button:not(:disabled):not([data-main]):hover {
-    background: var(--hover);
-  }
-}
-
 /*
  * Swiss, as a flow. Records are places, teams stand at the record they hold, lines are the
  * results that took them there: ink for a win, grey for a loss.

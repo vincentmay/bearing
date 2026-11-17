@@ -4,7 +4,7 @@ import "./bearing.css";
 
 import { Link, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
 import { CalendarDays, House, Search, Star } from "lucide-react";
-import { type ReactNode, createContext, useContext, useEffect, useRef } from "react";
+import { type ReactNode, createContext, useContext, useEffect, useRef, useState } from "react";
 import { usePrefs } from "../lib/prefs";
 import { useSamplePlayer } from "./live";
 import { useAtlas } from "../lib/world";
@@ -132,6 +132,13 @@ export function Shell() {
   }, [found]);
   const active = found >= 0 ? found : last.current;
   const inner = found < 0;
+  // How this page was come to, decided once when the address changes: between tabs, into a
+  // page, or back out of one. The page arrives accordingly.
+  const [move, setMove] = useState({ path, how: inner ? "bx-view-in" : "bx-view" });
+  if (move.path !== path) {
+    const wasInner = tabOf(move.path) < 0;
+    setMove({ path, how: inner ? "bx-view-in" : wasInner ? "bx-view-out" : "bx-view" });
+  }
   // The page says what it is in the browser's own title: in the tab, the history, a bookmark.
   const atlas = useAtlas();
   useEffect(() => {
@@ -141,7 +148,7 @@ export function Shell() {
   return (
     <Chrome active={active} inner={inner}>
       <Origin value={TABS[active] ?? TABS[0]}>
-        <main id="main" key={path} className={inner ? "bx-page bx-view-in" : "bx-page bx-view"}>
+        <main id="main" key={path} className={`bx-page ${move.how}`}>
           <Outlet />
         </main>
       </Origin>

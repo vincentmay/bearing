@@ -238,6 +238,9 @@ catalogs:
     '@vitejs/plugin-react':
       specifier: ^6.3.0
       version: 6.3.0
+    chessops:
+      specifier: ^0.15.1
+      version: 0.15.1
     convex:
       specifier: ^1.50.0
       version: 1.50.0
@@ -253,6 +256,9 @@ catalogs:
     react-dom:
       specifier: ^19.3.1
       version: 19.3.1
+    stockfish:
+      specifier: ^19.0.1
+      version: 19.0.1
     typescript:
       specifier: ^7.0.2
       version: 7.0.2
@@ -312,6 +318,9 @@ importers:
       react-dom:
         specifier: 'catalog:'
         version: 19.3.1(react@19.3.1)
+      stockfish:
+        specifier: 'catalog:'
+        version: 19.0.1
     devDependencies:
       '@edge-runtime/vm':
         specifier: 'catalog:'
@@ -342,6 +351,10 @@ importers:
         version: 1.4.0(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.27.0)(jiti@2.7.0)(playwright@1.65.1)(typescript@7.0.2)
 
   packages/domain:
+    dependencies:
+      chessops:
+        specifier: 'catalog:'
+        version: 0.15.1
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -425,6 +438,10 @@ packages:
   '@babel/types@7.29.14':
     resolution: {integrity: sha512-UjI/dKmwJwT9pOszJitq2G6EObZPnsZUfdCr92z2TlF3EZK9J3EdfOKUrCzHl6wFthbzwhzl1Soc/UIwxRiq6w==}
     engines: {node: '>=6.9.0'}
+
+  '@badrap/result@0.3.1':
+    resolution: {integrity: sha512-ECvpsyZYknoRD0peG1K+UkX5llld3TyK1Ot9Cq2epSoWK19nyzpGKVl98sadSmohu5wHNuiDl+Ex9SVdcIjiFg==}
+    engines: {node: '>= 22'}
 
   '@blazediff/core@1.10.0':
     resolution: {integrity: sha512-AOQff0zgR7cGsZL+4E7hVkmujoPUpm0J9xzWGWZj5wCjd3gmxESXAPfKyuzs93VdpQNFhHlBhfOjrcZ+XTERtQ==}
@@ -1461,6 +1478,9 @@ packages:
     resolution: {integrity: sha512-XWAtwJ6OHO+tj0EKCs0Y2UamnyOxseZWltU4x2U2wh8g4AigdjwvtUjvLP2tqkA/avxHEtzxNaqGq/YGNwckKg==}
     engines: {node: '>=18'}
 
+  chessops@0.15.1:
+    resolution: {integrity: sha512-hQDwv90AFkrPEsRJBebh3ZE+xDga25TCCv4lavNT2plZmd33UKNFYaZsE+7rafMbnBRrDEWUVsSYFqY3qCIGZw==}
+
   chokidar@5.0.0:
     resolution: {integrity: sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw==}
     engines: {node: '>= 20.19.0'}
@@ -1835,6 +1855,10 @@ packages:
   std-env@4.3.0:
     resolution: {integrity: sha512-OtU/EgQ1kIm5KwqQpBC6ZEMXrZRui11w8zgfTWp8cdO9B8OaPsbA8bTHO2P+HNo1VlUTGMVBwPhydu6poeXiag==}
 
+  stockfish@19.0.1:
+    resolution: {integrity: sha512-bTwsO4e9HAwPBKls1+szcfibmaWRNzTF20rQE/XPdB3LOSoT6XTZDr1zYwriwSRRFT5MkvqrglPmJrKEVXGnyQ==}
+    hasBin: true
+
   swr@2.3.4:
     resolution: {integrity: sha512-bYd2lrhc+VarcpkgWclcUi92wYCpOgMws9Sd1hG1ntAu0NEy+14CbotuFjshBU2kt9rYj9TSmDcybpxpeTU1fg==}
     peerDependencies:
@@ -2128,6 +2152,8 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.29.14
       '@babel/helper-validator-identifier': 7.29.7
+
+  '@badrap/result@0.3.1': {}
 
   '@blazediff/core@1.10.0': {}
 
@@ -2804,6 +2830,10 @@ snapshots:
 
   chai@6.3.0: {}
 
+  chessops@0.15.1:
+    dependencies:
+      '@badrap/result': 0.3.1
+
   chokidar@5.0.0:
     dependencies:
       readdirp: 5.1.1
@@ -3115,6 +3145,8 @@ snapshots:
     optional: true
 
   std-env@4.3.0: {}
+
+  stockfish@19.0.1: {}
 
   swr@2.3.4(react@19.3.1):
     dependencies:

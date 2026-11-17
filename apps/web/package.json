@@ -21,7 +21,8 @@
     "convex": "catalog:",
     "lucide-react": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "stockfish": "catalog:"
   },
   "devDependencies": {
     "@edge-runtime/vm": "catalog:",

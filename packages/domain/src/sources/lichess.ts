@@ -1,4 +1,4 @@
-import { annotatedPgn } from "../chess.ts";
+import { writtenGames } from "../chess.ts";
 import type { GameResult, Match, Player, Stage, StageFormat, Tournament } from "../model.ts";
 
 /**
@@ -121,6 +121,8 @@ export interface LichessRound {
   startsAt?: number;
   ongoing?: boolean;
   finished?: boolean;
+  /** When it ended, in milliseconds. */
+  finishedAt?: number;
 }
 
 export interface LichessPlayer {
@@ -148,30 +150,38 @@ export interface LichessGame {
   opening?: string;
 }
 
+/** One game out of a round's written record. */
+export interface WrittenGame {
+  moves: string[];
+  evals?: number[];
+  clocks?: number[];
+  opening?: string;
+  /** "1-0", "0-1", "1/2-1/2", or "*" while it is not over. */
+  result?: string;
+}
+
 /**
  * The games of a round out of its written record (one PGN after another), by game id: the moves
  * of each and the name of its opening where Lichess has worked one out.
  */
-export function gamesOfPgn(
-  pgn: string,
-): Record<string, { moves: string[]; evals?: number[]; clocks?: number[]; opening?: string }> {
-  const games: ReturnType<typeof gamesOfPgn> = {};
-  for (const one of pgn.split(/\n\s*\n(?=\[Event )/)) {
-    const tag = (name: string) => new RegExp(`\\[${name} "([^"]*)"\\]`).exec(one)?.[1];
+export function gamesOfPgn(pgn: string): Record<string, WrittenGame> {
+  const games: Record<string, WrittenGame> = {};
+  for (const game of writtenGames(pgn)) {
+    const tag = (name: string) => game.headers.get(name);
     const id = (tag("GameURL") ?? tag("Site"))?.split("/").at(-1);
-    if (!id) continue;
+    if (!id || id === "?") continue;
     const opening = tag("Opening");
     const eco = tag("ECO");
-    const read = annotatedPgn(one);
     games[id] = {
-      moves: read.moves,
-      evals: read.evals.length ? read.evals : undefined,
-      clocks: read.clocks.some((c) => c >= 0) ? read.clocks : undefined,
+      moves: game.moves,
+      evals: game.evals.length ? game.evals : undefined,
+      clocks: game.clocks.some((c) => c >= 0) ? game.clocks : undefined,
       // The opening by its name, led by its code where the game gives one: "E05 Catalan Opening".
       opening:
         opening && opening !== "?"
           ? [eco && eco !== "?" ? eco : undefined, opening].filter(Boolean).join(" ")
           : undefined,
+      result: tag("Result"),
     };
   }
   return games;
@@ -379,4 +389,36 @@ export function roundsToFetch(rounds: LichessRound[], limit = 4): LichessRound[]
   const finished = rounds.filter((r) => r.finished).slice(-2);
   const next = rounds.find((r) => !r.ongoing && !r.finished);
   return [...new Set([...ongoing, ...finished, ...(next ? [next] : [])])].slice(0, limit);
+}
+
+/**
+ * Which rounds a look at what is being played needs: those under way or due within the last
+ * half day, and one that ended minutes ago, so that its last results are taken down.
+ */
+export function roundsInPlay(rounds: LichessRound[], now: number, limit = 3): LichessRound[] {
+  const MINUTE = 60_000;
+  return rounds
+    .filter((r) =>
+      r.finished
+        ? now - (r.finishedAt ?? 0) < 10 * MINUTE
+        : r.ongoing || ((r.startsAt ?? Infinity) <= now && now - (r.startsAt ?? 0) < 720 * MINUTE),
+    )
+    .slice(-limit);
+}
+
+/**
+ * When a broadcast should next be looked at, in milliseconds, or 0 for not at all: when its
+ * next round is due to begin. A round that gives no time (many begin "when the last one is
+ * over") is looked for every few minutes while the event is under way.
+ */
+export function nextLook(rounds: LichessRound[], now: number): number {
+  const open = rounds.filter((r) => !r.finished);
+  if (!open.length) return 0;
+  // Being played, or due: the look that follows the games is the next one.
+  if (open.some((r) => r.ongoing || (r.startsAt ?? Infinity) <= now)) return now;
+  const begun = rounds.some((r) => r.finished);
+  const times = open.flatMap((r) => (r.startsAt ? [r.startsAt] : []));
+  // The next round in order has no time of its own: it follows the one before.
+  if (begun && !open[0]?.startsAt) return now + 5 * 60_000;
+  return times.length ? Math.min(...times) : begun ? now + 5 * 60_000 : 0;
 }

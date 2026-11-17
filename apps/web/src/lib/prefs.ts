@@ -10,10 +10,29 @@ export interface Prefs {
   hours: "auto" | "12" | "24";
   /** An IANA time zone, or null for the device's own. */
   zone: string | null;
+  /** How the chess board looks, and which pieces stand on it. */
+  board: BoardStyle;
+  pieces: PieceSet;
+  /** Whether an engine judges the chess positions shown, and draws the move it would make. */
+  engine: boolean;
+  hint: boolean;
 }
 
+export const BOARDS = ["ink", "slate", "green", "walnut", "paper"] as const;
+export type BoardStyle = (typeof BOARDS)[number];
+export const PIECES = ["mpchess", "cburnett", "merida"] as const;
+export type PieceSet = (typeof PIECES)[number];
+
 const KEY = "bearing.prefs.v1";
-const DEFAULTS: Prefs = { theme: "system", hours: "auto", zone: null };
+const DEFAULTS: Prefs = {
+  theme: "system",
+  hours: "auto",
+  zone: null,
+  board: "ink",
+  pieces: "mpchess",
+  engine: true,
+  hint: false,
+};
 const listeners = new Set<() => void>();
 let current: Prefs | null = null;
 

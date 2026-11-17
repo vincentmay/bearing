@@ -1,0 +1,1090 @@
+/*
+ * A game of chess. Everything around the board is the app's own: its type, its hairlines,
+ * its capsules. The board is an object set into the page, in one of five styles the viewer
+ * picks from, and keeps its colours in both appearances the way a wooden board would.
+ *
+ * Each style is a handful of values: the two squares, how the move just made is marked on
+ * each of them, and what the small letters and numbers at the edge are written in.
+ */
+.bx-chess {
+  --sq-l: #ececee;
+  --sq-d: #a9acb3;
+  --mark-l: #f3d98a;
+  --mark-d: #c9aa52;
+  --coord-l: rgb(20 22 28 / 0.55);
+  --coord-d: rgb(255 255 255 / 0.82);
+  --move: 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  margin-top: 14px;
+}
+.bx-chess[data-board="ink"],
+.bx-swatches [data-board="ink"] {
+  --sq-l: #ececee;
+  --sq-d: #a9acb3;
+  --mark-l: #f3d98a;
+  --mark-d: #c9aa52;
+}
+.bx-chess[data-board="slate"],
+.bx-swatches [data-board="slate"] {
+  --sq-l: #e4e9f0;
+  --sq-d: #7f93ad;
+  --mark-l: #b9dcf7;
+  --mark-d: #5fa3d6;
+  --coord-l: rgb(52 70 96 / 0.7);
+}
+.bx-chess[data-board="green"],
+.bx-swatches [data-board="green"] {
+  --sq-l: #ebecd0;
+  --sq-d: #739552;
+  --mark-l: #f5f682;
+  --mark-d: #b9ca43;
+  --coord-l: rgb(72 100 48 / 0.85);
+}
+.bx-chess[data-board="walnut"],
+.bx-swatches [data-board="walnut"] {
+  --sq-l: #f0d9b5;
+  --sq-d: #b58863;
+  --mark-l: #cdd26a;
+  --mark-d: #aaa23a;
+  --coord-l: rgb(120 82 50 / 0.85);
+}
+.bx-chess[data-board="paper"],
+.bx-swatches [data-board="paper"] {
+  --sq-l: #fbf9f4;
+  --sq-d: #fbf9f4;
+  --mark-l: #f1e3ae;
+  --mark-d: #f1e3ae;
+  --coord-l: rgb(40 36 30 / 0.6);
+  --coord-d: rgb(40 36 30 / 0.6);
+  /* A printed diagram: the dark squares are ruled, not filled. */
+  --rule: repeating-linear-gradient(-45deg, rgb(40 36 30 / 0.5) 0 1px, transparent 1px 5px);
+}
+
+.bx-chess-main {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* ---- Who sits where: face, name, rating, what they have taken, and their clock ---- */
+.bx-seat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 36px;
+}
+.bx-seat-who {
+  flex: 1;
+  min-width: 0;
+}
+.bx-seat-who b {
+  display: block;
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bx-seat-who b i {
+  margin-right: 6px;
+  font: 600 9.5px var(--mono);
+  letter-spacing: 0.04em;
+  color: var(--ink2);
+}
+.bx-seat-who .bx-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 16px;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.bx-seat:not([data-face]) .bx-disc {
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
+/* What they have taken: small, close together, a gap where the kind of piece changes. */
+.bx-taken {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 2px;
+}
+.bx-taken img {
+  width: 15px;
+  height: 15px;
+  margin-left: -7px;
+  animation: bx-pop 0.3s var(--spring) backwards;
+}
+.bx-taken img[data-new] {
+  margin-left: 1px;
+}
+.bx-taken em {
+  margin-left: 4px;
+  font: 600 10.5px var(--mono);
+  font-style: normal;
+  color: var(--ink2);
+}
+.bx-clock {
+  flex: none;
+  min-width: 66px;
+  padding: 6px 11px;
+  border-radius: 10px;
+  background: var(--sunk);
+  font: 600 14px var(--mono);
+  text-align: center;
+  color: var(--ink2);
+  transition:
+    background 0.25s var(--out),
+    color 0.25s var(--out);
+}
+.bx-clock[data-on] {
+  background: var(--ink);
+  color: var(--ground);
+}
+.bx-clock[data-low] {
+  background: #e5484d;
+  color: #fff;
+  animation: bx-low 1s ease-in-out infinite;
+}
+@keyframes bx-low {
+  50% {
+    opacity: 0.72;
+  }
+}
+@keyframes bx-pop {
+  from {
+    opacity: 0;
+    scale: 0.4;
+  }
+}
+
+/* ---- The bar and the board, side by side ---- */
+.bx-chess-table {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.bx-chess[data-judging] .bx-chess-table {
+  grid-template-columns: 12px minmax(0, 1fr);
+}
+/*
+ * The engine's judgement as a bar: Black's share from the top, White's from the bottom, the
+ * line between them moving with the game. The figure stands at the end of whoever is ahead.
+ */
+.bx-eval {
+  position: relative;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #1b1b1d;
+  box-shadow: inset 0 0 0 1px var(--hair);
+}
+.bx-eval i {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: var(--w);
+  background: #f6f6f6;
+  transition: height 0.7s cubic-bezier(0.25, 1, 0.3, 1);
+}
+.bx-eval[data-turned] i {
+  inset: 0 0 auto 0;
+}
+/* The middle of the bar: where neither side is ahead. */
+.bx-eval::after {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto 0;
+  height: 1px;
+  background: rgb(128 128 128 / 0.55);
+}
+.bx-eval b {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 5px;
+  font: 700 8.5px var(--mono);
+  letter-spacing: -0.05em;
+  text-align: center;
+  color: #111;
+}
+.bx-eval[data-ahead="black"] b {
+  top: 5px;
+  bottom: auto;
+  color: #f4f4f4;
+}
+.bx-eval[data-turned][data-ahead="white"] b {
+  top: 5px;
+  bottom: auto;
+}
+.bx-eval[data-turned][data-ahead="black"] b {
+  top: auto;
+  bottom: 5px;
+}
+
+.bx-board {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  box-shadow:
+    0 0 0 1px var(--hair),
+    var(--sh);
+  /* A finger scrolls the page past the board; a pointer picks pieces up. */
+  touch-action: pan-y;
+}
+.bx-squares {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+.bx-squares > i {
+  position: relative;
+  background: var(--sq-l);
+  transition: background-color 0.18s var(--out);
+}
+.bx-squares > i[data-dark] {
+  background: var(--rule, none), var(--sq-d);
+}
+/* The move just made: both squares it touched take the mark. */
+.bx-squares > i[data-from],
+.bx-squares > i[data-to],
+.bx-squares > i[data-picked] {
+  background: var(--mark-l);
+}
+.bx-squares > i[data-dark][data-from],
+.bx-squares > i[data-dark][data-to],
+.bx-squares > i[data-dark][data-picked] {
+  background: var(--rule, none), var(--mark-d);
+}
+/* A king in check: lit from under the piece. */
+.bx-squares > i[data-check]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle,
+    rgb(255 40 40 / 0.95) 0%,
+    rgb(231 20 20 / 0.62) 32%,
+    rgb(170 0 0 / 0) 78%
+  );
+  animation: bx-check 0.5s var(--out) backwards;
+}
+@keyframes bx-check {
+  from {
+    opacity: 0;
+    scale: 0.5;
+  }
+}
+/* Where the piece picked up may go: a dot on an empty square, a ring around a piece. */
+.bx-squares > i[data-reach]::after {
+  content: "";
+  position: absolute;
+  inset: 34%;
+  border-radius: 50%;
+  background: rgb(10 14 20 / 0.24);
+  animation: bx-pop 0.16s var(--out) backwards;
+}
+.bx-squares > i[data-reach="take"]::after {
+  inset: 4%;
+  background: none;
+  box-shadow: inset 0 0 0 5px rgb(10 14 20 / 0.24);
+}
+.bx-squares u {
+  position: absolute;
+  font: 600 9px var(--mono);
+  text-decoration: none;
+  color: var(--coord-l);
+  pointer-events: none;
+}
+.bx-squares i[data-dark] u {
+  color: var(--coord-d);
+}
+.bx-squares u[data-rank] {
+  top: 2px;
+  left: 4px;
+}
+.bx-squares u[data-file] {
+  right: 4px;
+  bottom: 1px;
+}
+
+/* The pieces: each is moved, never replaced, so every change of position is seen. */
+.bx-men {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: bx-settle 0.24s var(--out);
+}
+@keyframes bx-settle {
+  from {
+    opacity: 0;
+    scale: 0.985;
+  }
+}
+.bx-men img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 12.5%;
+  height: 12.5%;
+  padding: 0.35%;
+  will-change: transform;
+  transition:
+    transform var(--move),
+    opacity 0.16s ease-out 0.08s,
+    scale 0.2s ease-out;
+}
+/* The piece that has just moved passes over the others, and over the one it takes. */
+.bx-men img[data-moved] {
+  z-index: 2;
+}
+.bx-men img[data-gone] {
+  opacity: 0;
+  scale: 0.6;
+  z-index: 1;
+}
+.bx-men img[data-held] {
+  z-index: 5;
+  scale: 1.14;
+  transition: scale 0.12s ease-out;
+  filter: drop-shadow(0 7px 7px rgb(0 0 0 / 0.32));
+}
+.bx-board[data-live] {
+  cursor: grab;
+}
+.bx-board[data-live]:active {
+  cursor: grabbing;
+}
+
+/* Arrows and rings: the engine's move in the app's own blue, the viewer's own in amber. */
+.bx-shapes {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 4;
+}
+.bx-shapes line {
+  stroke-width: 0.17;
+  stroke-linecap: round;
+}
+.bx-shapes circle {
+  fill: none;
+  stroke-width: 0.075;
+}
+.bx-shapes polygon {
+  stroke: none;
+}
+.bx-shapes [data-kind="drawn"] {
+  stroke: #f5a623;
+  fill: #f5a623;
+  opacity: 0.86;
+}
+.bx-shapes circle[data-kind="drawn"] {
+  fill: none;
+}
+.bx-shapes [data-kind="hint"] {
+  stroke: #2f81f7;
+  fill: #2f81f7;
+  opacity: 0.74;
+  animation: bx-arrive 0.25s var(--out);
+}
+
+/* Over: a small crown on the winner's king, a half on both after a draw. */
+.bx-verdict {
+  position: absolute;
+  z-index: 3;
+  width: 12.5%;
+  height: 12.5%;
+  pointer-events: none;
+}
+.bx-verdict::before {
+  content: "";
+  position: absolute;
+  top: 5%;
+  right: 5%;
+  width: 34%;
+  height: 34%;
+  border-radius: 50%;
+  background: #2ea043;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+  animation: bx-pop 0.4s var(--spring) 0.25s backwards;
+}
+.bx-verdict[data-mark="drew"]::before {
+  background: #6e7681;
+}
+.bx-verdict > * {
+  position: absolute;
+  top: 5%;
+  right: 5%;
+  width: 34%;
+  height: 34%;
+  display: grid;
+  place-items: center;
+  padding: 5%;
+  color: #fff;
+  font: 700 10px var(--mono);
+  line-height: 1;
+  animation: bx-pop 0.4s var(--spring) 0.25s backwards;
+}
+.bx-verdict[data-mark="drew"] {
+  color: #fff;
+  font: 700 10px/1 var(--mono);
+  text-align: right;
+}
+
+/* A pawn on the last rank: what it becomes. */
+.bx-promote {
+  position: absolute;
+  top: 0;
+  z-index: 6;
+  width: 12.5%;
+  display: grid;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow:
+    0 0 0 1px var(--edge),
+    0 14px 30px -10px rgb(0 0 0 / 0.5);
+  animation: bx-pop 0.18s var(--out);
+}
+.bx-promote[data-low] {
+  top: auto;
+  bottom: 0;
+}
+.bx-chess .bx-promote button {
+  aspect-ratio: 1;
+  padding: 6%;
+  transition: background 0.14s var(--out);
+}
+.bx-promote img {
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- The keys: one capsule, like the navigation ---- */
+.bx-chess-keys {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--sunk);
+}
+.bx-chess .bx-chess-keys > button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: var(--ink);
+  transition:
+    transform 0.15s var(--out),
+    background 0.16s var(--out),
+    opacity 0.16s var(--out);
+}
+.bx-chess .bx-chess-keys > button:active {
+  transform: scale(0.86);
+}
+.bx-chess .bx-chess-keys > button:disabled {
+  opacity: 0.26;
+}
+.bx-chess .bx-chess-keys > button[data-main] {
+  margin: 0 4px;
+  background: var(--ink);
+  color: var(--ground);
+}
+.bx-chess .bx-chess-keys > button[aria-pressed="true"],
+.bx-chess .bx-chess-keys > button[aria-expanded="true"] {
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--hair);
+}
+.bx-chess-keys-gap {
+  flex: 1;
+  max-width: 28px;
+}
+
+/* What the board looks like, and what the engine does: a sheet above the keys. */
+.bx-chess-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  z-index: 20;
+  width: min(300px, calc(100vw - 32px));
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 22px;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  box-shadow:
+    var(--gloss),
+    0 24px 50px -18px rgb(0 0 0 / 0.55);
+  transform-origin: bottom right;
+  animation: bx-sheet 0.2s var(--out);
+}
+@keyframes bx-sheet {
+  from {
+    opacity: 0;
+    scale: 0.94;
+    translate: 0 6px;
+  }
+}
+.bx-chess .bx-kicker {
+  font: 500 10px var(--mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink2);
+}
+.bx-chess-menu .bx-kicker {
+  margin-top: 4px;
+}
+.bx-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
+  gap: 6px;
+}
+.bx-chess .bx-swatches button {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding: 7px 2px 6px;
+  border-radius: 12px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink2);
+  transition:
+    background 0.14s var(--out),
+    color 0.14s var(--out),
+    box-shadow 0.14s var(--out);
+}
+.bx-chess .bx-swatches button[aria-pressed="true"] {
+  color: var(--ink);
+  background: var(--sunk);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+/* Four squares of the board in question. */
+.bx-swatches i {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background:
+    var(--rule, linear-gradient(transparent, transparent)) 0 0 / 50% 50% no-repeat,
+    var(--rule, linear-gradient(transparent, transparent)) 100% 100% / 50% 50% no-repeat,
+    conic-gradient(var(--sq-d) 90deg, var(--sq-l) 0 180deg, var(--sq-d) 0 270deg, var(--sq-l) 0);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.14);
+}
+.bx-swatches img {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: #a9acb3;
+}
+.bx-chess .bx-chess-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 4px;
+  font-weight: 600;
+  text-align: left;
+}
+.bx-chess .bx-chess-switch:disabled {
+  opacity: 0.4;
+}
+.bx-chess-switch i {
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--rest);
+  transition: background 0.2s var(--out);
+}
+.bx-chess-switch i::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+  transition: translate 0.22s var(--spring);
+}
+.bx-chess-switch[aria-checked="true"] i {
+  background: #2ea043;
+}
+.bx-chess-switch[aria-checked="true"] i::after {
+  translate: 14px 0;
+}
+.bx-chess-copy {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.bx-chess .bx-chess-copy button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 8px;
+  border-radius: 12px;
+  background: var(--sunk);
+  font-weight: 600;
+  transition: transform 0.14s var(--out);
+}
+.bx-chess .bx-chess-copy button:active {
+  transform: scale(0.96);
+}
+
+/* ---- Beside the board: the opening, the engine, a line of one's own, the moves ---- */
+.bx-chess-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.bx-chess-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.bx-chess-head:empty {
+  display: none;
+}
+.bx-chess-opening {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink2);
+}
+.bx-chess-opening i {
+  margin-right: 7px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: var(--sunk);
+  font: 600 10px var(--mono);
+  color: var(--ink);
+}
+.bx-chess .bx-chess-live {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--ground);
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition:
+    transform 0.15s var(--out),
+    background 0.2s var(--out),
+    color 0.2s var(--out);
+}
+.bx-chess .bx-chess-live:active {
+  transform: scale(0.95);
+}
+.bx-chess .bx-chess-live[data-with] {
+  background: var(--sunk);
+  color: var(--ink);
+}
+.bx-chess-live i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e5484d;
+  animation: bx-low 1.6s ease-in-out infinite;
+}
+/* The engine: its figure, the line it expects, and who worked it out and how deep. */
+.bx-engine {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 4px 10px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: var(--sunk);
+}
+.bx-engine > b {
+  min-width: 46px;
+  padding: 4px 7px;
+  border-radius: 8px;
+  background: #f6f6f6;
+  color: #111;
+  font: 700 13px var(--mono);
+  text-align: center;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.1);
+  transition:
+    background 0.3s var(--out),
+    color 0.3s var(--out);
+}
+.bx-engine[data-ahead="black"] > b {
+  background: #1b1b1d;
+  color: #f4f4f4;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16);
+}
+.bx-engine-line {
+  display: flex;
+  gap: 1px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  mask-image: linear-gradient(90deg, #000 82%, transparent);
+}
+.bx-chess .bx-engine-line button {
+  flex: none;
+  padding: 3px 4px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 650;
+  transition: background 0.14s var(--out);
+}
+.bx-engine-line button i,
+.bx-ownline button i {
+  margin-right: 3px;
+  font: 500 10.5px var(--mono);
+  color: var(--ink2);
+}
+.bx-engine-line button i:empty,
+.bx-ownline button i:empty {
+  display: none;
+}
+.bx-engine-by {
+  grid-column: 1 / -1;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+/* A line of the viewer's own, leaving the game. */
+.bx-ownline {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px 12px;
+  border-radius: 16px;
+  border: 1px dashed var(--edge);
+  animation: bx-arrive 0.22s var(--out);
+}
+.bx-ownline > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.bx-chess .bx-ownline > div button {
+  padding: 4px 6px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 650;
+  transition:
+    background 0.14s var(--out),
+    color 0.14s var(--out);
+}
+.bx-chess .bx-ownline > div button[aria-current] {
+  background: var(--ink);
+  color: var(--ground);
+}
+.bx-chess .bx-ownline > div button[aria-current] i {
+  color: inherit;
+  opacity: 0.7;
+}
+.bx-chess .bx-ownline-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--sunk);
+  font-weight: 650;
+  transition: transform 0.14s var(--out);
+}
+.bx-chess .bx-ownline-back:active {
+  transform: scale(0.97);
+}
+
+/* The moves. On a phone a single row to push along; with room, a list beside the board. */
+.bx-moves {
+  display: flex;
+  gap: 2px;
+  margin: 0 -16px;
+  padding: 2px 16px;
+  list-style: none;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  transition: opacity 0.2s var(--out);
+}
+.bx-moves::-webkit-scrollbar {
+  display: none;
+}
+.bx-moves[data-dim] {
+  opacity: 0.5;
+}
+.bx-moves li {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  animation: bx-arrive 0.25s var(--out);
+}
+.bx-moves li > i {
+  margin: 0 2px 0 6px;
+  font: 500 10.5px var(--mono);
+  color: var(--ink3);
+}
+.bx-moves li > span {
+  display: none;
+}
+.bx-chess .bx-moves button {
+  padding: 6px 8px;
+  border-radius: 9px;
+  font-weight: 650;
+  font-size: 13.5px;
+  text-align: left;
+  white-space: nowrap;
+  transition:
+    background 0.14s var(--out),
+    color 0.14s var(--out);
+}
+.bx-chess .bx-moves button[aria-current] {
+  background: var(--ink);
+  color: var(--ground);
+}
+.bx-chess .bx-moves button[data-branch] {
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
+/* What a move gave away: an inaccuracy, a mistake, a blunder. */
+.bx-moves em {
+  margin-left: 2px;
+  font-style: normal;
+  font-weight: 800;
+}
+.bx-moves em[data-mark="?!"] {
+  color: #d29922;
+}
+.bx-moves em[data-mark="?"] {
+  color: #f0883e;
+}
+.bx-moves em[data-mark="??"] {
+  color: #e5484d;
+}
+
+/* The judgement through the whole game: above the middle White is better, below it Black. */
+.bx-evalgraph {
+  display: block;
+  width: 100%;
+  height: 54px;
+  border-radius: 12px;
+  background: linear-gradient(var(--hair), var(--hair)) 0 50% / 100% 1px no-repeat var(--sunk);
+  cursor: pointer;
+  touch-action: none;
+}
+.bx-evalgraph path[data-area] {
+  fill: var(--ink);
+  opacity: 0.14;
+}
+.bx-evalgraph path[data-line] {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+}
+.bx-evalgraph line[data-at] {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.6;
+}
+
+@media (hover: hover) {
+  .bx-chess .bx-moves button:not([aria-current]):hover,
+  .bx-chess .bx-ownline > div button:not([aria-current]):hover,
+  .bx-chess .bx-engine-line button:hover,
+  .bx-chess .bx-promote button:hover,
+  .bx-chess .bx-swatches button:not([aria-pressed="true"]):hover {
+    background: var(--hover);
+  }
+  .bx-chess .bx-chess-keys > button:not([data-main]):not(:disabled):hover {
+    background: var(--surface);
+  }
+}
+
+/*
+ * With room, the board takes what it can and the rest stands beside it, exactly as tall as
+ * the board and the two players: the list of moves scrolls inside what that leaves, and the
+ * keys sit under it.
+ */
+@media (min-width: 720px) {
+  .bx-chess {
+    grid-template-columns: minmax(0, 1fr) 288px;
+    grid-template-rows: minmax(0, 1fr) auto auto;
+    gap: 14px 20px;
+  }
+  .bx-chess-main {
+    grid-area: 1 / 1 / 3 / 2;
+  }
+  .bx-chess-side {
+    grid-area: 1 / 2 / 2 / 3;
+    /* Its own height never sets the row's: the board does. */
+    contain: size;
+    padding: 14px;
+    border-radius: 22px;
+    background: var(--surface);
+    border: 1px solid var(--hair);
+    box-shadow: var(--sh);
+  }
+  .bx-chess-keys {
+    grid-area: 2 / 2 / 3 / 3;
+  }
+  .bx-evalgraph {
+    grid-area: 3 / 1 / 4 / 3;
+  }
+  .bx-chess[data-judging] .bx-chess-table {
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 10px;
+  }
+  .bx-eval {
+    border-radius: 8px;
+  }
+  .bx-eval b {
+    display: block;
+  }
+  .bx-board {
+    border-radius: 16px;
+  }
+  .bx-squares u {
+    font-size: 10px;
+  }
+  .bx-moves {
+    flex: 1;
+    display: block;
+    min-height: 0;
+    margin: 0 -6px;
+    padding: 0 6px;
+    overflow: hidden auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  .bx-moves li {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr);
+    gap: 2px;
+  }
+  .bx-moves li > i {
+    margin: 0;
+  }
+  .bx-moves li > span {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bx-men,
+  .bx-men img,
+  .bx-eval i {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ---- The match's page: the games of a match in a row, and the game shown ---- */
+.bx-stage {
+  margin-top: 22px;
+}
+.bx-stage-games {
+  display: flex;
+  gap: 6px;
+  margin: 0 -16px 14px;
+  padding: 2px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.bx-stage-games::-webkit-scrollbar {
+  display: none;
+}
+.bx .bx-stage-games button {
+  flex: none;
+  display: grid;
+  gap: 3px;
+  min-width: 62px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  text-align: left;
+  transition:
+    background 0.16s var(--out),
+    color 0.16s var(--out),
+    transform 0.15s var(--out);
+}
+.bx .bx-stage-games button:active {
+  transform: scale(0.96);
+}
+.bx .bx-stage-games button:disabled {
+  opacity: 0.45;
+}
+.bx .bx-stage-games button[aria-current] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--ground);
+}
+.bx-stage-games b {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-weight: 800;
+}
+.bx-stage-games b i {
+  font: 600 9.5px var(--mono);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+.bx-stage-games span {
+  display: flex;
+  align-items: center;
+  min-height: 15px;
+  font: 600 11.5px var(--mono);
+  opacity: 0.8;
+}
+.bx-stage-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.bx-stage-head b {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.bx-stage-head .bx-sub {
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.bx-stage-none {
+  margin: 10px 0 0;
+}
+@media (min-width: 900px) {
+  .bx-stage-games {
+    margin: 0 0 14px;
+    padding: 2px 0;
+  }
+}

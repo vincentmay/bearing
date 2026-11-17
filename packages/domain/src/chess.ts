@@ -1,10 +1,20 @@
+import { Chess, castlingSide } from "chessops/chess";
+import { INITIAL_FEN, makeFen, parseFen } from "chessops/fen";
+import { parseComment, parsePgn } from "chessops/pgn";
+import { makeSanAndPlay, parseSan } from "chessops/san";
+import type { NormalMove, Role } from "chessops/types";
+import { kingCastlesTo, makeSquare, parseUci, roleToChar } from "chessops/util";
+
 /**
- * Enough chess to follow a game: given its moves as they are written down (1. e4 e5 2. Nf3 …),
- * the position after each one. It does not judge moves or look for mates; it reads a record of
- * a game that was played, and stops quietly at a move it cannot make sense of.
+ * Chess, as far as Bearing needs it: following a game from its written moves, saying where
+ * the pieces may go from a position, making a move, and reading a written game (PGN) with the
+ * notes beside its moves.
+ *
+ * The rules themselves are not Bearing's: they are chessops, the library Lichess is built
+ * on. This file is the small surface the rest of Bearing sees, in its own terms.
  *
  * A position is 64 characters, a8 first and h1 last, a letter for a piece (capitals are White)
- * and a dot for an empty square.
+ * and a dot for an empty square. A square is its place in that text: 0 for a8, 63 for h1.
  */
 
 export interface ChessPly {
@@ -15,179 +25,147 @@ export interface ChessPly {
   to: number;
   /** The position after the move. */
   squares: string;
+  /** The same position in full (FEN): whose move it is, castling, and the rest. */
+  fen: string;
+  /** Whether the side now to move stands in check, and whether that is mate. */
+  check: boolean;
+  mate: boolean;
 }
 
 export const CHESS_START = "rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR";
+export const CHESS_START_FEN: string = INITIAL_FEN;
 
-interface State {
-  board: string[];
-  white: boolean;
-  /** Which castling is still allowed: any of K, Q, k, q. */
-  castle: string;
-  /** The square a pawn may be taken on in passing, or -1. */
-  passing: number;
+/** chessops counts squares from a1; Bearing from a8. Turning one into the other flips the rank. */
+const flip = (square: number) => square ^ 56;
+
+function squaresOf(pos: Chess): string {
+  let text = "";
+  for (let i = 0; i < 64; i++) {
+    const piece = pos.board.get(flip(i));
+    const letter = piece ? roleToChar(piece.role) : ".";
+    text += piece?.color === "white" ? letter.toUpperCase() : letter;
+  }
+  return text;
 }
 
-const file = (sq: number) => sq % 8;
-const rank = (sq: number) => sq >> 3;
-const isWhite = (piece: string) => piece !== "." && piece === piece.toUpperCase();
-
-function clear(board: string[], from: number, to: number): boolean {
-  const df = Math.sign(file(to) - file(from));
-  const dr = Math.sign(rank(to) - rank(from));
-  for (let sq = from + df + dr * 8; sq !== to; sq += df + dr * 8) {
-    if (board[sq] !== ".") return false;
-  }
-  return true;
+function positionOf(fen?: string): Chess | undefined {
+  if (!fen) return Chess.default();
+  return parseFen(fen).unwrap(
+    (setup) =>
+      Chess.fromSetup(setup).unwrap(
+        (pos) => pos,
+        () => undefined,
+      ),
+    () => undefined,
+  );
 }
 
-/** Whether the piece on `from` could move to `to`, leaving aside whether its king is then safe. */
-function reaches(state: State, from: number, to: number, capture: boolean): boolean {
-  const { board } = state;
-  const piece = board[from]!;
-  const df = file(to) - file(from);
-  const dr = rank(to) - rank(from);
-  const adf = Math.abs(df);
-  const adr = Math.abs(dr);
-  switch (piece.toUpperCase()) {
-    case "N":
-      return (adf === 1 && adr === 2) || (adf === 2 && adr === 1);
-    case "K":
-      return adf <= 1 && adr <= 1 && adf + adr > 0;
-    case "B":
-      return adf === adr && adf > 0 && clear(board, from, to);
-    case "R":
-      return (adf === 0) !== (adr === 0) && clear(board, from, to);
-    case "Q":
-      return (adf === adr || adf === 0 || adr === 0) && adf + adr > 0 && clear(board, from, to);
-    case "P": {
-      const forward = isWhite(piece) ? -1 : 1;
-      if (capture) return adf === 1 && dr === forward;
-      if (df !== 0) return false;
-      if (dr === forward) return board[to] === ".";
-      const home = isWhite(piece) ? 6 : 1;
-      return (
-        dr === 2 * forward &&
-        rank(from) === home &&
-        board[to] === "." &&
-        board[from + forward * 8] === "."
-      );
-    }
-    default:
-      return false;
-  }
+/** Make a move the position allows, and say what it was. */
+function make(pos: Chess, move: NormalMove, written?: string): ChessPly {
+  // Castling is known to chessops as the king taking its own rook; shown, the king goes two.
+  const side = castlingSide(pos, move);
+  const to = side ? kingCastlesTo(pos.turn, side) : move.to;
+  const san = makeSanAndPlay(pos, move);
+  return {
+    san: written ?? san,
+    from: flip(move.from),
+    to: flip(to),
+    squares: squaresOf(pos),
+    fen: makeFen(pos.toSetup()),
+    check: pos.isCheck(),
+    mate: pos.isCheckmate(),
+  };
 }
 
-function attacked(state: State, square: number, byWhite: boolean): boolean {
-  for (let sq = 0; sq < 64; sq++) {
-    const piece = state.board[sq]!;
-    if (piece === "." || isWhite(piece) !== byWhite) continue;
-    if (reaches(state, sq, square, true)) return true;
-  }
-  return false;
-}
-
-function apply(state: State, from: number, to: number, promote?: string): State {
-  const board = [...state.board];
-  const piece = board[from]!;
-  const white = isWhite(piece);
-  let castle = state.castle;
-  let passing = -1;
-  board[from] = ".";
-  if (piece.toUpperCase() === "P") {
-    // Taking in passing removes a pawn that is not on the square arrived at.
-    if (to === state.passing) board[to + (white ? 8 : -8)] = ".";
-    if (Math.abs(to - from) === 16) passing = (from + to) / 2;
-  }
-  if (piece.toUpperCase() === "K") {
-    castle = castle.replace(white ? /[KQ]/g : /[kq]/g, "");
-    // Castling: the rook goes to the other side of the king.
-    if (Math.abs(file(to) - file(from)) === 2) {
-      const short = file(to) === 6;
-      const row = rank(from) * 8;
-      board[row + (short ? 5 : 3)] = board[row + (short ? 7 : 0)]!;
-      board[row + (short ? 7 : 0)] = ".";
-    }
-  }
-  // A rook that moves, or is taken, ends castling on its side.
-  for (const [corner, right] of [
-    [63, "K"],
-    [56, "Q"],
-    [7, "k"],
-    [0, "q"],
-  ] as const) {
-    if (from === corner || to === corner) castle = castle.replace(right, "");
-  }
-  board[to] = promote ? (white ? promote.toUpperCase() : promote.toLowerCase()) : piece;
-  return { board, white: !state.white, castle, passing };
-}
-
-function safe(state: State, from: number, to: number): boolean {
-  const after = apply(state, from, to);
-  const king = after.board.indexOf(state.white ? "K" : "k");
-  return king < 0 || !attacked(after, king, !state.white);
-}
-
-const SAN = /^([KQRBN])?([a-h])?([1-8])?(x)?([a-h])([1-8])(?:=?([QRBN]))?$/;
-
-function read(
-  state: State,
-  written: string,
-): { from: number; to: number; promote?: string } | undefined {
-  const san = written.replace(/[+#!?]+$/g, "").replace(/0/g, "O");
-  const row = state.white ? 56 : 0;
-  if (san === "O-O") return { from: row + 4, to: row + 6 };
-  if (san === "O-O-O") return { from: row + 4, to: row + 2 };
-  const m = SAN.exec(san);
-  if (!m) return undefined;
-  const [, letter, fromFile, fromRank, takes, toFile, toRank, promote] = m;
-  const kind = letter ?? "P";
-  const to = (8 - Number(toRank)) * 8 + (toFile!.charCodeAt(0) - 97);
-  const capture = !!takes || (kind === "P" && state.board[to] !== ".");
-  for (let from = 0; from < 64; from++) {
-    const piece = state.board[from]!;
-    if (piece === "." || isWhite(piece) !== state.white || piece.toUpperCase() !== kind) continue;
-    if (fromFile && file(from) !== fromFile.charCodeAt(0) - 97) continue;
-    if (fromRank && rank(from) !== 8 - Number(fromRank)) continue;
-    if (!reaches(state, from, to, capture)) continue;
-    if (!safe(state, from, to)) continue;
-    return { from, to, promote };
-  }
-  return undefined;
-}
-
-/** The position after each move of a game, as far as the moves can be followed. */
-export function replayChess(moves: readonly string[]): ChessPly[] {
-  let state: State = { board: CHESS_START.split(""), white: true, castle: "KQkq", passing: -1 };
+/**
+ * The position after each move of a game, as far as the moves can be followed; it stops
+ * quietly at a move that cannot be made. From the usual starting position unless told.
+ */
+export function replayChess(moves: readonly string[], fen?: string): ChessPly[] {
+  const pos = positionOf(fen);
   const plies: ChessPly[] = [];
-  for (const san of moves) {
-    const move = read(state, san);
-    if (!move) break;
-    state = apply(state, move.from, move.to, move.promote);
-    plies.push({ san, from: move.from, to: move.to, squares: state.board.join("") });
+  if (!pos) return plies;
+  for (const written of moves) {
+    // A record may carry an annotator's marks on its moves ("b4?!"); they are not the move.
+    const san = written.replace(/[!?]+$/, "");
+    const move = parseSan(pos, san);
+    if (!move || !("from" in move)) break;
+    plies.push(make(pos, move, san));
   }
   return plies;
 }
 
-/**
- * The moves of a game out of its written record (PGN): comments, side lines, move numbers,
- * marks and the result are left out.
- */
-export function movesOfPgn(pgn: string): string[] {
-  const text = pgn
-    .replace(/^\s*\[[^\n]*\]\s*$/gm, " ")
-    .replace(/\{[^}]*\}/g, " ")
-    .replace(/;[^\n]*/g, " ");
-  // Side lines can sit inside each other; take them out from the inside.
-  let plain = text;
-  for (let before = ""; before !== plain;) {
-    before = plain;
-    plain = plain.replace(/\([^()]*\)/g, " ");
+/** Whose move it is in a position: 0 for White, 1 for Black. */
+export function chessTurn(fen: string): 0 | 1 {
+  return fen.split(" ")[1] === "b" ? 1 : 0;
+}
+
+/** Where each piece of the side to move may go: from a square, the squares it can reach. */
+export function chessDests(fen: string): Map<number, number[]> {
+  const pos = positionOf(fen);
+  const out = new Map<number, number[]>();
+  if (!pos) return out;
+  for (const [from, squares] of pos.allDests()) {
+    const reach: number[] = [];
+    for (const to of squares) {
+      // Castling, the way a hand does it: the king goes two squares, not onto the rook.
+      const side = castlingSide(pos, { from, to });
+      reach.push(flip(side ? kingCastlesTo(pos.turn, side) : to));
+    }
+    if (reach.length) out.set(flip(from), [...new Set(reach)]);
   }
-  return plain
-    .split(/\s+/)
-    .map((word) => word.replace(/^\d+\.+/, ""))
-    .filter((word) => word && !/^(\$\d+|1-0|0-1|1\/2-1\/2|\*|\d+\.*)$/.test(word));
+  return out;
+}
+
+/**
+ * Make a move by its squares, if the position allows it. A pawn reaching the last rank
+ * becomes a queen unless another piece is named.
+ */
+export function chessMove(
+  fen: string,
+  from: number,
+  to: number,
+  promote: "q" | "r" | "b" | "n" = "q",
+): ChessPly | undefined {
+  const pos = positionOf(fen);
+  if (!pos) return undefined;
+  const piece = pos.board.get(flip(from));
+  if (!piece) return undefined;
+  const last = piece.role === "pawn" && (to < 8 || to >= 56);
+  const roles: Record<string, Role> = { q: "queen", r: "rook", b: "bishop", n: "knight" };
+  const move: NormalMove = {
+    from: flip(from),
+    to: flip(to),
+    promotion: last ? roles[promote] : undefined,
+  };
+  return pos.isLegal(move) ? make(pos, move) : undefined;
+}
+
+/** Whether a move by its squares would bring a pawn to the last rank. */
+export function chessPromotes(fen: string, from: number, to: number): boolean {
+  const piece = positionOf(fen)?.board.get(flip(from));
+  return piece?.role === "pawn" && (to < 8 || to >= 56);
+}
+
+/**
+ * A line an engine gives ("e2e4 e7e5 g1f3") as it is written down, from a position: each
+ * move in turn, as far as the line can be followed.
+ */
+export function chessLine(fen: string, line: readonly string[], limit = 10): ChessPly[] {
+  const pos = positionOf(fen);
+  const plies: ChessPly[] = [];
+  if (!pos) return plies;
+  for (const word of line.slice(0, limit)) {
+    const move = parseUci(word);
+    if (!move || !("from" in move) || !pos.isLegal(move)) break;
+    plies.push(make(pos, move));
+  }
+  return plies;
+}
+
+/** The name of a square: "e4". */
+export function chessSquare(square: number): string {
+  return makeSquare(flip(square));
 }
 
 /** A written game with what is noted beside its moves. */
@@ -202,37 +180,43 @@ export interface Annotated {
 /** A mate is kept as a thousand less the moves to it, so that it sorts beyond any count of pawns. */
 export const MATE = 1000;
 
+/** One game of a written record, with its headers ("White", "Result", "GameURL"). */
+export interface Written extends Annotated {
+  headers: Map<string, string>;
+}
+
 /**
- * The moves of a written game together with the notes that follow them: the engine's judgement
- * (`[%eval 0.17]`, `[%eval #-3]`) and the mover's clock (`[%clk 1:30:10]`). Side lines are left
- * out, as in `movesOfPgn`.
+ * Every game of a written record (PGN), one after another: the moves of each with the notes
+ * that follow them, the engine's judgement (`[%eval 0.17]`, `[%eval #-3]`) and the mover's
+ * clock (`[%clk 1:30:10]`). Side lines are left out.
  */
-export function annotatedPgn(pgn: string): Annotated {
-  let text = pgn.replace(/^\s*\[[^\n]*\]\s*$/gm, " ").replace(/;[^\n]*/g, " ");
-  for (let before = ""; before !== text;) {
-    before = text;
-    text = text.replace(/\([^()]*\)/g, " ");
-  }
-  const out: Annotated = { moves: [], evals: [], clocks: [] };
-  let judged = true;
-  for (const [, note, word] of text.matchAll(/\{([^}]*)\}|(\S+)/g)) {
-    if (word !== undefined) {
-      const san = word.replace(/^\d+\.+/, "");
-      if (!san || /^(\$\d+|1-0|0-1|1\/2-1\/2|\*|\d+\.*)$/.test(san)) continue;
-      out.moves.push(san);
-      out.clocks.push(-1);
-      continue;
+export function writtenGames(pgn: string): Written[] {
+  return parsePgn(pgn).map((game) => {
+    const out: Written = { headers: game.headers, moves: [], evals: [], clocks: [] };
+    let judged = true;
+    for (const node of game.moves.mainline()) {
+      out.moves.push(node.san);
+      const notes = (node.comments ?? []).map(parseComment);
+      const clock = notes.find((note) => note.clock !== undefined)?.clock;
+      out.clocks.push(clock === undefined ? -1 : Math.round(clock));
+      const judgement = notes.find((note) => note.evaluation)?.evaluation;
+      // Judgements are kept only while every move has one: a list with holes says nothing.
+      if (!judgement || !judged) judged = false;
+      else if ("mate" in judgement)
+        out.evals.push(Math.sign(judgement.mate || 1) * (MATE - Math.abs(judgement.mate)));
+      else out.evals.push(judgement.pawns);
     }
-    const at = out.moves.length - 1;
-    if (at < 0 || note === undefined) continue;
-    const clock = /%clk\s+(\d+):(\d+):(\d+)/.exec(note);
-    if (clock) out.clocks[at] = Number(clock[1]) * 3600 + Number(clock[2]) * 60 + Number(clock[3]);
-    const judgement = /%eval\s+(#?)(-?\d+(?:\.\d+)?)/.exec(note);
-    // Judgements are kept only while every move has one: a list with holes says nothing.
-    if (judgement && judged && out.evals.length === at) {
-      const value = Number(judgement[2]);
-      out.evals.push(judgement[1] ? Math.sign(value || 1) * (MATE - Math.abs(value)) : value);
-    } else if (out.evals.length <= at) judged = false;
-  }
-  return out;
+    return out;
+  });
+}
+
+/** One written game with its notes; see `writtenGames`. */
+export function annotatedPgn(pgn: string): Annotated {
+  const [game] = writtenGames(pgn);
+  return { moves: game?.moves ?? [], evals: game?.evals ?? [], clocks: game?.clocks ?? [] };
+}
+
+/** The moves of a written game: comments, side lines, move numbers and the result left out. */
+export function movesOfPgn(pgn: string): string[] {
+  return annotatedPgn(pgn).moves;
 }

@@ -192,7 +192,15 @@ export interface GameResult {
   /** LoL: objective counts per side. */
   objectives?: { towers: number[]; dragons: number[]; barons: number[]; gold: number[] };
   /** Chess: current or final position, clocks, engine evaluation (white's view). */
-  chess?: { fen: string; move: number; clocks?: string[]; eval?: number; lastMove?: string };
+  chess?: {
+    fen: string;
+    move: number;
+    clocks?: string[];
+    eval?: number;
+    lastMove?: string;
+    /** When the latest move was made, in milliseconds, where a page is listening to the game. */
+    movedAt?: number;
+  };
   /** Chess: the moves played so far, as they are written down ("e4", "Nf3", "O-O"). */
   moves?: string[];
   /**

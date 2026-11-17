@@ -6,6 +6,10 @@
 /pieces/*
   Cache-Control: public, max-age=2592000
 
+# The chess engine: its name carries its version.
+/engine/*
+  Cache-Control: public, max-age=2592000
+
 # The app is not meant to be shown inside another site's page, and asks for nothing of the
 # device it runs on.
 /*

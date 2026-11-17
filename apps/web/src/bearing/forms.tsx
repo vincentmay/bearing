@@ -1,6 +1,5 @@
 import type { GameResult, PlayerLine } from "@bearing/domain";
 import { formatPoints, seriesScore } from "@bearing/domain";
-import { ChessGame, type Seat } from "./chessboard";
 import { type CSSProperties, useId } from "react";
 import {
   type Dot,
@@ -293,7 +292,6 @@ export function GameRow({
   index: number;
   view: MatchView;
 }) {
-  const atlas = useAtlas();
   const { sides, discipline } = view;
   const d = discipline.id;
   const live = game.status === "live";
@@ -438,44 +436,18 @@ export function GameRow({
   }
 
   if (d === "chess") {
-    const white = sides[game.firstSide ?? 0];
+    // The board itself stands at the head of the match's page; a row says how the game went.
     const parts = game.detail?.split(" · ") ?? [];
-    const opening = parts.length > 1 ? parts[0] : undefined;
-    const length = done ? parts.at(-1) : undefined;
     const result = game.winner === "draw" ? "draw" : `${winner ?? ""} won`;
-    const seat = (side: SideView | undefined): Seat => {
-      const player = side?.id ? atlas.player(side.id) : undefined;
-      return {
-        side: side ?? sides[0]!,
-        title: player?.title,
-        rating: player?.rating?.value,
-        country: player?.country,
-      };
-    };
     return (
       <div className="bx-game">
         <div className="bx-gamehead">
           <b>{game.label}</b>
           <span className="bx-sub bx-mono">
-            {live ? `move ${game.chess?.move ?? 1}` : `${result}${length ? ` · ${length}` : ""}`}
+            {live ? `move ${game.chess?.move ?? 1}` : done ? result : ""}
           </span>
         </div>
-        {game.moves?.length ? (
-          <ChessGame
-            moves={game.moves}
-            evals={game.evals}
-            clocks={game.clocks}
-            live={live}
-            white={seat(white)}
-            black={seat(sides[1 - (game.firstSide ?? 0)])}
-            opening={opening}
-          />
-        ) : (
-          <span className="bx-sub">
-            {opening ? `${opening} · ` : ""}
-            {white?.name} {live ? "has" : "had"} the white pieces.
-          </span>
-        )}
+        {parts.length ? <span className="bx-sub">{parts.join(" · ")}</span> : null}
       </div>
     );
   }

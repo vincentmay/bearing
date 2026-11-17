@@ -1,5 +1,6 @@
-import type { Atlas, Match } from "@bearing/domain";
+import { Atlas, type Match } from "@bearing/domain";
 import { useCallback, useMemo, useSyncExternalStore } from "react";
+import { lichessId, useRoundGames, withLive } from "../lib/chess-live";
 import { useAtlas, useDetailed, useMinute } from "../lib/world";
 import { type MatchView, summarize } from "./model";
 import { type Times, useTimes } from "./time";
@@ -43,7 +44,9 @@ export function useBoard(
       .sort((x, y) => y.scheduledAt.localeCompare(x.scheduledAt))
       .map((m) => m.id);
   }, [light, match, side, event]);
-  const { atlas, loading } = useDetailed(light, ids);
+  const detailed = useDetailed(light, ids);
+  const atlas = useHeard(detailed.atlas, match, event);
+  const loading = detailed.loading;
   const now = useMinute();
   const times = useTimes();
   const view = useCallback(
@@ -51,6 +54,46 @@ export function useBoard(
     [atlas, now, times, subject],
   );
   return { atlas, now, times, view, loading };
+}
+
+/**
+ * Chess on the page, as Lichess has it this second. A page about one game listens to the
+ * round it is part of while it is being played, and reads the round once where the store has
+ * the result but not the moves. A page about an event listens to the rounds under way in it.
+ */
+function useHeard(atlas: Atlas, match?: string, event?: string): Atlas {
+  const one = match ? atlas.match(match) : undefined;
+  const game = one?.games[0];
+  const playing = useMemo(() => {
+    if (!event || !lichessId(event)) return [];
+    const rounds = new Set<string>();
+    for (const m of atlas.world.matches) {
+      const id = lichessId(m.roundId);
+      if (id && m.tournamentId === event && m.status === "live") rounds.add(id);
+    }
+    return [...rounds].sort().slice(-1);
+  }, [atlas, event]);
+  const round = lichessId(one?.id) ? lichessId(one?.roundId) : undefined;
+  const how =
+    one?.status === "live"
+      ? "live"
+      : one?.status === "finished" && !game?.moves?.length
+        ? "once"
+        : undefined;
+  const first = useRoundGames(round ?? playing[0], round ? how : playing[0] ? "live" : undefined);
+  const second = useRoundGames(playing[1], playing[1] ? "live" : undefined);
+  return useMemo(() => {
+    const heard = { ...first, ...second };
+    if (!Object.keys(heard).length) return atlas;
+    let changed = false;
+    const matches = atlas.world.matches.map((m) => {
+      const id = lichessId(m.id);
+      const next = id && heard[id] ? withLive(m, heard[id]) : m;
+      if (next !== m) changed = true;
+      return next;
+    });
+    return changed ? new Atlas({ ...atlas.world, matches }) : atlas;
+  }, [atlas, first, second]);
 }
 
 const WIDE = "(min-width: 900px)";

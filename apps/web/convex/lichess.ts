@@ -5,6 +5,8 @@ import {
   type LichessTour,
   gamesOfPgn,
   mapBroadcast,
+  nextLook,
+  roundsInPlay,
   roundsToFetch,
 } from "@bearing/domain/lichess";
 import { v } from "convex/values";
@@ -24,9 +26,16 @@ import { competitor, match, tournament } from "./validators";
  *
  * It runs only when the deployment has been switched to live data (`sample:useLive`). Schedules
  * are refreshed every hour by a cron job. While a round is being played, `ingest.tick` has the
- * rounds in progress fetched again every thirty seconds.
- * Requests go out one at a time, and a "too many requests" answer stops the run until the next
- * hour, as Lichess asks of its API's users.
+ * rounds in progress fetched again every thirty seconds: three requests, where it used to be
+ * nine, which Lichess answered by turning Bearing away for minutes at a time.
+ *
+ * Lichess asks two things of whoever uses its API: one request at a time, and a full minute's
+ * wait after a "too many requests". Both are kept for all of Bearing's chess jobs together by
+ * `politely`: only one of them runs at any moment, and a refusal quiets them all.
+ *
+ * The store is what lists and scores are read from. A page showing a game that is being
+ * played does not wait for it: the browser listens to Lichess's own stream of the round
+ * (`src/lib/chess-live.ts`), which carries each move as it is made.
  */
 
 const BASE = "https://lichess.org/api/broadcast";
@@ -49,23 +58,60 @@ let turnedAway = false;
  * them for a few minutes, where before each simply tried again half a minute later and was
  * turned away again.
  */
-async function politely(ctx: ActionCtx, job: () => Promise<unknown>): Promise<void> {
-  const held: Record<string, string> = await ctx.runQuery(internal.ingest.digests, {
-    scope: "quiet",
-  });
-  if (Number(held["quiet:lichess"] ?? 0) > Date.now()) return;
+async function politely(
+  ctx: ActionCtx,
+  job: () => Promise<unknown>,
+  /** The longest the job may take; its turn lapses then even if it never says it is done. */
+  span = 60_000,
+): Promise<void> {
+  if (!(await ctx.runMutation(internal.lichess.begin, { span }))) return;
   turnedAway = false;
   try {
     await job();
   } catch (error) {
-    if (!(error instanceof Refused)) throw error;
+    if (!(error instanceof Refused)) {
+      await ctx.runMutation(internal.lichess.end, { refused: false });
+      throw error;
+    }
     turnedAway = true;
   }
-  if (turnedAway)
-    await ctx.runMutation(internal.ingest.put, {
-      digest: { key: "quiet:lichess", hash: String(Date.now() + 3 * 60_000) },
-    });
+  await ctx.runMutation(internal.lichess.end, { refused: turnedAway });
 }
+
+const QUIET = "quiet:lichess";
+const BUSY = "busy:lichess";
+
+/** Take the turn to ask Lichess, unless it asked for quiet or another job has the turn. */
+export const begin = internalMutation({
+  args: { span: v.number() },
+  returns: v.boolean(),
+  handler: async (ctx, { span }) => {
+    const now = Date.now();
+    const quiet = await ctx.db
+      .query("digests")
+      .withIndex("by_key", (q) => q.eq("key", QUIET))
+      .first();
+    if (Number(quiet?.hash ?? 0) > now) return false;
+    const busy = await ctx.db
+      .query("digests")
+      .withIndex("by_key", (q) => q.eq("key", BUSY))
+      .first();
+    if (Number(busy?.hash ?? 0) > now) return false;
+    await remember(ctx, { key: BUSY, hash: String(now + span) });
+    return true;
+  },
+});
+
+/** Give the turn back; after a refusal nothing is asked for a little over a minute. */
+export const end = internalMutation({
+  args: { refused: v.boolean() },
+  returns: v.null(),
+  handler: async (ctx, { refused }) => {
+    await remember(ctx, { key: BUSY, hash: "0" });
+    if (refused) await remember(ctx, { key: QUIET, hash: String(Date.now() + 70_000) });
+    return null;
+  },
+});
 
 async function get<T>(path: string): Promise<T | null> {
   const response = await fetch(`${BASE}${path}`, {
@@ -104,6 +150,8 @@ async function fetchBroadcast(
   whole = false,
   /** Rounds that are over and already in the store, as `round:<id>`; they are not read again. */
   have?: Record<string, string>,
+  /** Only what is being played, and these rounds, which the store believes are. */
+  playing?: string[],
 ): Promise<(LichessBroadcast & { over: string[] }) | null> {
   const detail = await get<{
     tour: LichessTour;
@@ -118,7 +166,15 @@ async function fetchBroadcast(
     : [];
   const wanted = whole
     ? detail.rounds.slice(0, 24)
-    : [...new Set([...roundsToFetch(detail.rounds), ...earlier])];
+    : playing
+      ? [
+          ...new Set([
+            ...roundsInPlay(detail.rounds, Date.now()),
+            // A round the store still shows as being played is looked at until it no longer is.
+            ...detail.rounds.filter((r) => playing.includes(r.id)).slice(-2),
+          ]),
+        ]
+      : [...new Set([...roundsToFetch(detail.rounds), ...earlier])];
   const games: Record<string, LichessGame[]> = {};
   let refused = false;
   for (const round of wanted) {
@@ -173,54 +229,79 @@ async function hand(ctx: ActionCtx, broadcast: LichessBroadcast) {
     competitors: people ? mapped.competitors : [],
     matches,
     notes: fresh,
+    // The rounds read whole on this run, and when their games are scheduled for.
+    read: broadcast.rounds.flatMap((round) =>
+      broadcast.games[round.id]?.length && round.startsAt
+        ? [{ round: `lichess-${round.id}`, at: round.startsAt }]
+        : [],
+    ),
   });
+}
+
+/**
+ * Note when a broadcast is to be looked at next: when its next round is due. Without this a
+ * round whose pairings were not out at the last hourly look went unseen until the next one.
+ */
+async function noteNext(ctx: ActionCtx, broadcast: LichessBroadcast, held: Record<string, string>) {
+  const key = `watch:lichess-${broadcast.tour.id}`;
+  const next = String(nextLook(broadcast.rounds, Date.now()));
+  if (held[key] === next || (next === "0" && held[key] === undefined)) return;
+  await ctx.runMutation(internal.ingest.put, { digest: { key, hash: next } });
 }
 
 /** Every hour: the leading broadcasts, their rounds and the games of the rounds that matter now. */
 export const sync = internalAction({
   args: {},
   handler: async (ctx) => {
-    await politely(ctx, async () => {
-      if (!(await ctx.runQuery(internal.ingest.enabled, {}))) return;
-      const top = await get<Top>("/top?page=1");
-      const tours = [...(top?.active ?? []), ...(top?.upcoming ?? [])]
-        .map((entry) => entry.tour)
-        .filter((tour) => (tour.tier ?? 0) >= 4)
-        // The top of the game first; the tier below it only fills what room is left.
-        .sort((a, b) => (b.tier ?? 0) - (a.tier ?? 0))
-        .slice(0, TOURS);
-      const parts = new Map<string, string>();
-      const have: Record<string, string> = await ctx.runQuery(internal.ingest.digests, {
-        scope: "round2",
-      });
-      for (const tour of tours) {
-        const broadcast = await fetchBroadcast(tour.id, false, have);
-        if (!broadcast) continue;
-        await hand(ctx, broadcast);
-        if (broadcast.over.length)
-          await ctx.runMutation(internal.lichess.noteRounds, { ids: broadcast.over });
-        for (const part of broadcast.group?.tours ?? []) parts.set(part.id, tour.id);
-      }
-      // An event is often several broadcasts: its group stage, its semifinals, its final. The
-      // parts that are not among the leading broadcasts are read whole, a few a run, and one
-      // that is over is read once.
-      const chosen = new Set(tours.map((tour) => tour.id));
-      const known: Record<string, string> = await ctx.runQuery(internal.ingest.digests, {
-        scope: "tour",
-      });
-      let read = 0;
-      for (const id of parts.keys()) {
-        if (chosen.has(id) || known[`tour:${id}`] === "whole" || read >= PARTS_PER_RUN) continue;
-        read++;
-        const broadcast = await fetchBroadcast(id, true);
-        if (!broadcast) continue;
-        await hand(ctx, broadcast);
-        if (broadcast.rounds.length && broadcast.rounds.every((round) => round.finished))
-          await ctx.runMutation(internal.ingest.put, {
-            digest: { key: `tour:${id}`, hash: "whole" },
-          });
-      }
-    });
+    await politely(
+      ctx,
+      async () => {
+        if (!(await ctx.runQuery(internal.ingest.enabled, {}))) return;
+        const top = await get<Top>("/top?page=1");
+        const tours = [...(top?.active ?? []), ...(top?.upcoming ?? [])]
+          .map((entry) => entry.tour)
+          .filter((tour) => (tour.tier ?? 0) >= 4)
+          // The top of the game first; the tier below it only fills what room is left.
+          .sort((a, b) => (b.tier ?? 0) - (a.tier ?? 0))
+          .slice(0, TOURS);
+        const parts = new Map<string, string>();
+        const have: Record<string, string> = await ctx.runQuery(internal.ingest.digests, {
+          scope: "round2",
+        });
+        const watched: Record<string, string> = await ctx.runQuery(internal.ingest.digests, {
+          scope: "watch",
+        });
+        for (const tour of tours) {
+          const broadcast = await fetchBroadcast(tour.id, false, have);
+          if (!broadcast) continue;
+          await hand(ctx, broadcast);
+          await noteNext(ctx, broadcast, watched);
+          if (broadcast.over.length)
+            await ctx.runMutation(internal.lichess.noteRounds, { ids: broadcast.over });
+          for (const part of broadcast.group?.tours ?? []) parts.set(part.id, tour.id);
+        }
+        // An event is often several broadcasts: its group stage, its semifinals, its final. The
+        // parts that are not among the leading broadcasts are read whole, a few a run, and one
+        // that is over is read once.
+        const chosen = new Set(tours.map((tour) => tour.id));
+        const known: Record<string, string> = await ctx.runQuery(internal.ingest.digests, {
+          scope: "tour",
+        });
+        let read = 0;
+        for (const id of parts.keys()) {
+          if (chosen.has(id) || known[`tour:${id}`] === "whole" || read >= PARTS_PER_RUN) continue;
+          read++;
+          const broadcast = await fetchBroadcast(id, true);
+          if (!broadcast) continue;
+          await hand(ctx, broadcast);
+          if (broadcast.rounds.length && broadcast.rounds.every((round) => round.finished))
+            await ctx.runMutation(internal.ingest.put, {
+              digest: { key: `tour:${id}`, hash: "whole" },
+            });
+        }
+      },
+      240_000,
+    );
   },
 });
 
@@ -228,33 +309,60 @@ export const sync = internalAction({
 export const refresh = internalAction({
   args: {},
   handler: async (ctx) => {
-    await politely(ctx, async () => {
-      if (!(await ctx.runQuery(internal.ingest.enabled, {}))) return;
-      const liveTours = await ctx.runQuery(internal.lichess.liveTours, {});
-      for (const tourId of liveTours) {
-        const broadcast = await fetchBroadcast(tourId);
-        if (!broadcast) continue;
-        await hand(ctx, broadcast);
-      }
-    });
+    await politely(
+      ctx,
+      async () => {
+        if (!(await ctx.runQuery(internal.ingest.enabled, {}))) return;
+        const tours: { tour: string; rounds: string[] }[] = await ctx.runQuery(
+          internal.lichess.liveTours,
+          {},
+        );
+        const watched: Record<string, string> = await ctx.runQuery(internal.ingest.digests, {
+          scope: "watch",
+        });
+        for (const { tour, rounds } of tours) {
+          const broadcast = await fetchBroadcast(tour, false, undefined, rounds);
+          if (!broadcast) continue;
+          await hand(ctx, broadcast);
+          await noteNext(ctx, broadcast, watched);
+        }
+      },
+      25_000,
+    );
   },
 });
 
-/** The Lichess broadcasts that have a game in progress, by their Lichess id. */
+/**
+ * The Lichess broadcasts to look at now, by Lichess ids: those with a game in progress, with
+ * the rounds those games are in, and those whose next round is due.
+ */
 export const liveTours = internalQuery({
   args: {},
+  returns: v.array(v.object({ tour: v.string(), rounds: v.array(v.string()) })),
   handler: async (ctx) => {
     const rows = await ctx.db
       .query("matches")
       .withIndex("by_live_and_at", (q) => q.eq("live", true))
       .take(500);
-    const ids = new Set(
-      rows
-        .map((r) => r.doc.tournamentId)
-        .filter((id) => id.startsWith("lichess-"))
-        .map((id) => id.slice("lichess-".length)),
-    );
-    return [...ids];
+    const tours = new Map<string, Set<string>>();
+    for (const { doc } of rows) {
+      if (!doc.tournamentId.startsWith("lichess-")) continue;
+      const tour = doc.tournamentId.slice("lichess-".length);
+      const rounds = tours.get(tour) ?? new Set<string>();
+      if (doc.roundId?.startsWith("lichess-")) rounds.add(doc.roundId.slice("lichess-".length));
+      tours.set(tour, rounds);
+    }
+    const now = Date.now();
+    const watched = await ctx.db
+      .query("digests")
+      .withIndex("by_key", (q) => q.gte("key", "watch:lichess-").lt("key", "watch:lichess-\uffff"))
+      .take(200);
+    for (const row of watched) {
+      const at = Number(row.hash);
+      const tour = row.key.slice("watch:lichess-".length);
+      if (at > 0 && at <= now + 30_000 && !tours.has(tour)) tours.set(tour, new Set());
+    }
+    return [...tours].map(([tour, rounds]) => ({ tour, rounds: [...rounds] }));
   },
 });
 
@@ -273,6 +381,8 @@ export const store = internalMutation({
     matches: v.array(match),
     /** The fingerprints of what is handed over here, kept for the next time. */
     notes: v.optional(v.array(v.object({ key: v.string(), hash: v.string() }))),
+    /** The rounds whose games were all read on this run. */
+    read: v.optional(v.array(v.object({ round: v.string(), at: v.number() }))),
   },
   handler: async (ctx, args) => {
     for (const note of args.notes ?? []) await remember(ctx, note);
@@ -351,6 +461,27 @@ export const store = internalMutation({
         }),
       };
       if (!same(row.doc, doc)) await ctx.db.patch("matches", row._id, { live, at, doc });
+    }
+
+    // Lichess now and then sets a round's games up anew, under new names. The games under the
+    // old names are then in no round any more, and would stay "being played" for ever. A
+    // round's games all share its starting time, which is how the ones left behind are found.
+    for (const { round, at } of args.read ?? []) {
+      const now = new Set(
+        doc.stages.flatMap((stage) => stage.rounds).find((r) => r.id === round)?.matchIds ?? [],
+      );
+      if (!now.size) continue;
+      for (const live of [true, false]) {
+        const rows = await ctx.db
+          .query("matches")
+          .withIndex("by_live_and_at", (q) => q.eq("live", live).eq("at", at))
+          .take(300);
+        for (const row of rows) {
+          if (row.doc.tournamentId !== doc.id || row.doc.roundId !== round || now.has(row.key))
+            continue;
+          await ctx.db.delete("matches", row._id);
+        }
+      }
     }
   },
 });
@@ -462,39 +593,46 @@ export const faces = internalAction({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    await politely(ctx, async () => {
-      if (!(await ctx.runQuery(internal.ingest.enabled, {}))) return null;
-      const wanted: string[] = await ctx.runQuery(internal.lichess.faceless, {});
-      for (const key of wanted) {
-        await pause(1000);
-        const response = await fetch(
-          `https://lichess.org/api/fide/player/${key.slice("fide-".length)}`,
-          {
-            headers: {
-              Accept: "application/json",
-              "User-Agent": "Bearing (esports schedule viewer)",
+    await politely(
+      ctx,
+      async () => {
+        if (!(await ctx.runQuery(internal.ingest.enabled, {}))) return null;
+        // Not while a round is being played: the turn belongs to the games then.
+        const playing = await ctx.runQuery(internal.lichess.liveTours, {});
+        if (playing.length) return null;
+        const wanted: string[] = await ctx.runQuery(internal.lichess.faceless, {});
+        for (const key of wanted) {
+          await pause(1000);
+          const response = await fetch(
+            `https://lichess.org/api/fide/player/${key.slice("fide-".length)}`,
+            {
+              headers: {
+                Accept: "application/json",
+                "User-Agent": "Bearing (esports schedule viewer)",
+              },
             },
-          },
-        ).catch(() => null);
-        // Told to slow down, or not answered: stop, and carry on another day.
-        if (response?.status === 429) throw new Refused();
-        if (!response) return null;
-        const body = response.ok
-          ? ((await response.json().catch(() => null)) as {
-              photo?: { small?: string; credit?: string };
-            } | null)
-          : null;
-        await ctx.runMutation(internal.lichess.setFace, {
-          key,
-          image: body?.photo?.small,
-          credit: body?.photo?.credit,
-        });
-      }
-      // More may be waiting; a full run books the next.
-      if (wanted.length >= FACES_PER_RUN)
-        await ctx.scheduler.runAfter(30_000, internal.lichess.faces, {});
-      return null;
-    });
+          ).catch(() => null);
+          // Told to slow down, or not answered: stop, and carry on another day.
+          if (response?.status === 429) throw new Refused();
+          if (!response) return null;
+          const body = response.ok
+            ? ((await response.json().catch(() => null)) as {
+                photo?: { small?: string; credit?: string };
+              } | null)
+            : null;
+          await ctx.runMutation(internal.lichess.setFace, {
+            key,
+            image: body?.photo?.small,
+            credit: body?.photo?.credit,
+          });
+        }
+        // More may be waiting; a full run books the next.
+        if (wanted.length >= FACES_PER_RUN)
+          await ctx.scheduler.runAfter(30_000, internal.lichess.faces, {});
+        return null;
+      },
+      120_000,
+    );
     return null;
   },
 });

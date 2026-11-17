@@ -232,7 +232,22 @@ export const tick = internalMutation({
             )
             .take(200)
         ).find((r) => r.doc.status === "scheduled");
-    if (!live && !due) return;
+    // A chess event whose next round is due is looked at even though the store knows of no
+    // game in it yet: the pairings of a round are often out only as it begins.
+    const watched = await ctx.db
+      .query("digests")
+      .withIndex("by_key", (q) => q.gte("key", "watch:").lt("key", "watch:\uffff"))
+      .take(200);
+    const round = watched.some((row) => {
+      const at = Number(row.hash);
+      return at > 0 && at <= now + 30_000;
+    });
+    if (!live && !due) {
+      if (round)
+        for (const delay of [0, 30_000])
+          await ctx.scheduler.runAfter(delay, internal.lichess.refresh, {});
+      return;
+    }
     for (const delay of [0, 30_000]) {
       await ctx.scheduler.runAfter(delay, internal.pandascore.refresh, {});
       await ctx.scheduler.runAfter(delay, internal.lichess.refresh, {});

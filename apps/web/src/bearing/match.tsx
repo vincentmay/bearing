@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, Play } from "lucide-react";
 import { useHistory, useMeetings } from "../lib/meetings";
 import { type Board, useBoard, useWide } from "./board";
+import { ChessStage } from "./chess/stage";
 import { Back, Go } from "./links";
 import { lineupOf } from "./team";
 import { ChessLanes, CupPlaces, CupStandings, GameRow, Stops } from "./forms";
@@ -406,6 +407,8 @@ export function MatchPage({ matchId }: { matchId: string }) {
     match.games.every(
       (g) => !g.rounds && !g.events && !g.scores && !g.chess && !g.cup && !g.lines && !g.moves,
     );
+  // Chess has its board at the head of the page, across its whole width.
+  const chess = view.discipline.id === "chess" && !view.solo && started && !bare;
   // Round by round for a driver the viewer follows, or failing that for whoever leads.
   const followed = view.sides.findIndex((s) => atlas.world.follows.some((f) => f.id === s.id));
   const featured = followed >= 0 ? followed : (view.standings[0]?.index ?? 0);
@@ -425,7 +428,9 @@ export function MatchPage({ matchId }: { matchId: string }) {
 
       <Heading view={view} board={board} wide={wide} />
 
-      <div className="bx-cols bx-cols-main">
+      {chess ? <ChessStage view={view} match={match} /> : null}
+
+      <div className={chess ? "bx-cols" : "bx-cols bx-cols-main"}>
         <div>
           {view.solo && started ? (
             <>
@@ -443,11 +448,13 @@ export function MatchPage({ matchId }: { matchId: string }) {
               </Section>
             </>
           ) : null}
-          {!view.solo && started && !bare ? (
+          {chess && match.bestOf > 1 ? (
             <div className="bx-list" style={{ marginTop: 20 }}>
-              {view.discipline.id === "chess" && match.bestOf > 1 ? (
-                <ChessLanes view={view} />
-              ) : null}
+              <ChessLanes view={view} />
+            </div>
+          ) : null}
+          {!view.solo && started && !bare && !chess ? (
+            <div className="bx-list" style={{ marginTop: 20 }}>
               {games.map(({ game, index }) => (
                 <GameRow key={index} game={game} index={index} view={view} />
               ))}
@@ -455,7 +462,7 @@ export function MatchPage({ matchId }: { matchId: string }) {
           ) : null}
           {/* With nothing known of the inside of the games, the line above has said it all;
               the room goes to what the two sides have done before. */}
-          {scheduled || bare ? <Meetings view={view} board={board} /> : null}
+          {scheduled || bare || chess ? <Meetings view={view} board={board} /> : null}
           {scheduled || bare ? <Form view={view} board={board} /> : null}
         </div>
         <div>
@@ -485,7 +492,7 @@ export function MatchPage({ matchId }: { matchId: string }) {
               ) : null}
             </div>
           </Section>
-          {scheduled || bare ? null : <Meetings view={view} board={board} />}
+          {scheduled || bare || chess ? null : <Meetings view={view} board={board} />}
           <Lineups view={view} board={board} />
         </div>
       </div>
