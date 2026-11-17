@@ -71,6 +71,29 @@
         bearing
       </div>
     </div>
+    <script>
+      // A new version replaces the page and its code together, but not in the same instant:
+      // for a few seconds a browser can be given the old page with the new code, whose files
+      // have other names. The page then has nothing to run. It asks once more, a moment later.
+      addEventListener(
+        "error",
+        function (event) {
+          var el = event.target;
+          if (!el || el.tagName !== "SCRIPT" || !/\/assets\//.test(el.src || "")) return;
+          try {
+            var last = Number(sessionStorage.getItem("bearing.reloaded") || 0);
+            if (Date.now() - last < 30000) return;
+            sessionStorage.setItem("bearing.reloaded", String(Date.now()));
+          } catch (error) {
+            return;
+          }
+          setTimeout(function () {
+            location.reload();
+          }, 1500);
+        },
+        true,
+      );
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

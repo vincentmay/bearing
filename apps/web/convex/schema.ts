@@ -54,6 +54,18 @@ export default defineSchema({
     .index("by_key", ["key"])
     .index("by_live_and_at", ["live", "at"]),
   /**
+   * The written record of a game of chess: its moves, and what is noted beside them. Kept
+   * apart from the match it belongs to, which is read by every list and rewritten whenever
+   * anything about it changes; a record is written once, when its game is over, and read by
+   * the one page that shows the game.
+   */
+  records: defineTable({
+    key: v.string(),
+    moves: v.array(v.string()),
+    evals: v.optional(v.array(v.number())),
+    clocks: v.optional(v.array(v.number())),
+  }).index("by_key", ["key"]),
+  /**
    * What a source last handed over, piece by piece, as a fingerprint. A piece that has not
    * changed since is not handed over again, so nothing is read to find that out.
    */

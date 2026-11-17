@@ -1004,65 +1004,37 @@
   }
 }
 
-/* ---- The match's page: the games of a match in a row, and the game shown ---- */
+/* ---- The match's page: the match written out, and the game shown ---- */
 .bx-stage {
   margin-top: 22px;
 }
-.bx-stage-games {
-  display: flex;
-  gap: 6px;
-  margin: 0 -16px 14px;
-  padding: 2px 16px;
-  overflow-x: auto;
-  scrollbar-width: none;
+.bx-series-pick {
+  margin-bottom: 18px;
 }
-.bx-stage-games::-webkit-scrollbar {
-  display: none;
-}
-.bx .bx-stage-games button {
-  flex: none;
+.bx .bx-series-head button {
+  flex: 1 1 0;
+  position: relative;
   display: grid;
-  gap: 3px;
-  min-width: 62px;
-  padding: 8px 12px;
-  border-radius: 14px;
-  background: var(--surface);
-  border: 1px solid var(--hair);
-  text-align: left;
+  place-items: end center;
+  min-width: 22px;
+  max-width: 44px;
+  height: 100%;
+  border-radius: 7px;
+  font: 500 9.5px var(--mono);
+  color: var(--ink3);
   transition:
-    background 0.16s var(--out),
-    color 0.16s var(--out),
-    transform 0.15s var(--out);
+    background 0.14s var(--out),
+    color 0.14s var(--out);
 }
-.bx .bx-stage-games button:active {
-  transform: scale(0.96);
+.bx .bx-series-head button:disabled {
+  opacity: 0.6;
 }
-.bx .bx-stage-games button:disabled {
-  opacity: 0.45;
+.bx .bx-series-head button[data-now] {
+  color: var(--ink);
+  font-weight: 700;
 }
-.bx .bx-stage-games button[aria-current] {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--ground);
-}
-.bx-stage-games b {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  font-weight: 800;
-}
-.bx-stage-games b i {
-  font: 600 9.5px var(--mono);
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  opacity: 0.65;
-}
-.bx-stage-games span {
-  display: flex;
-  align-items: center;
-  min-height: 15px;
-  font: 600 11.5px var(--mono);
-  opacity: 0.8;
+.bx-series-lane span[data-pick] {
+  cursor: pointer;
 }
 .bx-stage-head {
   display: flex;
@@ -1082,9 +1054,182 @@
 .bx-stage-none {
   margin: 10px 0 0;
 }
-@media (min-width: 900px) {
-  .bx-stage-games {
-    margin: 0 0 14px;
-    padding: 2px 0;
+
+/*
+ * A match of several games, as chess writes one down: a line for each player, a column for
+ * each game with what it gave them, and the sum at the end.
+ */
+.bx-serieslist {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+.bx-series {
+  display: grid;
+  grid-template-columns: minmax(104px, 34%) minmax(0, 1fr) auto;
+  gap: 0 10px;
+  padding: 10px 16px 12px;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  box-shadow: var(--sh);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform 0.15s var(--out),
+    border-color 0.2s var(--out);
+}
+.bx-series:active {
+  transform: scale(0.985);
+}
+.bx-series[data-live] {
+  border-color: var(--edge);
+}
+.bx-series-who,
+.bx-series-total {
+  display: grid;
+  grid-template-rows: 30px 30px 30px;
+  align-items: center;
+  min-width: 0;
+}
+.bx-series-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.bx-series-name b {
+  min-width: 0;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bx-series-name[data-lost] b {
+  color: var(--ink2);
+  font-weight: 600;
+}
+.bx-series-name .bx-flag {
+  flex: none;
+  display: none;
+}
+/* The columns: pushed along on a narrow screen, all in sight with room. */
+.bx-series-games {
+  display: grid;
+  grid-template-rows: 30px 30px 30px;
+  align-items: center;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  mask-image: linear-gradient(90deg, transparent, #000 10px, #000 calc(100% - 10px), transparent);
+}
+.bx-series-games::-webkit-scrollbar {
+  display: none;
+}
+.bx-series-head,
+.bx-series-lane {
+  display: flex;
+  justify-content: flex-end;
+  min-width: min-content;
+  padding: 0 8px;
+}
+.bx-series-head > *,
+.bx-series-lane span {
+  flex: 1 1 0;
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 22px;
+  max-width: 44px;
+  height: 100%;
+}
+.bx-series-head span {
+  place-items: end center;
+  padding-bottom: 3px;
+  font: 500 9.5px var(--mono);
+  color: var(--ink3);
+}
+.bx .bx-series-head button {
+  padding-bottom: 3px;
+}
+/* The kind of game, once for each run of the same kind, written over the run. */
+.bx-series-head i {
+  position: absolute;
+  left: 50%;
+  top: 3px;
+  translate: -5px 0;
+  font: 600 8px var(--mono);
+  font-style: normal;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink2);
+}
+.bx-series-head i:empty {
+  display: none;
+}
+.bx-series-lane span {
+  font: 600 13px var(--mono);
+  color: var(--ink2);
+}
+.bx-series-lane span[data-won] {
+  color: var(--ink);
+  font-weight: 800;
+}
+.bx-series-lane span[data-lost] {
+  color: var(--ink3);
+}
+.bx-series-lane span[data-now]::before {
+  content: "";
+  position: absolute;
+  inset: 3px 1px;
+  border-radius: 8px;
+  background: var(--sunk);
+  z-index: -1;
+}
+.bx-series-lane {
+  position: relative;
+  z-index: 0;
+}
+.bx-series-lane + .bx-series-lane {
+  border-top: 1px solid var(--hair);
+}
+.bx-series-total {
+  justify-items: end;
+  min-width: 34px;
+}
+.bx-series-total span {
+  font: 500 9.5px var(--mono);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+.bx-series[data-live] .bx-series-total span {
+  color: var(--ink);
+}
+.bx-series-total b {
+  font: 700 17px var(--mono);
+  letter-spacing: -0.03em;
+  color: var(--ink2);
+}
+.bx-series-total b[data-lead] {
+  color: var(--ink);
+}
+@media (hover: hover) {
+  .bx-series:hover {
+    border-color: var(--edge);
   }
+}
+@media (min-width: 900px) {
+  .bx-series {
+    grid-template-columns: minmax(150px, 30%) minmax(0, 1fr) auto;
+    padding: 12px 20px 14px;
+  }
+  .bx-series-name .bx-flag {
+    display: block;
+  }
+}
+
+.bx-cols-swap > :first-child {
+  order: 2;
 }

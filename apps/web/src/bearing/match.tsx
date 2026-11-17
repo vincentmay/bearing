@@ -7,7 +7,7 @@ import { type Board, useBoard, useWide } from "./board";
 import { ChessStage } from "./chess/stage";
 import { Back, Go } from "./links";
 import { lineupOf } from "./team";
-import { ChessLanes, CupPlaces, CupStandings, GameRow, Stops } from "./forms";
+import { CupPlaces, CupStandings, GameRow, Stops } from "./forms";
 import { type Dot, type MatchView, type SideView, placeOf, sideOf, stopsOf } from "./model";
 import { type Times, until } from "./time";
 import { Disc, Dots, Ping, Problem, Score, Section, Waiting } from "./ui";
@@ -76,15 +76,19 @@ function Heading({ view, board, wide }: { view: MatchView; board: Board; wide: b
   const [a, b] = view.sides;
   const { match } = view;
   const scheduled = match.status === "scheduled";
+  // A match of chess is written out game by game right under the heading.
+  const written = view.discipline.id === "chess" && match.games.length > 1;
   const state = (
     <div className="bx-state">
       {view.live ? <Ping /> : null}
       <span>
-        {scheduled
-          ? `${until(match.scheduledAt, board.now)} · ${board.times.day(match.scheduledAt, board.now)}`
-          : view.headline.length === 1
-            ? view.status.replace(/ · move \d+$/, "")
-            : view.status}
+        {view.resumes
+          ? view.status
+          : scheduled
+            ? `${until(match.scheduledAt, board.now)} · ${board.times.day(match.scheduledAt, board.now)}`
+            : view.headline.length === 1
+              ? view.status.replace(/ · move \d+$/, "")
+              : view.status}
         {view.subs[1] && !view.solo && !scheduled ? ` · ${view.subs[1]}` : ""}
       </span>
     </div>
@@ -142,7 +146,7 @@ function Heading({ view, board, wide }: { view: MatchView; board: Board; wide: b
           </Go>
         </div>
         {state}
-        <Stops view={view} stops={stopsOf(board.atlas, view, board.times)} />
+        {written ? null : <Stops view={view} stops={stopsOf(board.atlas, view, board.times)} />}
       </div>
     );
   }
@@ -428,9 +432,10 @@ export function MatchPage({ matchId }: { matchId: string }) {
 
       <Heading view={view} board={board} wide={wide} />
 
-      {chess ? <ChessStage view={view} match={match} /> : null}
+      {chess ? <ChessStage view={view} match={match} board={board} /> : null}
 
-      <div className={chess ? "bx-cols" : "bx-cols bx-cols-main"}>
+      {/* Under a board, what the match is part of comes first and stands on the left. */}
+      <div className={chess ? "bx-cols bx-cols-swap" : "bx-cols bx-cols-main"}>
         <div>
           {view.solo && started ? (
             <>
@@ -447,11 +452,6 @@ export function MatchPage({ matchId }: { matchId: string }) {
                 </div>
               </Section>
             </>
-          ) : null}
-          {chess && match.bestOf > 1 ? (
-            <div className="bx-list" style={{ marginTop: 20 }}>
-              <ChessLanes view={view} />
-            </div>
           ) : null}
           {!view.solo && started && !bare && !chess ? (
             <div className="bx-list" style={{ marginTop: 20 }}>

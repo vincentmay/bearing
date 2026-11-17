@@ -1,4 +1,4 @@
-import type { Match } from "@bearing/domain";
+import type { GameResult, Match } from "@bearing/domain";
 import { type WrittenGame, gamesOfPgn } from "@bearing/domain/lichess";
 import { useSyncExternalStore } from "react";
 
@@ -202,48 +202,75 @@ export function useRoundGames(id: string | undefined, how: "live" | "once" | und
   );
 }
 
-/** A match with what Lichess says of its game laid over what the store has. */
-export function withLive(match: Match, heard: LiveGame | undefined): Match {
-  const game = match.games[0];
-  if (!heard || !game) return match;
+/** One game with what Lichess says of it laid over what the store has. */
+function overlay(game: GameResult, heard: LiveGame, inMatch: boolean): GameResult {
   const over = !!heard.result && heard.result !== "*";
   // The store may be ahead for a moment, while a broken line is being picked up again.
-  if (!over && heard.moves.length < (game.moves?.length ?? 0)) return match;
-  if (!heard.moves.length && !over) return match;
+  if (!over && heard.moves.length < (game.moves?.length ?? 0)) return game;
+  if (!heard.moves.length && !over) return game;
+  const first = game.firstSide ?? 0;
   const winner =
-    heard.result === "1-0" ? 0 : heard.result === "0-1" ? 1 : over ? ("draw" as const) : undefined;
+    heard.result === "1-0"
+      ? first
+      : heard.result === "0-1"
+        ? 1 - first
+        : over
+          ? ("draw" as const)
+          : undefined;
+  // In a match of several games the store says when a game is over: what the game counts
+  // for is the organiser's to say, and only the store knows that.
+  const finished = game.status === "finished" || (over && !inMatch);
+  const status = finished ? "finished" : "live";
   const played = Math.ceil(heard.moves.length / 2);
-  const status = over ? "finished" : match.status === "finished" ? "finished" : "live";
-  const length = played ? (status === "finished" ? `${played} moves` : `move ${played}`) : "";
+  const length = played ? (finished ? `${played} moves` : `move ${played}`) : "";
   return {
-    ...match,
+    ...game,
     status,
-    games: [
-      {
-        ...game,
-        status,
-        winner: status === "finished" ? (winner ?? game.winner) : undefined,
-        scores:
-          winner === undefined
-            ? game.scores
-            : winner === "draw"
-              ? [0.5, 0.5]
-              : winner === 0
-                ? [1, 0]
-                : [0, 1],
-        moves: heard.moves,
-        evals: heard.evals ?? game.evals,
-        clocks: heard.clocks ?? game.clocks,
-        detail: [heard.opening, length].filter(Boolean).join(" · ") || game.detail,
-        chess: {
-          ...game.chess,
-          fen: game.chess?.fen ?? "",
-          move: Math.floor(heard.moves.length / 2) + 1,
-          movedAt: status === "live" && heard.movedAt ? heard.movedAt : undefined,
-        },
-      },
-    ],
+    winner: finished ? (game.winner ?? winner) : undefined,
+    scores:
+      inMatch || winner === undefined || !finished
+        ? game.scores
+        : winner === "draw"
+          ? [0.5, 0.5]
+          : winner === 0
+            ? [1, 0]
+            : [0, 1],
+    moves: heard.moves,
+    evals: heard.evals ?? game.evals,
+    clocks: heard.clocks ?? game.clocks,
+    detail: [heard.opening, length].filter(Boolean).join(" · ") || game.detail,
+    chess: {
+      ...game.chess,
+      fen: game.chess?.fen ?? "",
+      move: Math.floor(heard.moves.length / 2) + 1,
+      movedAt: status === "live" && !over && heard.movedAt ? heard.movedAt : undefined,
+    },
   };
+}
+
+/**
+ * A match with what Lichess says of its games laid over what the store has. A game is known
+ * by the name Lichess gives it: a match that is one game carries it in its own name, a match
+ * of several games notes it on each.
+ */
+export function withLive(match: Match, heard: Record<string, LiveGame>): Match {
+  const own = lichessId(match.id);
+  let changed = false;
+  const games = match.games.map((game) => {
+    const id = game.ref ? game.ref.split("/").at(-1) : match.games.length === 1 ? own : undefined;
+    const said = id ? heard[id] : undefined;
+    if (!said) return game;
+    const next = overlay(game, said, !!game.ref);
+    if (next !== game) changed = true;
+    return next;
+  });
+  if (!changed) return match;
+  return match.games[0]?.ref ? { ...match, games } : { ...match, status: games[0]!.status, games };
+}
+
+/** The Lichess round a game of a match is played in, from the name noted on the game. */
+export function roundOf(game: GameResult | undefined): string | undefined {
+  return game?.ref?.split("/")[0];
 }
 
 /** The Lichess id in one of Bearing's ids for a Lichess round, game or event. */

@@ -179,6 +179,14 @@ export interface GameResult {
   status: MatchStatus;
   /** Score per side, aligned with `Match.sides`. */
   scores?: number[];
+  /**
+   * What the game counted towards the match for each side, where the event counts games
+   * unequally (a rapid win worth four, a blitz win one). Without it a win is one and a draw
+   * a half.
+   */
+  points?: number[];
+  /** The source's own name for the game, where a page may ask the source about it. */
+  ref?: string;
   winner?: number | "draw";
   /** Side index that picked this map; absent for deciders. */
   pickedBy?: number;

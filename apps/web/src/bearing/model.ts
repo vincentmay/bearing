@@ -74,6 +74,8 @@ export interface MatchView {
   headline: string[];
   status: string;
   live: boolean;
+  /** Begun and to be continued: some games are played, the next is yet to come. */
+  resumes: boolean;
   /** The game being played, if one is. */
   game?: GameResult;
   /** Left, middle and right of the small line under the score. */
@@ -321,6 +323,7 @@ export function summarize(
   const live = match.status === "live";
   const d = discipline.id;
   const single = match.bestOf === 1;
+  const resumes = match.status === "scheduled" && match.games.some((g) => g.status === "finished");
 
   const last = match.games.at(-1);
   const points = (game ?? last)?.scores ?? series;
@@ -358,6 +361,7 @@ export function summarize(
     else status = `Live · ${discipline.unit.one} ${gameIndex + 1}`;
   } else if (match.status === "scheduled") {
     status = `${times.day(match.scheduledAt, now)} · ${times.clock(match.scheduledAt)}`;
+    if (resumes) status = `Continues ${status.replace(/^[A-Z]/, (c) => c.toLowerCase())}`;
   } else {
     const w = winnerOf(match);
     status =
@@ -395,11 +399,20 @@ export function summarize(
       `${game.scores?.[1] ?? 0} kills`,
     ];
   } else if (d === "chess") {
-    const first = (game ?? match.games[0])?.firstSide ?? 0;
+    // In a match of several games the colours change; they are said for the game being
+    // played, or the one that is next. Once it is over there is nothing to say.
+    const next = game ?? match.games.find((g) => g.status === "scheduled");
+    const first = (single ? match.games[0] : next)?.firstSide;
+    const begun = match.games.filter((g) => g.status !== "scheduled").length;
     const middle = single
       ? (atlas.roundOf(match)?.name ?? "")
-      : `Game ${Math.max(1, gameIndex + 1)} of ${match.bestOf}`;
-    subs = [first === 0 ? "White" : "Black", middle, first === 0 ? "Black" : "White"];
+      : match.status === "finished"
+        ? `${begun} games`
+        : `Game ${Math.max(1, game ? gameIndex + 1 : begun + 1)} of ${match.bestOf}`;
+    subs =
+      first === undefined
+        ? ["", middle, ""]
+        : [first === 0 ? "White" : "Black", middle, first === 0 ? "Black" : "White"];
     // A single game in progress has no score yet; its move count leads instead.
     if (single && game) headline = [`Move ${game.chess?.move ?? 1}`];
   } else if (single && last?.status === "finished") {
@@ -424,6 +437,7 @@ export function summarize(
     headline,
     status,
     live,
+    resumes,
     game,
     subs,
     rows,

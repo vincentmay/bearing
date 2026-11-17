@@ -23,7 +23,20 @@ export const prune = internalMutation({
       .query("matches")
       .withIndex("by_live_and_at", (q) => q.eq("live", false).lt("at", before))
       .take(BATCH);
-    for (const row of old) await ctx.db.delete("matches", row._id);
+    for (const row of old) {
+      // The written records of its games of chess go with the match.
+      for (const game of row.doc.games) {
+        const key = game.ref ? `lichess-${game.ref.split("/").at(-1)}` : undefined;
+        const record = key
+          ? await ctx.db
+              .query("records")
+              .withIndex("by_key", (q) => q.eq("key", key))
+              .first()
+          : null;
+        if (record) await ctx.db.delete("records", record._id);
+      }
+      await ctx.db.delete("matches", row._id);
+    }
     if (old.length === BATCH) {
       // More to do: carry on in a new transaction.
       await ctx.scheduler.runAfter(0, internal.retention.prune, {});

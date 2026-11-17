@@ -143,7 +143,25 @@ export const detail = query({
         .query("matches")
         .withIndex("by_key", (q) => q.eq("key", id))
         .first();
-      if (row) out.push(row.doc);
+      if (!row) continue;
+      // The games of a match of chess keep their moves apart; a page that asks for the match
+      // whole has them put back.
+      const games = [];
+      for (const game of row.doc.games) {
+        const key = game.ref && !game.moves ? `lichess-${game.ref.split("/").at(-1)}` : undefined;
+        const record = key
+          ? await ctx.db
+              .query("records")
+              .withIndex("by_key", (q) => q.eq("key", key))
+              .first()
+          : null;
+        games.push(
+          record
+            ? { ...game, moves: record.moves, evals: record.evals, clocks: record.clocks }
+            : game,
+        );
+      }
+      out.push({ ...row.doc, games });
     }
     return out;
   },
@@ -159,6 +177,11 @@ export const live = query({
       .query("matches")
       .withIndex("by_live_and_at", (q) => q.eq("live", true))
       .take(500);
-    return rows.map((r) => r.doc);
+    // The moves of a game of chess are for the page that shows it, which asks for them and
+    // listens to the game being played; every other screen is spared them.
+    return rows.map((r) => ({
+      ...r.doc,
+      games: r.doc.games.map(({ moves: _moves, evals: _evals, clocks: _clocks, ...game }) => game),
+    }));
   },
 });

@@ -148,6 +148,8 @@ export const game = v.object({
   label: text,
   status,
   scores: v.optional(numbers),
+  points: v.optional(numbers),
+  ref: maybeText,
   winner: v.optional(v.union(v.number(), v.literal("draw"))),
   pickedBy: v.optional(v.number()),
   firstSide: v.optional(v.number()),

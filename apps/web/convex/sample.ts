@@ -48,6 +48,7 @@ const TABLES = [
   "competitors",
   "tournaments",
   "matches",
+  "records",
   "digests",
   "meetings",
   "histories",

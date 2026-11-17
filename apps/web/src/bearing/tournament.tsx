@@ -13,6 +13,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { scoreLine } from "../lib/view";
 import { type Board, useBoard, useWide } from "./board";
+import { SeriesList } from "./chess/series";
 import { Back, Go, useVisit } from "./links";
 import { ScheduleRow } from "./lists";
 import { Source } from "./match";
@@ -176,6 +177,8 @@ function StageDrawing({
       </div>
     );
   }
+  // An event played as matches: each with its games, written the way chess writes a match.
+  if (stage.id === "matches") return <SeriesList matches={matches} board={board} />;
   // A list of rounds, for a stage known only as its pairings.
   if (stage.format === "rounds") {
     return <Rounds stage={stage} board={board} />;

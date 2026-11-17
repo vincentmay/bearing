@@ -1,31 +1,26 @@
-import type { GameResult, Match } from "@bearing/domain";
-import { formatPoints } from "@bearing/domain";
+import type { Match } from "@bearing/domain";
 import { useState } from "react";
 import { useAtlas } from "../../lib/world";
+import type { Board } from "../board";
 import type { MatchView, SideView } from "../model";
-import { Ping } from "../ui";
+import { roundOf, useRoundGames } from "../../lib/chess-live";
 import { ChessGame, type Seat } from "./game";
-
-/** What one game gave the side that had White and the side that had Black, as it is written. */
-function scoreOf(game: GameResult): string {
-  if (game.status !== "finished" || game.winner === undefined) return "";
-  if (game.winner === "draw") return "½–½";
-  return game.winner === (game.firstSide ?? 0) ? "1–0" : "0–1";
-}
-
-/** "Game 6 | Rapid" is game 6, a rapid game; "Board 3" is itself. */
-function nameOf(label: string, index: number): { number: string; kind?: string } {
-  const [first, kind] = label.split("|").map((part) => part.trim());
-  const number = /^(?:Game|Round|Partie)\s+(\d+)$/i.exec(first ?? "")?.[1];
-  return { number: number ?? String(index + 1), kind: kind || (number ? undefined : first) };
-}
+import { SeriesTable } from "./series";
 
 /**
  * Chess on a match's page: one board, as large as the page allows, for the game being
- * played or the last one that was. A match of several games has them in a row above the
- * board, each with its result, to pick from; the board then shows the one picked.
+ * played or the last one that was. A match of several games is written out above the board
+ * the way chess writes a match, and a press on one of its games puts that game on the board.
  */
-export function ChessStage({ view, match }: { view: MatchView; match: Match }) {
+export function ChessStage({
+  view,
+  match,
+  board,
+}: {
+  view: MatchView;
+  match: Match;
+  board: Board;
+}) {
   const atlas = useAtlas();
   const { sides } = view;
   const games = match.games;
@@ -35,7 +30,13 @@ export function ChessStage({ view, match }: { view: MatchView; match: Match }) {
   const current = live >= 0 ? live : Math.max(begun, 0);
   const [picked, setPicked] = useState<number>();
   const index = picked ?? current;
-  const game = games[index];
+  const stored = games[index];
+  // A game that is over and whose moves the store has not kept yet is read from Lichess.
+  const missing = stored?.status === "finished" && !stored.moves?.length && !!stored.ref;
+  const read = useRoundGames(missing ? roundOf(stored) : undefined, missing ? "once" : undefined);
+  const said = missing ? read[stored.ref!.split("/").at(-1)!] : undefined;
+  const game =
+    stored && said ? { ...stored, ...said, result: undefined, movedAt: undefined } : stored;
   if (!game) return null;
 
   const first = game.firstSide ?? 0;
@@ -71,39 +72,18 @@ export function ChessStage({ view, match }: { view: MatchView; match: Match }) {
   return (
     <section className="bx-stage">
       {games.length > 1 ? (
-        <nav className="bx-stage-games" aria-label="The games of the match">
-          {games.map((g, i) => {
-            const name = nameOf(g.label, i);
-            const points = g.scores && g.status === "finished" ? g.scores : undefined;
-            return (
-              <button
-                key={i}
-                type="button"
-                aria-current={i === index ? "true" : undefined}
-                data-status={g.status}
-                disabled={g.status === "scheduled"}
-                onClick={() => setPicked(i)}
-              >
-                <b>
-                  {name.number}
-                  {name.kind ? <i>{name.kind}</i> : null}
-                </b>
-                <span className="bx-num">
-                  {g.status === "live" ? (
-                    <Ping />
-                  ) : points && (points[0]! > 1 || points[1]! > 1) ? (
-                    `${formatPoints(points[0]!)}–${formatPoints(points[1]!)}`
-                  ) : (
-                    scoreOf(g) || "·"
-                  )}
-                </span>
-              </button>
-            );
-          })}
-        </nav>
+        <div className="bx-series bx-series-pick">
+          <SeriesTable
+            match={match}
+            sides={sides}
+            board={board}
+            picked={index}
+            onPick={setPicked}
+          />
+        </div>
       ) : null}
       <div className="bx-stage-head">
-        <b>{game.label}</b>
+        <b>{game.label.replace(" | ", " · ")}</b>
         <span className="bx-sub bx-mono">{outcome}</span>
       </div>
       {game.moves?.length ? (
@@ -124,7 +104,7 @@ export function ChessStage({ view, match }: { view: MatchView; match: Match }) {
         <p className="bx-stage-none bx-sub">
           {opening ? `${opening} · ` : ""}
           {sides[first]?.name} {game.status === "finished" ? "had" : "has"} the white pieces.
-          {game.status === "live" ? " The moves are on their way." : ""}
+          {game.status === "live" ? " No move has been made yet." : ""}
         </p>
       )}
     </section>

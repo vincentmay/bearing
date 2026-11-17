@@ -327,7 +327,7 @@ export function ScheduleRow({
   const won = done ? winnerOf(match) : undefined;
   // A series is told by its games won; a single game by its own score while it is played.
   const marks =
-    view.solo || match.status === "scheduled"
+    view.solo || (match.status === "scheduled" && !view.resumes)
       ? undefined
       : match.bestOf > 1 || done
         ? scoreLine(match).split("–")

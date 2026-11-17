@@ -547,7 +547,9 @@ export function DotRows({
 
 /** The score to lead with: two numbers and a dash, or the start time, or a few words. */
 export function Score({ view, times }: { view: MatchView; times: Times }) {
-  if (view.match.status === "scheduled") return <>{times.clock(view.match.scheduledAt)}</>;
+  // A match still to begin leads with its time; one that has begun, with how it stands.
+  if (view.match.status === "scheduled" && !view.resumes)
+    return <>{times.clock(view.match.scheduledAt)}</>;
   const [a, b] = view.headline;
   if (b === undefined) return <Tick>{a ?? ""}</Tick>;
   return (

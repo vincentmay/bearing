@@ -123,6 +123,11 @@ export interface LichessRound {
   finished?: boolean;
   /** When it ended, in milliseconds. */
   finishedAt?: number;
+  /** What a win and a draw count for with each colour, where that is not one and a half. */
+  customScoring?: {
+    white: { win: number; draw: number };
+    black: { win: number; draw: number };
+  };
 }
 
 export interface LichessPlayer {
@@ -263,13 +268,13 @@ function formatOf(text: string | undefined): StageFormat {
   return "rounds";
 }
 
-function toMatch(
+/** One game as Bearing keeps it, with who had White and who Black. */
+function toGame(
   game: LichessGame,
   board: number,
   round: LichessRound,
-  tournamentId: string,
   now: number,
-): Match | null {
+): { state: GameResult; white: string; black: string } | null {
   const [white, black] = game.players ?? [];
   const a = white ? playerId(white) : null;
   const b = black ? playerId(black) : null;
@@ -313,6 +318,18 @@ function toMatch(
         }
       : undefined,
   };
+  return { state, white: a, black: b };
+}
+
+function toMatch(
+  game: LichessGame,
+  board: number,
+  round: LichessRound,
+  tournamentId: string,
+  now: number,
+): Match | null {
+  const made = toGame(game, board, round, now);
+  if (!made) return null;
   return {
     id: `lichess-${game.id}`,
     tournamentId,
@@ -320,33 +337,191 @@ function toMatch(
     roundId: `lichess-${round.id}`,
     scheduledAt: instant(round.startsAt ?? now),
     bestOf: 1,
-    status,
-    sides: [{ competitorId: a }, { competitorId: b }],
-    games: [state],
+    status: made.state.status,
+    sides: [{ competitorId: made.white }, { competitorId: made.black }],
+    games: [made.state],
     stream: { label: "Lichess", url: round.url },
   };
 }
 
-/** One broadcast as a tournament with its players and the games of the rounds that were fetched. */
-export function mapBroadcast(source: LichessBroadcast, now: number): Mapped {
+/**
+ * How the games of a broadcast hang together. Most are a tournament of rounds, each player
+ * meeting someone new every round ("games"). Some are matches: the same two players sit
+ * down again and again, game after game ("matches"), and in some of those the pairings
+ * never change from the first round to the last ("fixed").
+ */
+export type LichessPlay = "games" | "matches" | "fixed";
+
+const pairOf = (game: LichessGame): string | null => {
+  const ids = (game.players ?? []).map(playerId);
+  return ids.length === 2 && ids[0] && ids[1] ? [ids[0], ids[1]].sort().join("|") : null;
+};
+
+/**
+ * What the rounds that were fetched say about how the broadcast is played: undefined where
+ * they cannot tell (it takes two rounds next to each other, both with games).
+ */
+export function playOf(source: LichessBroadcast): LichessPlay | undefined {
+  let compared = 0;
+  let again = 0;
+  let same = true;
+  for (let i = 1; i < source.rounds.length; i++) {
+    const before = (source.games[source.rounds[i - 1]!.id] ?? []).map(pairOf);
+    const after = (source.games[source.rounds[i]!.id] ?? []).map(pairOf);
+    if (!before.length || !after.length) continue;
+    const earlier = new Set(before);
+    for (const pair of after) {
+      compared++;
+      if (pair && earlier.has(pair)) again++;
+      else same = false;
+    }
+    if (before.length !== after.length) same = false;
+  }
+  if (!compared) return undefined;
+  if (again / compared < 0.5) return "games";
+  return same ? "fixed" : "matches";
+}
+
+/** A round that settles a tie, which is played only where there is one. */
+const TIEBREAK = /armageddon|tie.?break|play.?off|sudden death/i;
+const MINUTE = 60_000;
+
+/**
+ * Matches, where a broadcast is played as matches: one for each two players who meet, with
+ * their games in it in the order they are played. A game counts for what the organiser says
+ * it counts (a rapid win may be worth four, a blitz win one), and is known by the round and
+ * the name Lichess gives it, so that a page can listen to it being played.
+ *
+ * Only the rounds that were fetched are in a match here; the store keeps the ones it already
+ * has. So what is said about the match as a whole rests on the rounds, which are all known:
+ * whether more games are to come, and when the next one begins.
+ */
+function toSeries(
+  source: LichessBroadcast,
+  tournamentId: string,
+  play: LichessPlay,
+  now: number,
+): Match[] {
+  const { rounds, tour } = source;
+  const pairs = new Map<
+    string,
+    { ids: [string, string]; games: GameResult[]; rounds: Set<string> }
+  >();
+  for (const round of rounds) {
+    (source.games[round.id] ?? []).forEach((game, board) => {
+      const made = toGame(game, board, round, now);
+      const key = pairOf(game);
+      if (!made || !key) return;
+      const ids = key.split("|") as [string, string];
+      const pair = pairs.get(key) ?? { ids, games: [], rounds: new Set<string>() };
+      pairs.set(key, pair);
+      pair.rounds.add(round.id);
+      // The sides of the match stand in a fixed order; who has White changes from game to game.
+      const first = made.white === ids[0] ? 0 : 1;
+      const { state } = made;
+      const winner =
+        typeof state.winner === "number" ? (state.winner === 0 ? first : 1 - first) : state.winner;
+      const worth = round.customScoring;
+      const points = [0, 0];
+      if (state.winner === "draw") {
+        points[first] = worth?.white.draw ?? 0.5;
+        points[1 - first] = worth?.black.draw ?? 0.5;
+      } else if (state.winner === 0) points[first] = worth?.white.win ?? 1;
+      else if (state.winner === 1) points[1 - first] = worth?.black.win ?? 1;
+      pair.games.push({
+        ...state,
+        label: round.name,
+        firstSide: first,
+        winner,
+        scores: undefined,
+        points: state.winner === undefined ? undefined : points,
+        ref: `${round.id}/${game.id}`,
+        startedAt: round.startsAt ? instant(round.startsAt) : undefined,
+      });
+    });
+  }
+  // The rounds that count towards every match, where the pairings never change.
+  const regular = rounds.filter((r) => !TIEBREAK.test(r.name));
+  const out: Match[] = [];
+  for (const pair of pairs.values()) {
+    const live = pair.games.some((g) => g.status === "live");
+    const waiting = pair.games.find((g) => g.status === "scheduled");
+    // With fixed pairings, a round still to be played is a game still to come for this match.
+    const coming =
+      play === "fixed" ? regular.find((r) => !r.finished && !pair.rounds.has(r.id)) : undefined;
+    const nextAt = waiting?.startedAt ? Date.parse(waiting.startedAt) : coming?.startsAt;
+    // Between two games of an afternoon the match is being played; overnight it is not.
+    const soon = nextAt !== undefined && nextAt - now < 90 * MINUTE;
+    const status = live ? "live" : waiting || coming ? (soon ? "live" : "scheduled") : "finished";
+    const starts = pair.games.flatMap((g) => (g.startedAt ? [g.startedAt] : [])).sort();
+    out.push({
+      id: `${tournamentId}-${pair.ids.map((id) => id.replace(/^(fide|lichess)-/, "")).join("-")}`,
+      tournamentId,
+      stageId: "matches",
+      roundId: `${tournamentId}-matches`,
+      scheduledAt: status === "scheduled" && nextAt ? instant(nextAt) : (starts[0] ?? instant(now)),
+      bestOf: play === "fixed" ? Math.max(regular.length, pair.games.length) : pair.games.length,
+      status,
+      sides: [{ competitorId: pair.ids[0] }, { competitorId: pair.ids[1] }],
+      games: pair.games,
+      stream: { label: "Lichess", url: tour.url },
+    });
+  }
+  return out;
+}
+
+/**
+ * One broadcast as a tournament with its players and the games of the rounds that were
+ * fetched. `play` is what earlier looks found out about how it is played; what this look
+ * finds out is given back, to be kept for the next.
+ */
+export function mapBroadcast(
+  source: LichessBroadcast,
+  now: number,
+  play?: LichessPlay,
+): Mapped & { play: LichessPlay } {
   const { tour, rounds } = source;
   const id = `lichess-${tour.id}`;
+  const seen = playOf(source);
+  // Once matches, always matches; pairings that changed once are not fixed again.
+  const how: LichessPlay =
+    seen === undefined
+      ? (play ?? "games")
+      : seen === "games"
+        ? play && play !== "games"
+          ? "matches"
+          : "games"
+        : play === "matches"
+          ? "matches"
+          : seen;
   const competitors = new Map<string, Player>();
   const matches: Match[] = [];
-  const stageRounds: Stage["rounds"] = rounds.map((round, index) => {
-    const ids: string[] = [];
-    (source.games[round.id] ?? []).forEach((game, board) => {
-      const match = toMatch(game, board, round, id, now);
-      if (!match) return;
-      for (const [i, p] of (game.players ?? []).entries()) {
-        const pid = match.sides[i]?.competitorId;
+  for (const round of rounds) {
+    for (const game of source.games[round.id] ?? []) {
+      for (const p of game.players ?? []) {
+        const pid = playerId(p);
         if (pid && !competitors.has(pid)) competitors.set(pid, toPlayer(p, pid));
       }
-      matches.push(match);
-      ids.push(match.id);
+    }
+  }
+  let stageRounds: Stage["rounds"];
+  if (how === "games") {
+    stageRounds = rounds.map((round, index) => {
+      const ids: string[] = [];
+      (source.games[round.id] ?? []).forEach((game, board) => {
+        const match = toMatch(game, board, round, id, now);
+        if (!match) return;
+        matches.push(match);
+        ids.push(match.id);
+      });
+      return { id: `lichess-${round.id}`, name: round.name, short: `R${index + 1}`, matchIds: ids };
     });
-    return { id: `lichess-${round.id}`, name: round.name, short: `R${index + 1}`, matchIds: ids };
-  });
+  } else {
+    matches.push(...toSeries(source, id, how, now));
+    stageRounds = [
+      { id: `${id}-matches`, name: "Matches", short: "M", matchIds: matches.map((m) => m.id) },
+    ];
+  }
 
   const starts = rounds.flatMap((r) => (r.startsAt ? [r.startsAt] : []));
   const start = tour.dates?.[0] ?? Math.min(...starts, now);
@@ -367,20 +542,30 @@ export function mapBroadcast(source: LichessBroadcast, now: number): Mapped {
     colors: { primary: "#000000", secondary: "#ffffff" },
     participantIds: [...competitors.keys()],
     stages: [
-      {
-        id: "rounds",
-        name: format === "round-robin" ? "Round robin" : "Rounds",
-        format,
-        start: day(start),
-        end: day(end),
-        // The broadcast's own words, not a description made up for it.
-        explainer: [tour.info?.format, tour.info?.tc].filter(Boolean).join(". "),
-        rounds: stageRounds,
-      },
+      how === "games"
+        ? {
+            id: "rounds",
+            name: format === "round-robin" ? "Round robin" : "Rounds",
+            format,
+            start: day(start),
+            end: day(end),
+            // The broadcast's own words, not a description made up for it.
+            explainer: [tour.info?.format, tour.info?.tc].filter(Boolean).join(". "),
+            rounds: stageRounds,
+          }
+        : {
+            id: "matches",
+            name: "Matches",
+            format: "rounds",
+            start: day(start),
+            end: day(end),
+            explainer: [tour.info?.format, tour.info?.tc].filter(Boolean).join(". "),
+            rounds: stageRounds,
+          },
     ],
     provenance: { source: "Lichess broadcasts", checkedAt: instant(now), note: tour.url },
   };
-  return { tournament, competitors: [...competitors.values()], matches };
+  return { tournament, competitors: [...competitors.values()], matches, play: how };
 }
 
 /** Which rounds are worth fetching: those being played, the latest finished and the next to come. */

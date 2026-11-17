@@ -1,5 +1,6 @@
 import {
   type LichessBroadcast,
+  type LichessPlay,
   type LichessGame,
   type LichessRound,
   type LichessTour,
@@ -199,10 +200,17 @@ async function fetchBroadcast(
  * fingerprint of what was last handed over, and a piece that matches its fingerprint stays
  * where it is. The time of checking is renewed at most every half hour.
  */
-async function hand(ctx: ActionCtx, broadcast: LichessBroadcast) {
-  const mapped = plain(mapBroadcast(broadcast, Date.now()));
+async function hand(
+  ctx: ActionCtx,
+  broadcast: LichessBroadcast,
+  whole = false,
+): Promise<LichessPlay> {
   const scope = `lichess-${broadcast.tour.id}`;
   const held: Record<string, string> = await ctx.runQuery(internal.ingest.digests, { scope });
+  // How the broadcast is played (in rounds, or as matches) is found out once two rounds have
+  // been seen side by side, and remembered: a look at one round alone cannot tell.
+  const play = held[`${scope}:play`] as LichessPlay | undefined;
+  const mapped = plain(mapBroadcast(broadcast, Date.now(), play));
   const fresh: { key: string; hash: string }[] = [];
   const changed = (key: string, value: unknown) => {
     const hash = fingerprint(value);
@@ -210,32 +218,57 @@ async function hand(ctx: ActionCtx, broadcast: LichessBroadcast) {
     fresh.push({ key: `${scope}:${key}`, hash });
     return true;
   };
+  if (mapped.play !== (play ?? "games")) fresh.push({ key: `${scope}:play`, hash: mapped.play });
+  // A match of several games is read by every list; the moves of its games are not for
+  // lists. They are kept apart, each game's once it is over. While a game is being played
+  // its moves are not kept at all: the page showing it listens to Lichess.
+  const records: { key: string; moves: string[]; evals?: number[]; clocks?: number[] }[] = [];
+  for (const match of mapped.matches) {
+    for (const one of match.games) {
+      if (!one.ref) continue;
+      const { moves, evals, clocks } = one;
+      delete one.moves;
+      delete one.evals;
+      delete one.clocks;
+      if (!moves?.length || one.status !== "finished") continue;
+      const record = { key: `lichess-${one.ref.split("/").at(-1)}`, moves, evals, clocks };
+      if (changed(`g:${one.ref}`, record)) records.push(record);
+    }
+  }
   const matches = mapped.matches.filter((m) => changed(`m:${m.id}`, m));
   const people = changed("players", mapped.competitors);
   const event = changed("event", { ...mapped.tournament, provenance: null });
   const halfHour = String(Math.floor(Date.now() / (30 * 60_000)));
-  if (!matches.length && !people && !event) {
-    if (held[`${scope}:seen`] === halfHour) return;
+  if (!matches.length && !people && !event && !records.length) {
+    if (held[`${scope}:seen`] === halfHour) return mapped.play;
     await ctx.runMutation(internal.lichess.checked, {
       key: mapped.tournament.id,
       at: mapped.tournament.provenance.checkedAt,
       note: { key: `${scope}:seen`, hash: halfHour },
     });
-    return;
+    return mapped.play;
   }
   fresh.push({ key: `${scope}:seen`, hash: halfHour });
+  // Which starting times to look at for games that are in no round any more. Played in
+  // rounds: the rounds read on this run. Played as matches: every round, on the hourly look,
+  // which is how the games kept one by one before the matches were known are cleared out.
+  const swept =
+    mapped.play === "games"
+      ? broadcast.rounds.filter((round) => broadcast.games[round.id]?.length)
+      : whole
+        ? broadcast.rounds
+        : [];
   await ctx.runMutation(internal.lichess.store, {
     tournament: mapped.tournament,
     competitors: people ? mapped.competitors : [],
     matches,
+    records,
     notes: fresh,
-    // The rounds read whole on this run, and when their games are scheduled for.
-    read: broadcast.rounds.flatMap((round) =>
-      broadcast.games[round.id]?.length && round.startsAt
-        ? [{ round: `lichess-${round.id}`, at: round.startsAt }]
-        : [],
+    read: swept.flatMap((round) =>
+      round.startsAt ? [{ round: `lichess-${round.id}`, at: round.startsAt }] : [],
     ),
   });
+  return mapped.play;
 }
 
 /**
@@ -271,11 +304,25 @@ export const sync = internalAction({
         const watched: Record<string, string> = await ctx.runQuery(internal.ingest.digests, {
           scope: "watch",
         });
+        const gathered: Record<string, string> = await ctx.runQuery(internal.ingest.digests, {
+          scope: "series",
+        });
         for (const tour of tours) {
           const broadcast = await fetchBroadcast(tour.id, false, have);
           if (!broadcast) continue;
-          await hand(ctx, broadcast);
+          const play = await hand(ctx, broadcast, true);
           await noteNext(ctx, broadcast, watched);
+          // Found to be played as matches: its earlier rounds, read before that was known,
+          // are read once more, so that every match has all its games.
+          if (play !== "games" && !gathered[`series:${tour.id}`]) {
+            const all = await fetchBroadcast(tour.id, true);
+            if (all) {
+              await hand(ctx, all, true);
+              await ctx.runMutation(internal.ingest.put, {
+                digest: { key: `series:${tour.id}`, hash: "whole" },
+              });
+            }
+          }
           if (broadcast.over.length)
             await ctx.runMutation(internal.lichess.noteRounds, { ids: broadcast.over });
           for (const part of broadcast.group?.tours ?? []) parts.set(part.id, tour.id);
@@ -293,7 +340,7 @@ export const sync = internalAction({
           read++;
           const broadcast = await fetchBroadcast(id, true);
           if (!broadcast) continue;
-          await hand(ctx, broadcast);
+          await hand(ctx, broadcast, true);
           if (broadcast.rounds.length && broadcast.rounds.every((round) => round.finished))
             await ctx.runMutation(internal.ingest.put, {
               digest: { key: `tour:${id}`, hash: "whole" },
@@ -381,11 +428,30 @@ export const store = internalMutation({
     matches: v.array(match),
     /** The fingerprints of what is handed over here, kept for the next time. */
     notes: v.optional(v.array(v.object({ key: v.string(), hash: v.string() }))),
+    /** The written records of games that are over, each kept apart from its match. */
+    records: v.optional(
+      v.array(
+        v.object({
+          key: v.string(),
+          moves: v.array(v.string()),
+          evals: v.optional(v.array(v.number())),
+          clocks: v.optional(v.array(v.number())),
+        }),
+      ),
+    ),
     /** The rounds whose games were all read on this run. */
     read: v.optional(v.array(v.object({ round: v.string(), at: v.number() }))),
   },
   handler: async (ctx, args) => {
     for (const note of args.notes ?? []) await remember(ctx, note);
+    for (const record of args.records ?? []) {
+      const row = await ctx.db
+        .query("records")
+        .withIndex("by_key", (q) => q.eq("key", record.key))
+        .first();
+      if (!row) await ctx.db.insert("records", record);
+      else await ctx.db.replace("records", row._id, record);
+    }
     // Rewriting a row that has not changed would wake every screen for nothing.
     for (const doc of args.competitors) {
       const row = await ctx.db
@@ -419,7 +485,12 @@ export const store = internalMutation({
       stages: args.tournament.stages.map((stage) => ({
         ...stage,
         rounds: stage.rounds.map((r) =>
-          r.matchIds.length ? r : { ...r, matchIds: known.get(r.id) ?? [] },
+          // Matches: a look may have seen only some of them; the ones known stay listed.
+          stage.id === "matches"
+            ? { ...r, matchIds: [...new Set([...(known.get(r.id) ?? []), ...r.matchIds])] }
+            : r.matchIds.length
+              ? r
+              : { ...r, matchIds: known.get(r.id) ?? [] },
         ),
       })),
     };
@@ -445,6 +516,39 @@ export const store = internalMutation({
         await ctx.db.insert("matches", { key: m.id, live, at, doc: m });
         continue;
       }
+      // A match of several games: this look saw some of them. Each game is known by the
+      // round it was played in; the ones not seen now stay as they are.
+      if (m.games.some((one) => one.ref)) {
+        const games = new Map(row.doc.games.map((one) => [one.label, one] as const));
+        for (const one of m.games) {
+          // A look that could not read the moves knows neither the opening nor the length.
+          const before = games.get(one.label);
+          games.set(
+            one.label,
+            one.detail || !before?.detail ? one : { ...one, detail: before.detail },
+          );
+        }
+        const inOrder = [...games.values()].sort(
+          (x, y) =>
+            (x.startedAt ?? "9").localeCompare(y.startedAt ?? "9") ||
+            x.label.localeCompare(y.label, undefined, { numeric: true }),
+        );
+        const began = inOrder.find((one) => one.startedAt)?.startedAt;
+        const whole = {
+          ...m,
+          games: inOrder,
+          bestOf: Math.max(m.bestOf, inOrder.length),
+          // Still to be played, it stands at its next game; otherwise where it began.
+          scheduledAt: m.status === "scheduled" ? m.scheduledAt : (began ?? m.scheduledAt),
+        };
+        if (!same(row.doc, whole))
+          await ctx.db.patch("matches", row._id, {
+            live,
+            at: Date.parse(whole.scheduledAt),
+            doc: whole,
+          });
+        continue;
+      }
       // A run that could not read the moves does not take away the ones already here.
       const doc = {
         ...m,
@@ -466,19 +570,15 @@ export const store = internalMutation({
     // Lichess now and then sets a round's games up anew, under new names. The games under the
     // old names are then in no round any more, and would stay "being played" for ever. A
     // round's games all share its starting time, which is how the ones left behind are found.
-    for (const { round, at } of args.read ?? []) {
-      const now = new Set(
-        doc.stages.flatMap((stage) => stage.rounds).find((r) => r.id === round)?.matchIds ?? [],
-      );
-      if (!now.size) continue;
+    const listed = new Set(doc.stages.flatMap((stage) => stage.rounds.flatMap((r) => r.matchIds)));
+    for (const { at } of listed.size ? (args.read ?? []) : []) {
       for (const live of [true, false]) {
         const rows = await ctx.db
           .query("matches")
           .withIndex("by_live_and_at", (q) => q.eq("live", live).eq("at", at))
           .take(300);
         for (const row of rows) {
-          if (row.doc.tournamentId !== doc.id || row.doc.roundId !== round || now.has(row.key))
-            continue;
+          if (row.doc.tournamentId !== doc.id || listed.has(row.key)) continue;
           await ctx.db.delete("matches", row._id);
         }
       }

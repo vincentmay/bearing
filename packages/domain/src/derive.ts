@@ -195,7 +195,9 @@ export function seriesScore(match: Match): number[] {
   const score = match.sides.map(() => 0);
   for (const g of match.games) {
     if (g.status !== "finished" || g.winner === undefined) continue;
-    if (g.winner === "draw") {
+    if (g.points) {
+      for (let i = 0; i < score.length; i++) score[i]! += g.points[i] ?? 0;
+    } else if (g.winner === "draw") {
       for (let i = 0; i < score.length; i++) score[i]! += 0.5;
     } else {
       score[g.winner]! += 1;
