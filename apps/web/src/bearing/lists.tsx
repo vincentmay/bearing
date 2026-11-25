@@ -346,12 +346,15 @@ export function ScheduleRow({
     .join(" · ")
     .replaceAll(" | ", " · ");
   const known = view.sides.filter((s) => s.id).map((s) => s.name);
+  // Starting within the hour: one of Sunrise's jobs (brand book §5).
+  const left = Date.parse(match.scheduledAt) - now;
+  const soon = !live && !done && left <= 3_600_000 && left > -900_000;
   return (
     <Link to="/match/$matchId" params={{ matchId: match.id }} className="bx-mr">
       <span className="bx-mr-when">
-        <b>
+        <b data-soon={soon ? "" : undefined}>
           {elsewhen
-            ? `${times.weekday(match.scheduledAt)} ${times.dayOfMonth(match.scheduledAt)}`
+            ? `${times.weekday(match.scheduledAt)} ${times.dayOfMonth(match.scheduledAt)}`
             : times.clock(match.scheduledAt)}
         </b>
         {live ? (
@@ -360,7 +363,12 @@ export function ScheduleRow({
             Live
           </span>
         ) : (
-          <span>
+          <span data-soon={soon ? "" : undefined}>
+            <i
+              className="bx-statedot"
+              data-k={done ? "final" : soon ? "soon" : "next"}
+              aria-hidden
+            />
             {done
               ? "Final"
               : elsewhen

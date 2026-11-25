@@ -1,4 +1,4 @@
-import "@fontsource-variable/gabarito";
+import "@fontsource-variable/zalando-sans/wdth.css";
 import "../bearing/bearing.css";
 
 import type { QueryClient } from "@tanstack/react-query";
@@ -20,7 +20,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const router = useRouter();
     return (
       <ShellProblem>
-        <Problem title="Bearing could not load" onRetry={() => void router.invalidate()}>
+        <Problem title="Kiming could not load" onRetry={() => void router.invalidate()}>
           The schedule did not arrive. Nothing is wrong on your side that we know of.
         </Problem>
       </ShellProblem>

@@ -208,10 +208,7 @@ catalogs:
     '@edge-runtime/vm':
       specifier: ^5.0.0
       version: 5.0.0
-    '@fontsource-variable/gabarito':
-      specifier: ^5.3.0
-      version: 5.3.0
-    '@fontsource-variable/geist-mono':
+    '@fontsource-variable/zalando-sans':
       specifier: ^5.3.0
       version: 5.3.0
     '@playwright/test':
@@ -294,10 +291,7 @@ importers:
       '@convex-dev/react-query':
         specifier: 'catalog:'
         version: 0.1.0(@tanstack/react-query@5.107.1(@types/react@19.3.0)(react@19.3.1))(convex@1.50.0(@clerk/clerk-react@5.61.3(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@clerk/react@6.18.8(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1))
-      '@fontsource-variable/gabarito':
-        specifier: 'catalog:'
-        version: 5.3.0
-      '@fontsource-variable/geist-mono':
+      '@fontsource-variable/zalando-sans':
         specifier: 'catalog:'
         version: 5.3.0
       '@tanstack/react-query':
@@ -655,11 +649,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@fontsource-variable/gabarito@5.3.0':
-    resolution: {integrity: sha512-p7ROuY70ufLI5/hVvdgo4iJo17Dz2OfQXgdkaeS0U/B2wMqNIPt+/2WWWaAzrUYvcrNquL7farT2MY/vVo2ENw==}
-
-  '@fontsource-variable/geist-mono@5.3.0':
-    resolution: {integrity: sha512-vBbuwDEo9AkrqADMXOrlAR3DFcJi4/JxeuU43FoiQERnNwsfXNnvxvReZG02cQKmyk4DZkZdBZX3oTDvy2zBAw==}
+  '@fontsource-variable/zalando-sans@5.3.0':
+    resolution: {integrity: sha512-ySCeVBBL6XafXqu11wMcfKRXsMBMZ7E0HPUxHu0UmAgU2SoCgYF291SueBvUwsLg1GLzVizzEw180HyH0OUEbg==}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -2041,10 +2032,12 @@ packages:
   yuku-core@0.19.0:
     resolution: {integrity: sha512-kYK9e1XdfirNhkipzW0wmMcSWcVF/CWnuugodfVYRCUwvoBefweL9HzB96OiKEhsx78V5WbUxbJqlizMX869Qg==}
     engines: {node: '>=14.18.0'}
+    deprecated: 'Yuku is now one package with one core. Use "yuku" instead: https://yuku.fyi/javascript/. Existing installs keep working but get no more fixes.'
 
   yuku-parser@0.19.0:
     resolution: {integrity: sha512-XrBh9ZiQK5mJVRxZBAvD6LwRyAYrK3MFtH3+onyuxFL5hFD44EC3QOmIC1FjTj6H2MMwq46/NAI+NZxLZPZgxg==}
     engines: {node: '>=14.18.0'}
+    deprecated: 'Yuku is now one package with one core. Use "yuku" instead: https://yuku.fyi/javascript/. Existing installs keep working but get no more fixes.'
 
   zod@4.6.7:
     resolution: {integrity: sha512-g8W2D2kU6a8untc053fX1uVBKzM7yqAxW/3zwk83+6RyF2+SKOuV+c0wBDhUwzV1PaGapmZH+rmcUzPf+3CGwg==}
@@ -2283,9 +2276,7 @@ snapshots:
   '@esbuild/win32-x64@0.27.0':
     optional: true
 
-  '@fontsource-variable/gabarito@5.3.0': {}
-
-  '@fontsource-variable/geist-mono@5.3.0': {}
+  '@fontsource-variable/zalando-sans@5.3.0': {}
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:

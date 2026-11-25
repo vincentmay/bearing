@@ -1,5 +1,4 @@
-import "@fontsource-variable/gabarito";
-import "@fontsource-variable/geist-mono";
+import "@fontsource-variable/zalando-sans/wdth.css";
 import "./bearing/bearing.css";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

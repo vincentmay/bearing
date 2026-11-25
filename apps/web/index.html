@@ -2,16 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/bearing.svg" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark light" />
-    <title>Bearing</title>
+    <title>Kiming</title>
     <meta
       name="description"
-      content="Everything you follow, in one clear view: what is on, what is next, where it stands."
+      content="Esports schedule and scores, in your time. Everything you follow, coming into view: Counter-Strike, League of Legends, Rocket League, chess and Trackmania."
     />
     <meta property="og:image" content="/og.svg" />
-    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#020307" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <!-- The store, and where marks and faces come from: connected to before they are asked. -->
     <link rel="preconnect" href="%VITE_CONVEX_URL%" crossorigin />
@@ -21,7 +24,7 @@
       as="font"
       type="font/woff2"
       crossorigin
-      href="/node_modules/@fontsource-variable/gabarito/files/gabarito-latin-wght-normal.woff2"
+      href="/node_modules/@fontsource-variable/zalando-sans/files/zalando-sans-latin-wdth-normal.woff2"
     />
     <style>
       /* Before anything has loaded: the ground in the right colour and the mark in its place,
@@ -32,7 +35,7 @@
       }
       @media (prefers-color-scheme: dark) {
         html {
-          background: #000;
+          background: #020307;
           color: #fff;
         }
       }
@@ -61,14 +64,22 @@
   <body>
     <div id="app">
       <div class="boot" aria-hidden="true">
-        <svg width="28" height="28" viewBox="0 0 64 64">
+        <svg height="19" viewBox="-1904.8 -769.47 5883 973.47">
+          <path fill="#FEAE43" d="M-1792.8 -56A222 222 0 0 1 -1348.8 -56Z" />
+          <path
+            fill="#6A85FD"
+            d="M-1292.8 -278A222 222 0 1 1 -848.8 -278A222 222 0 1 1 -1292.8 -278Z"
+          />
+          <path
+            fill="#3140D6"
+            d="M-792.8 -500A222 222 0 1 1 -348.8 -500A222 222 0 1 1 -792.8 -500Z"
+          />
+          <path fill="currentColor" d="M-1904.8 0H-236.8V72H-1904.8Z" />
           <path
             fill="currentColor"
-            d="M56.305 22.767A26 26 0 1 1 41.233 7.695A11 11 0 0 0 35.871 16.475A16 16 0 1 0 47.525 28.129A11 11 0 0 0 56.305 22.767Z"
+            d="M59.19 0V-714H266.24V-298.05L200.98 -326.1L611.86 -714H871.12L543.63 -417.61Q572.76 -407.7 595.56 -393.5Q618.36 -379.31 638.98 -358.87Q659.61 -338.43 681.12 -308.67L905.54 0H656.13L475.79 -252.2Q455.09 -281.24 428.78 -284.66Q402.48 -288.09 374.8 -262.9L199.22 -106.68L266.24 -256.63V0ZM958.19 0V-514H1156.85V0ZM958.34 -669.85A99.62 99.62 0 1 1 1157.58 -669.85A99.62 99.62 0 1 1 958.34 -669.85ZM1233.7 0V-514H1432.36V-369.7L1412.7 -388.12Q1430.94 -439.24 1465.46 -469.74Q1499.97 -500.24 1542.48 -514.12Q1585 -528 1625.48 -528Q1672.73 -528 1712.73 -513.44Q1752.73 -498.88 1779.85 -467.32Q1806.97 -435.76 1815.46 -384.88L1788.04 -389.15Q1800.64 -438 1835.28 -468.62Q1869.91 -499.24 1915.37 -513.62Q1960.82 -528 2005.7 -528Q2072.73 -528 2119.17 -499.05Q2165.61 -470.09 2189.41 -417.76Q2213.21 -365.43 2213.21 -292.79V0H2014.67V-264.23Q2014.67 -305.8 2004.26 -331.46Q1993.85 -357.11 1974.77 -369.16Q1955.69 -381.21 1928.75 -381.21Q1898.56 -381.21 1874.74 -366.86Q1850.91 -352.51 1836.88 -325.05Q1822.85 -297.59 1822.85 -256.25V0H1624.19V-264.23Q1624.19 -326.66 1600.43 -353.93Q1576.66 -381.21 1537.63 -381.21Q1507.44 -381.21 1483.55 -366.86Q1459.67 -352.51 1446.02 -325.05Q1432.36 -297.59 1432.36 -256.25V0ZM2282.19 0V-514H2480.85V0ZM2282.34 -669.85A99.62 99.62 0 1 1 2481.58 -669.85A99.62 99.62 0 1 1 2282.34 -669.85ZM2557.7 0V-514H2756.36V-371.66L2738.58 -403.63Q2758.7 -441.18 2793.94 -469.03Q2829.19 -496.88 2878.31 -512.44Q2927.43 -528 2988.06 -528Q3047.19 -528 3091.55 -511.62Q3135.91 -495.24 3165.84 -463.43Q3195.76 -431.61 3211.07 -386.11Q3226.37 -340.61 3226.37 -283.36V0H3026.83V-242.4Q3026.83 -286.35 3012.92 -317.37Q2999.01 -348.38 2971.07 -364.8Q2943.12 -381.21 2900.08 -381.21Q2854.41 -381.21 2822.22 -363.61Q2790.04 -346.02 2773.2 -314.32Q2756.36 -282.62 2756.36 -240.04V0ZM3639.48 204Q3552.08 204 3480.74 185.5Q3409.39 167 3364.68 129.24Q3319.97 91.49 3310.73 33.34H3508.12Q3518.46 57.62 3553.78 69.39Q3589.1 81.17 3641.48 81.17Q3682 81.17 3712.99 70.51Q3743.98 59.86 3761.76 37.6Q3779.53 15.34 3779.53 -18.49V-156.85L3797.56 -119.13Q3778.71 -92.34 3745.56 -68.36Q3712.4 -44.39 3664.86 -29.83Q3617.31 -15.27 3555.16 -15.27Q3481.94 -15.27 3418.08 -44.14Q3354.22 -73 3315.22 -130.18Q3276.22 -187.36 3276.22 -272.64Q3276.22 -324.15 3290.72 -365.47Q3305.22 -406.78 3331.78 -436.97Q3358.34 -467.15 3393.52 -487.39Q3428.7 -507.64 3470.07 -517.82Q3511.43 -528 3555.16 -528Q3617.31 -528 3664.86 -513.94Q3712.4 -499.88 3745.56 -475.97Q3778.71 -452.06 3797.56 -423.38L3779.53 -386.66V-514H3978.2V-33.81Q3978.2 32.73 3949.12 78.18Q3920.05 123.64 3871.21 151.64Q3822.38 179.64 3762.37 191.82Q3702.35 204 3639.48 204ZM3630.23 -152.64Q3658.81 -152.64 3682.83 -158.07Q3706.85 -163.49 3724.87 -174.16Q3742.89 -184.83 3755.48 -199.49Q3768.08 -214.14 3774.74 -232.54Q3781.41 -250.93 3781.41 -271.76Q3781.41 -307.67 3763.65 -334.68Q3745.89 -361.68 3712.34 -376.72Q3678.78 -391.75 3630.23 -391.75Q3601.65 -391.75 3577.7 -386.32Q3553.74 -380.9 3535.58 -370.23Q3517.43 -359.56 3504.64 -344.97Q3491.85 -330.37 3485.36 -311.92Q3478.88 -293.46 3478.88 -271.76Q3478.88 -236.84 3497.03 -209.77Q3515.19 -182.71 3548.87 -167.68Q3582.56 -152.64 3630.23 -152.64Z"
           />
-          <circle fill="currentColor" cx="46.85" cy="17.15" r="7.5" />
         </svg>
-        bearing
       </div>
     </div>
     <script>

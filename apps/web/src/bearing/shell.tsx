@@ -1,5 +1,4 @@
-import "@fontsource-variable/gabarito";
-import "@fontsource-variable/geist-mono";
+import "@fontsource-variable/zalando-sans/wdth.css";
 import "./bearing.css";
 
 import type { Atlas } from "@bearing/domain";
@@ -9,8 +8,9 @@ import { type ReactNode, createContext, useContext, useEffect, useRef, useState 
 import { usePrefs } from "../lib/prefs";
 import { useSamplePlayer } from "./live";
 import { useAtlas } from "../lib/world";
+import { SkyBand } from "./sky";
 import { nameOf, useTrail } from "./trail";
-import { AccountLink, Mark, Waiting } from "./ui";
+import { AccountLink, Logo, Waiting } from "./ui";
 
 const TABS = [
   { to: "/", label: "Today", icon: House },
@@ -46,10 +46,13 @@ function tabOf(path: string): number {
 function Chrome({
   active,
   inner,
+  sky = false,
   children,
 }: {
   active: number;
   inner: boolean;
+  /** Today wears the sky at the viewer's hour behind its top. */
+  sky?: boolean;
   children: ReactNode;
 }) {
   const { theme } = usePrefs();
@@ -59,10 +62,10 @@ function Chrome({
       <a href="#main" className="bx-skip">
         Skip to the page
       </a>
+      {sky ? <SkyBand /> : null}
       <header className="bx-top">
-        <Link to="/" className="bx-brand" aria-label="Bearing: today">
-          <Mark size={28} />
-          <span aria-hidden>bearing</span>
+        <Link to="/" className="bx-brand" aria-label="Kiming: today">
+          <Logo height={19} label="Kiming" />
         </Link>
         <AccountLink />
       </header>
@@ -104,7 +107,7 @@ export function ShellWaiting() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const found = tabOf(path);
   return (
-    <Chrome active={Math.max(found, 0)} inner={found < 0}>
+    <Chrome active={Math.max(found, 0)} inner={found < 0} sky={path === "/"}>
       <main className="bx-page">
         <Waiting title={found >= 0 ? TABS[found]?.label : undefined} />
       </main>
@@ -156,10 +159,10 @@ export function Shell() {
   const atlas = useAtlas();
   useEffect(() => {
     const name = nameOf(atlas, path);
-    document.title = name === "Back" ? "Bearing" : `${name} · Bearing`;
+    document.title = name === "Back" ? "Kiming" : `${name} · Kiming`;
   }, [atlas, path]);
   return (
-    <Chrome active={active} inner={inner}>
+    <Chrome active={active} inner={inner} sky={path === "/"}>
       <Origin value={TABS[active] ?? TABS[0]}>
         <main id="main" key={pageOf(atlas, path)} className={`bx-page ${move.how}`}>
           <Outlet />

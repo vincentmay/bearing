@@ -61,7 +61,7 @@ export function LeadCard({
   return (
     <Link to="/match/$matchId" params={{ matchId: view.match.id }} className={cls}>
       <div className="bx-row bx-btw bx-meta">
-        <span>
+        <span data-live={view.live ? "" : undefined}>
           {view.live ? <Ping /> : null}
           {view.status}
         </span>
@@ -213,7 +213,7 @@ export function Today() {
     );
 
   const nextList = (
-    <Section label={next.length || !others.length || !leadIsMine ? "Next" : "Also coming up"}>
+    <Section label={next.length || !others.length || !leadIsMine ? "Coming up" : "Also coming up"}>
       <div className="bx-list">
         {next.map((u) => (
           <NextRow
@@ -295,6 +295,10 @@ export function Today() {
             </Section>
           ) : null}
           {wide ? null : nextList}
+          {/* The horizon: above it what is live or still to come, below it what is done. */}
+          <p className="bx-now">
+            <span>Now · {times.clock(now)}</span>
+          </p>
           <Section label="Earlier">
             <div className="bx-list">
               {results.map((m) => (

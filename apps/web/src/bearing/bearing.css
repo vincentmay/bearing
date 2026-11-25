@@ -1,28 +1,53 @@
 /*
- * Bearing identity, version 2. The rules are in docs/BRAND.md.
- * Black and white, one level of cards, flat discs and dots. Everything is scoped to .bx.
+ * Kiming identity, brand book v1.1 (brand/brand-book.html; tokens in
+ * brand/tokens/kiming.tokens.json). Everything is scoped to .bx.
  *
- * Where a CSS gradient appears below it has hard stops only: it draws a flat split disc or a
- * progress ring, never a fade.
+ * One indigo carries everything: a tonal scale on one hue (OKLCH), neutrals tinted with it, and
+ * Sunrise amber, its complement, for a few jobs only. The accent's jobs are a closed list: live,
+ * the main action, selection, focus. Sunrise's: the mark's rising disc, the sky's sun, Soon (a
+ * match within the hour) and Following. Neither is ever a status colour.
  */
 .bx {
+  /* The scales (brand/system/palette.mjs). */
+  --k-indigo-50: #f3f5ff;
+  --k-indigo-100: #e2e9ff;
+  --k-indigo-200: #c3d1fe;
+  --k-indigo-300: #9fb5fe;
+  --k-indigo-400: #6a85fd;
+  --k-indigo-500: #4761f0;
+  --k-indigo-600: #3140d6;
+  --k-indigo-700: #2232ae;
+  --k-indigo-800: #172881;
+  --k-indigo-900: #0d1c52;
+  --k-indigo-950: #050f2f;
+  --k-amber-400: #feae43;
+  --k-amber-700: #bd4d07;
+  /* Roles, light. */
   --ground: #fff;
   --surface: #fff;
-  --sunk: #f1f1f1;
-  --ink: #000;
-  --ink2: #5c5c5c;
-  --ink3: #999;
-  --hair: rgb(0 0 0 / 0.1);
-  --edge: rgb(0 0 0 / 0.18);
-  --rest: rgb(0 0 0 / 0.2);
-  --sh: 0 1px 1px rgb(0 0 0 / 0.04), 0 10px 24px -14px rgb(0 0 0 / 0.28);
+  --sunk: #edeef3;
+  --ink: #020307;
+  --ink2: #5a5d67;
+  --ink3: #9b9ea7;
+  --hair: rgb(19 22 31 / 0.1);
+  --edge: rgb(19 22 31 / 0.18);
+  --rest: rgb(19 22 31 / 0.2);
+  --sh: 0 1px 1px rgb(5 15 47 / 0.04), 0 10px 24px -14px rgb(5 15 47 / 0.3);
   /* The lit upper edge of a pane of glass. */
   --gloss: inset 0 1px 0 rgb(255 255 255 / 0.7);
   /* What a row or a control takes on under the pointer. */
-  --hover: rgb(0 0 0 / 0.045);
-  --face: "Gabarito Variable", system-ui, sans-serif;
-  --mono: "Geist Mono Variable", ui-monospace, monospace;
-  --out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --hover: rgb(19 22 31 / 0.045);
+  --accent: var(--k-indigo-600);
+  --on-accent: #fff;
+  --sunrise: var(--k-amber-700);
+  --night: var(--k-indigo-950);
+  --face: "Zalando Sans Variable", system-ui, sans-serif;
+  /* One family: figures, clocks and small labels are set in the same face. Tabular digits are
+     asked for only where a number stands alone (a time, a score): in this face the feature
+     also widens the space. */
+  --mono: "Zalando Sans Variable", system-ui, sans-serif;
+  --out: cubic-bezier(0.23, 1, 0.32, 1);
+  --sunrise-curve: cubic-bezier(0.16, 1, 0.3, 1);
   --spring: cubic-bezier(0.2, 1.5, 0.4, 1);
   min-height: 100dvh;
   background: var(--ground);
@@ -36,35 +61,41 @@
 }
 @media (prefers-color-scheme: dark) {
   .bx:not([data-theme="light"]) {
-    --ground: #000;
-    --surface: #111;
-    --sunk: #1e1e1e;
+    --ground: #020307;
+    --surface: #0f1119;
+    --sunk: #1d2029;
     --ink: #fff;
-    --ink2: #a6a6a6;
-    --ink3: #6b6b6b;
-    --hair: rgb(255 255 255 / 0.13);
+    --ink2: #c1c4cc;
+    --ink3: #777a84;
+    --hair: rgb(255 255 255 / 0.12);
     --edge: rgb(255 255 255 / 0.2);
     --rest: rgb(255 255 255 / 0.3);
     --sh: 0 12px 28px -14px #000;
     --gloss: inset 0 1px 0 rgb(255 255 255 / 0.1);
     --hover: rgb(255 255 255 / 0.07);
-    --nav: rgb(30 30 30 / 0.8);
+    --nav: rgb(29 32 41 / 0.8);
+    --accent: var(--k-indigo-300);
+    --on-accent: #020307;
+    --sunrise: var(--k-amber-400);
     color-scheme: dark;
   }
 }
 .bx[data-theme="dark"] {
-  --ground: #000;
-  --surface: #111;
-  --sunk: #1e1e1e;
+  --ground: #020307;
+  --surface: #0f1119;
+  --sunk: #1d2029;
   --ink: #fff;
-  --ink2: #a6a6a6;
-  --ink3: #6b6b6b;
-  --hair: rgb(255 255 255 / 0.13);
+  --ink2: #c1c4cc;
+  --ink3: #777a84;
+  --hair: rgb(255 255 255 / 0.12);
   --edge: rgb(255 255 255 / 0.2);
   --rest: rgb(255 255 255 / 0.3);
   --sh: 0 12px 28px -14px #000;
   --gloss: inset 0 1px 0 rgb(255 255 255 / 0.1);
   --hover: rgb(255 255 255 / 0.07);
+  --accent: var(--k-indigo-300);
+  --on-accent: #020307;
+  --sunrise: var(--k-amber-400);
   color-scheme: dark;
 }
 /* The page behind the app, for overscroll. */
@@ -72,11 +103,11 @@ html:has(.bx) {
   background: #fff;
 }
 html:has(.bx[data-theme="dark"]) {
-  background: #000;
+  background: #020307;
 }
 @media (prefers-color-scheme: dark) {
   html:has(.bx:not([data-theme="light"])) {
-    background: #000;
+    background: #020307;
   }
 }
 body {
@@ -111,7 +142,7 @@ body {
   text-align: inherit;
 }
 .bx :focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 8px;
 }
@@ -147,7 +178,6 @@ body {
   font-family: var(--mono);
 }
 .bx-num {
-  font-variant-numeric: tabular-nums;
 }
 .bx-sub {
   color: var(--ink2);
@@ -1076,7 +1106,6 @@ body {
 }
 .bx-time {
   font: 500 13px var(--mono);
-  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .bx-right {
@@ -1098,7 +1127,7 @@ body {
  */
 .bx-mr {
   display: grid;
-  grid-template-columns: 62px minmax(0, 1fr);
+  grid-template-columns: 74px minmax(0, 1fr);
   gap: 12px;
   align-items: start;
   padding: 12px 0;
@@ -1114,7 +1143,6 @@ body {
 .bx-mr-when b {
   font-size: 13px;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
   color: var(--ink);
 }
@@ -1205,7 +1233,6 @@ body {
 }
 .bx-lane > :last-child {
   font: 500 12px var(--mono);
-  font-variant-numeric: tabular-nums;
 }
 .bx-half {
   display: grid;
@@ -1217,7 +1244,6 @@ body {
 .bx-half > span {
   font: 500 10px var(--mono);
   color: var(--ink2);
-  font-variant-numeric: tabular-nums;
 }
 
 /* Match page */
@@ -1395,7 +1421,6 @@ body {
   flex: none;
   font-family: var(--mono);
   font-size: 12px;
-  font-variant-numeric: tabular-nums;
   color: var(--ink2);
   white-space: nowrap;
 }
@@ -1505,7 +1530,6 @@ body {
 }
 .bx-line > :not(:first-child) {
   font: 400 11px var(--mono);
-  font-variant-numeric: tabular-nums;
   color: var(--ink2);
   text-align: right;
   min-width: 34px;
@@ -2058,7 +2082,6 @@ body {
   display: none;
   flex: none;
   font: 11px var(--mono);
-  font-variant-numeric: tabular-nums;
   color: var(--ink2);
 }
 .bx-pair-mid {
@@ -2067,7 +2090,6 @@ body {
   justify-content: center;
   gap: 6px;
   font: 600 12px var(--mono);
-  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .bx-pair-mid:not([data-live]) {
@@ -2584,7 +2606,7 @@ body {
   color: var(--ink2);
 }
 .bx-field:focus-within {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 .bx-field input {
@@ -3032,4 +3054,186 @@ body {
     animation: none !important;
     transition: none !important;
   }
+}
+
+/*
+ * Kiming, brand book v1.2: the mark's colours, the sky band, the accent's jobs, the match states
+ * and the Now line.
+ */
+.bx-m1 {
+  fill: var(--k-amber-400);
+}
+.bx-m2 {
+  fill: var(--k-indigo-400);
+}
+.bx-m3 {
+  fill: var(--k-indigo-600);
+}
+.bx[data-theme="dark"] .bx-m2 {
+  fill: var(--k-indigo-500);
+}
+.bx[data-theme="dark"] .bx-m3 {
+  fill: var(--k-indigo-300);
+}
+@media (prefers-color-scheme: dark) {
+  .bx:not([data-theme="light"]) .bx-m2 {
+    fill: var(--k-indigo-500);
+  }
+  .bx:not([data-theme="light"]) .bx-m3 {
+    fill: var(--k-indigo-300);
+  }
+}
+.bx .bx-brand:hover svg {
+  transform: none;
+}
+
+/* The sky at the viewer's hour, behind the top of Today, fading into the page. */
+.bx {
+  position: relative;
+  isolation: isolate;
+}
+.bx-skyband {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 250px;
+  z-index: -1;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(#000 0%, #000 36%, transparent 100%);
+  mask-image: linear-gradient(#000 0%, #000 36%, transparent 100%);
+}
+.bx-skyband > div {
+  position: absolute;
+  inset: 0;
+}
+.bx-skyband svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* Two drawings of the same hour: the paper sky on light, the dimmed sky on dark. */
+.bx-sky-dark {
+  display: none;
+}
+.bx[data-theme="dark"] .bx-sky-dark {
+  display: block;
+}
+.bx[data-theme="dark"] .bx-sky-light {
+  display: none;
+}
+@media (prefers-color-scheme: dark) {
+  .bx:not([data-theme="light"]) .bx-sky-dark {
+    display: block;
+  }
+  .bx:not([data-theme="light"]) .bx-sky-light {
+    display: none;
+  }
+}
+@media (min-width: 900px) {
+  .bx-skyband {
+    height: 300px;
+  }
+}
+.bx-sky-settle {
+  animation: bx-sky-settle 4s var(--out) 1 both;
+}
+@keyframes bx-sky-settle {
+  from {
+    transform: translate(-1.2%, -0.8%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+/* Selection is one of the accent's jobs: the tab you are on. */
+.bx .bx-nav i {
+  background: var(--accent);
+}
+.bx .bx-nav a[data-on] {
+  color: var(--on-accent);
+}
+
+/* Live is one of the accent's jobs. */
+.bx-mr-when [data-live],
+.bx-meta [data-live] {
+  color: var(--accent);
+}
+
+/* Small labels: sentence case, in the reading face. */
+.bx .bx-label {
+  font: 700 11.5px var(--face);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink2);
+}
+.bx .bx-date {
+  font: 600 12px var(--face);
+  text-transform: none;
+}
+
+/* Match states: plain dots, deliberately unlike the mark. */
+.bx-statedot {
+  display: inline-block;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  vertical-align: 0.05em;
+}
+.bx-statedot[data-k="next"] {
+  box-shadow: inset 0 0 0 1.5px var(--ink3);
+}
+.bx-statedot[data-k="soon"] {
+  box-shadow: inset 0 0 0 1.5px var(--sunrise);
+  background: radial-gradient(circle, var(--sunrise) 0 1.6px, transparent 1.9px);
+}
+.bx-statedot[data-k="final"] {
+  width: 7px;
+  height: 7px;
+  background: var(--ink3);
+}
+.bx-mr-when > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.bx-mr-when [data-soon] {
+  color: var(--sunrise);
+  font-weight: 600;
+}
+.bx-mr-when b[data-soon] {
+  color: var(--sunrise);
+}
+
+/* Now: the horizon line between what is still to come and what is done. */
+.bx-now {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 22px 2px 0;
+  color: var(--accent);
+  font-size: 11.5px;
+  font-weight: 800;
+}
+.bx-now::before {
+  content: "";
+  width: 12px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+.bx-now::after {
+  content: "";
+  flex: 1;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+.bx-now + .bx-section {
+  margin-top: 12px;
+}
+
+/* Following is one of Sunrise's jobs. */
+.bx-star[aria-pressed="true"] {
+  color: var(--sunrise);
 }

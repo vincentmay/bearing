@@ -19,18 +19,9 @@ import { useAtlas, useFollow } from "../lib/world";
 import type { Dot, MatchView, SideView } from "./model";
 import type { Times } from "./time";
 
-/** The mark: a ball seated in its ring. Construction is in docs/BRAND.md. */
-export function Mark({ size = 24 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 64 64" role="img" aria-label="Bearing">
-      <path
-        fill="currentColor"
-        d="M56.305 22.767A26 26 0 1 1 41.233 7.695A11 11 0 0 0 35.871 16.475A16 16 0 1 0 47.525 28.129A11 11 0 0 0 56.305 22.767Z"
-      />
-      <circle fill="currentColor" cx="46.85" cy="17.15" r="7.5" />
-    </svg>
-  );
-}
+/** The mark: three exposures of one sunrise on one horizon (brand book §4). */
+import { Mark } from "./logo";
+export { Logo, Mark } from "./logo";
 
 /**
  * True once the component has been on screen. Things that arrive after that (a dot, a new

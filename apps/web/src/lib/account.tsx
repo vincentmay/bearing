@@ -19,21 +19,22 @@ export const accounts = clerkKey !== null;
 
 const DARK = "(prefers-color-scheme: dark)";
 
-/** Clerk's own screens, restyled to the identity: black and white, Gabarito, one card. */
+/** Clerk's own screens, restyled to the identity: indigo, Zalando Sans, one card. */
 function useClerkLook() {
   const { theme } = usePrefs();
   const dark = theme === "dark" || (theme === "system" && window.matchMedia(DARK).matches);
-  const ink = dark ? "#ffffff" : "#000000";
-  const surface = dark ? "#111111" : "#ffffff";
-  const sunk = dark ? "#1e1e1e" : "#f1f1f1";
-  const ink2 = dark ? "#a6a6a6" : "#5c5c5c";
-  const hair = dark ? "rgb(255 255 255 / 0.13)" : "rgb(0 0 0 / 0.1)";
+  const ink = dark ? "#ffffff" : "#020307";
+  const surface = dark ? "#0f1119" : "#ffffff";
+  const sunk = dark ? "#1d2029" : "#edeef3";
+  const ink2 = dark ? "#c1c4cc" : "#5a5d67";
+  const hair = dark ? "rgb(255 255 255 / 0.12)" : "rgb(19 22 31 / 0.1)";
+  const accent = dark ? "#9fb5fe" : "#3140d6";
   return {
     variables: {
-      colorPrimary: ink,
+      colorPrimary: accent,
       colorText: ink,
       colorTextSecondary: ink2,
-      colorTextOnPrimaryBackground: surface,
+      colorTextOnPrimaryBackground: dark ? "#020307" : "#ffffff",
       colorBackground: surface,
       colorInputBackground: sunk,
       colorInputText: ink,
@@ -41,8 +42,8 @@ function useClerkLook() {
       colorDanger: ink,
       colorSuccess: ink,
       colorWarning: ink,
-      fontFamily: '"Gabarito Variable", system-ui, sans-serif',
-      fontFamilyButtons: '"Gabarito Variable", system-ui, sans-serif',
+      fontFamily: '"Zalando Sans Variable", system-ui, sans-serif',
+      fontFamilyButtons: '"Zalando Sans Variable", system-ui, sans-serif',
       borderRadius: "14px",
     },
     elements: {
