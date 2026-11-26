@@ -70,16 +70,16 @@ export function Settings() {
           ) : (
             <p className="bx-empty">
               {account.state === "none"
-                ? "This copy of Bearing runs without accounts. What you follow is kept on this device."
+                ? "This copy of Kiming runs without accounts. What you follow is kept on this device."
                 : "You do not need an account. What you follow is kept on this device; signing in keeps it the same on every device."}
             </p>
           )}
         </div>
         {account.state === "out" ? (
           <p style={{ margin: "12px 0 0" }}>
-            <button type="button" className="bx-button" onClick={account.signIn}>
+            <Link to="/sign-in" search={{ from: "/settings" }} className="bx-button">
               Sign in or create an account
-            </button>
+            </Link>
           </p>
         ) : null}
         {account.state === "in" ? (
@@ -116,7 +116,7 @@ export function Settings() {
         />
         <p className="bx-note">
           It is {times.clock(now)} on {times.date(now)}
-          {times.zone ? ` (${times.zone})` : ""}. Every time in Bearing is shown this way.
+          {times.zone ? ` (${times.zone})` : ""}. Every time in Kiming is shown this way.
         </p>
       </Section>
 
@@ -149,7 +149,7 @@ export function Settings() {
         <div className="bx-list">
           {pinned() ? (
             <p className="bx-empty">
-              Bearing is running on sample data: real names, fictional events and generated results.
+              Kiming is running on sample data: real names, fictional events and generated results.
               The live matches are played forward faster than real time so that there is something
               to follow.{" "}
               {reader
@@ -158,11 +158,11 @@ export function Settings() {
             </p>
           ) : (
             <p className="bx-empty">
-              What Bearing shows is real, and comes from those who publish it: schedules, results
-              and line-ups from PandaScore; the inside of League of Legends games from
-              lolesports.com and Leaguepedia (CC BY-SA 3.0); chess from Lichess broadcasts; the
-              Counter-Strike ranking from Valve. Every match and event names its sources and when
-              they were last asked, at the foot of its page.
+              What Kiming shows is real, and comes from those who publish it: schedules, results and
+              line-ups from PandaScore; the inside of League of Legends games from lolesports.com
+              and Leaguepedia (CC BY-SA 3.0); chess from Lichess broadcasts; the Counter-Strike
+              ranking from Valve. Every match and event names its sources and when they were last
+              asked, at the foot of its page.
             </p>
           )}
         </div>

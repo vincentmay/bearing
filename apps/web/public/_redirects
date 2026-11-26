@@ -7,6 +7,7 @@
 /following / 200
 /search / 200
 /settings / 200
+/sign-in / 200
 /match/* / 200
 /team/* / 200
 /player/* / 200

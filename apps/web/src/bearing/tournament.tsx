@@ -265,7 +265,7 @@ export function TournamentPage({ tournamentId }: { tournamentId: string }) {
     return (
       <>
         <Back />
-        <Problem title="This event could not be found">
+        <Problem title="This event could not be found.">
           It may have been removed, or the link is wrong.
         </Problem>
       </>

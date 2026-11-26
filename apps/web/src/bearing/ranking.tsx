@@ -71,8 +71,8 @@ export function RankingPage({ discipline }: { discipline: string }) {
     return (
       <>
         <Back />
-        <Problem title="There is no ranking for this game">
-          Bearing has a ranking only where the game's own makers publish one.
+        <Problem title="There is no ranking for this game.">
+          Kiming has a ranking only where the game's own makers publish one.
         </Problem>
       </>
     );

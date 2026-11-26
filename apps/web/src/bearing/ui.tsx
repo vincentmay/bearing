@@ -1,5 +1,5 @@
 import type { Champion, Follow, GameEvent } from "@bearing/domain";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import {
   ClipboardList,
   Crosshair,
@@ -21,6 +21,7 @@ import type { Times } from "./time";
 
 /** The mark: three exposures of one sunrise on one horizon (brand book §4). */
 import { Mark } from "./logo";
+import { Moment } from "./sky";
 export { Logo, Mark } from "./logo";
 
 /**
@@ -359,6 +360,8 @@ export function Champ({
  */
 export function AccountLink({ className }: { className?: string }) {
   const account = useAccount();
+  // Where to come back to after signing in.
+  const here = useRouterState({ select: (s) => s.location.href });
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLSpanElement>(null);
   useEffect(() => {
@@ -427,10 +430,15 @@ export function AccountLink({ className }: { className?: string }) {
               Manage account
             </button>
           ) : (
-            <button type="button" role="menuitem" onClick={then(account.signIn)}>
+            <Link
+              to="/sign-in"
+              search={{ from: here }}
+              role="menuitem"
+              onClick={() => setOpen(false)}
+            >
               <LogIn size={16} aria-hidden />
               Sign in or create an account
-            </button>
+            </Link>
           )}
           <Link to="/settings" role="menuitem" onClick={() => setOpen(false)}>
             <Settings size={16} aria-hidden />
@@ -740,7 +748,7 @@ export function Waiting({ title }: { title?: string }) {
 
 /** Something could not be loaded: say so plainly, and offer the one thing that might help. */
 export function Problem({
-  title = "This could not be loaded",
+  title = "This could not be loaded.",
   children,
   onRetry,
 }: {
@@ -749,14 +757,23 @@ export function Problem({
   onRetry?: () => void;
 }) {
   return (
-    <div className="bx-problem" role="alert">
-      <b>{title}</b>
-      <p>{children ?? "The connection may be down, or the source did not answer."}</p>
-      {onRetry ? (
-        <button type="button" className="bx-button" onClick={onRetry}>
-          Try again
-        </button>
-      ) : null}
-    </div>
+    <Moment
+      alert
+      className="bx-problem"
+      title={title}
+      action={
+        onRetry ? (
+          <button type="button" className="bx-ghost" onClick={onRetry}>
+            Try again
+          </button>
+        ) : (
+          <Link to="/" className="bx-ghost">
+            Back to Today
+          </Link>
+        )
+      }
+    >
+      {children ?? "The connection may be down, or the source did not answer."}
+    </Moment>
   );
 }

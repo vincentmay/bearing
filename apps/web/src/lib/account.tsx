@@ -1,5 +1,5 @@
 import type { Follow } from "@bearing/domain";
-import { ClerkProvider, useAuth, useClerk, useUser } from "@clerk/react";
+import { ClerkProvider, SignIn, useAuth, useClerk, useUser } from "@clerk/react";
 import { ConvexProvider, useConvexAuth, useMutation, useQuery } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { type ReactNode, useCallback, useEffect } from "react";
@@ -82,10 +82,24 @@ function useClerkLook() {
   } as const;
 }
 
-function WithClerk({ children }: { children: ReactNode }) {
+/** Moves the app to an address, the way its own links do. */
+export type Navigate = (to: string, replace: boolean) => void;
+
+function WithClerk({ children, navigate }: { children: ReactNode; navigate?: Navigate }) {
   const appearance = useClerkLook();
+  // Clerk's own moves (after signing in, say) go through the app's router, not a reload.
+  const move = (replace: boolean) => (to: string) => {
+    const url = new URL(to, window.location.href);
+    if (url.origin !== window.location.origin || !navigate) window.location.assign(url.href);
+    else navigate(url.pathname + url.search + url.hash, replace);
+  };
   return (
-    <ClerkProvider publishableKey={clerkKey!} afterSignOutUrl="/" appearance={appearance}>
+    <ClerkProvider
+      publishableKey={clerkKey!}
+      afterSignOutUrl="/"
+      appearance={appearance}
+      {...(navigate ? { routerPush: move(false), routerReplace: move(true) } : {})}
+    >
       <ConvexProviderWithClerk client={convex!} useAuth={useAuth}>
         <CarryOver />
         {children}
@@ -95,10 +109,73 @@ function WithClerk({ children }: { children: ReactNode }) {
 }
 
 /** Puts the backend, and accounts if there are any, around the app. */
-export function Backend({ children }: { children: ReactNode }) {
+export function Backend({ children, navigate }: { children: ReactNode; navigate?: Navigate }) {
   if (!convex) return <>{children}</>;
   if (!accounts) return <ConvexProvider client={convex}>{children}</ConvexProvider>;
-  return <WithClerk>{children}</WithClerk>;
+  return <WithClerk navigate={navigate}>{children}</WithClerk>;
+}
+
+/** Clerk's form on the sky: white on the dark, the one button white, no card around it. */
+const ON_SKY = {
+  variables: {
+    colorPrimary: "#ffffff",
+    colorTextOnPrimaryBackground: "#050f2f",
+    colorText: "#ffffff",
+    colorTextSecondary: "#e2e9ff",
+    colorBackground: "#050f2f",
+    colorInputBackground: "rgba(5, 15, 47, 0.42)",
+    colorInputText: "#ffffff",
+    colorNeutral: "#ffffff",
+    colorDanger: "#ffffff",
+  },
+  elements: {
+    rootBox: { width: "100%" },
+    cardBox: {
+      width: "100%",
+      maxWidth: "100%",
+      border: "0",
+      borderRadius: "0",
+      boxShadow: "none",
+      background: "transparent",
+    },
+    card: { padding: "0", background: "transparent", boxShadow: "none" },
+    // The page says what this is; the form needs no title of its own.
+    header: { display: "none" },
+    footer: {
+      background: "transparent",
+      "& > *": { background: "transparent" },
+    },
+    formFieldLabel: { color: "#e2e9ff" },
+    formFieldInput: {
+      background: "rgba(5, 15, 47, 0.42)",
+      boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.28)",
+    },
+    formButtonPrimary: { background: "#ffffff", color: "#050f2f" },
+    socialButtonsBlockButton: {
+      background: "rgba(5, 15, 47, 0.42)",
+      border: "1px solid rgba(255, 255, 255, 0.28)",
+      color: "#ffffff",
+    },
+    dividerLine: { background: "rgba(255, 255, 255, 0.2)" },
+    dividerText: { color: "#c3d1fe" },
+  },
+} as const;
+
+/**
+ * Signing in or creating an account, in one form: an address that has no account yet gets one.
+ * Afterwards the viewer goes back to `back`. Nothing at all where there are no accounts.
+ */
+export function SignInForm({ back }: { back: string }) {
+  if (!accounts) return null;
+  return (
+    <SignIn
+      routing="hash"
+      withSignUp
+      fallbackRedirectUrl={back}
+      signUpFallbackRedirectUrl={back}
+      appearance={ON_SKY}
+    />
+  );
 }
 
 /**
@@ -168,14 +245,12 @@ export interface Account {
   /** What to call the viewer, and their own picture if they have set one. */
   name?: string;
   image?: string;
-  signIn: () => void;
   signOut: () => void;
   manage: () => void;
 }
 
 const NO_ACCOUNTS: Account = {
   state: "none",
-  signIn: () => {},
   signOut: () => {},
   manage: () => {},
 };
@@ -188,7 +263,6 @@ function useClerkAccount(): Account {
     email: user?.primaryEmailAddress?.emailAddress,
     name: user?.firstName ?? user?.username ?? user?.primaryEmailAddress?.emailAddress,
     image: user?.hasImage ? user.imageUrl : undefined,
-    signIn: () => clerk.openSignIn(),
     signOut: () => void clerk.signOut(),
     manage: () => clerk.openUserProfile(),
   };

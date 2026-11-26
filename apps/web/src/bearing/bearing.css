@@ -132,7 +132,8 @@ body {
   color: inherit;
   text-decoration: none;
 }
-.bx button {
+/* Clerk's buttons (classes cl-…) keep their own look. */
+.bx button:where(:not([class*="cl-"])) {
   font: inherit;
   color: inherit;
   background: none;
@@ -897,6 +898,10 @@ body {
 .bx-wide .bx-versus .bx-name,
 .bx-hero .bx-versus .bx-name {
   font-size: clamp(20px, 5.4cqw, 44px);
+}
+/* A name that still does not fit ends in an ellipsis rather than running into the score. */
+.bx-hero .bx-versus .bx-name {
+  display: block;
 }
 .bx-wide .bx-versus .bx-name[data-long],
 .bx-hero .bx-versus .bx-name[data-long] {
@@ -2665,7 +2670,7 @@ body {
   color: var(--ink) !important;
 }
 
-/* Waiting for data: the shape of the page, quietly. Could not load: said in words. */
+/* Waiting for data: the shape of the page, quietly. */
 .bx-wait {
   animation: bx-wait 1.6s ease-in-out infinite;
 }
@@ -2691,24 +2696,6 @@ body {
 .bx-bone-row > span {
   display: grid;
   gap: 7px;
-}
-.bx-problem {
-  margin-top: 16px;
-  padding: 18px 16px;
-  border-radius: 24px;
-  background: var(--surface);
-  border: 1px solid var(--hair);
-  box-shadow: var(--sh);
-}
-.bx-problem b {
-  display: block;
-  font-size: 19px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-.bx-problem p {
-  margin: 4px 0 14px;
-  color: var(--ink2);
 }
 
 /* Navigation: a small floating capsule, icons only. */
@@ -3236,4 +3223,220 @@ body {
 /* Following is one of Sunrise's jobs. */
 .bx-star[aria-pressed="true"] {
   color: var(--sunrise);
+}
+
+/*
+ * Moments (brand book §8 and §11): nothing on, an address that leads nowhere, no connection.
+ * The whole sky at the viewer's hour, the same in both themes, with the words in its top part
+ * in white and one way on. Never behind a list, a score or a setting.
+ */
+.bx-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--night);
+}
+.bx-scene svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.bx-moment {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  margin-top: 16px;
+  min-height: 400px;
+  border-radius: 24px;
+  background: var(--night);
+  color: #fff;
+  box-shadow: var(--sh);
+}
+.bx-moment-in {
+  position: relative;
+  z-index: 1;
+  padding: 44px 24px 0;
+  text-align: center;
+}
+.bx-moment h2 {
+  margin: 0 0 8px;
+  font-size: 30px;
+  font-weight: 800;
+  font-stretch: 116%;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+.bx-moment p {
+  max-width: 34ch;
+  margin: 0 auto 20px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--k-indigo-100);
+}
+.bx-moment p a {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+.bx .bx-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--night) !important;
+  font-size: 14px;
+  font-weight: 700;
+  transition: transform 0.15s;
+}
+.bx .bx-ghost:active {
+  transform: scale(0.96);
+}
+.bx .bx-ghost:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+@media (min-width: 900px) {
+  .bx-moment {
+    min-height: 440px;
+  }
+  .bx-moment-in {
+    padding-top: 64px;
+  }
+  .bx-moment h2 {
+    font-size: 40px;
+  }
+}
+/* On the sky the mark takes its colours for dark grounds, and the word is white. */
+.bx-onsky .bx-m2 {
+  fill: var(--k-indigo-500);
+}
+.bx-onsky .bx-m3 {
+  fill: var(--k-indigo-300);
+}
+
+/* Signing in: the whole sky, white words, the form plain. */
+.bx.bx-signin {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: var(--night);
+  color: #fff;
+}
+.bx-signin .bx-scene {
+  position: fixed;
+}
+.bx-si-top,
+.bx-si-main,
+.bx-si-foot {
+  position: relative;
+  z-index: 1;
+}
+.bx-si-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(20px, env(safe-area-inset-top)) 20px 0;
+  color: #fff;
+}
+.bx-si-top a {
+  display: flex;
+  color: inherit;
+}
+.bx .bx-si-close {
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgb(5 15 47 / 0.42);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.24);
+}
+.bx-si-main {
+  flex: 1;
+  width: 100%;
+  padding: 13vh 20px 32px;
+}
+.bx-si-words {
+  max-width: 440px;
+}
+.bx-si-main h1 {
+  margin: 0 0 14px;
+  font-size: 40px;
+  font-weight: 800;
+  font-stretch: 118%;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+.bx-si-words p {
+  margin: 0 0 24px;
+  max-width: 32ch;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--k-indigo-100);
+}
+/* On a phone the words stand in the sky and the form below, where it has faded to night. */
+.bx-si-side {
+  max-width: 440px;
+  margin-top: 12vh;
+}
+.bx-si-form small {
+  display: block;
+  margin-top: 14px;
+  font-size: 12.5px;
+  color: var(--k-indigo-200);
+}
+.bx-si-form {
+  min-height: 220px;
+  text-align: center;
+}
+.bx-si-foot {
+  padding: 0 20px max(20px, env(safe-area-inset-bottom));
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--k-indigo-200);
+}
+@media (min-width: 900px) {
+  /* With room: the words at the left in the top of the sky, the form beside them on glass. */
+  .bx-si-top {
+    padding: 32px 48px 0;
+  }
+  .bx-si-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 400px;
+    gap: 64px;
+    align-items: start;
+    max-width: 1320px;
+    padding: 12vh 48px 40px;
+  }
+  .bx-si-words {
+    max-width: 720px;
+  }
+  .bx-si-main h1 {
+    font-size: clamp(56px, 5vw, 76px);
+  }
+  .bx-si-words p {
+    font-size: 17px;
+  }
+  .bx-si-side {
+    margin-top: 0;
+  }
+  .bx-si-form {
+    padding: 24px;
+    border-radius: 24px;
+    background: rgb(5 15 47 / 0.5);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.14),
+      0 24px 48px -24px rgb(0 0 0 / 0.5);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+  }
+  .bx-si-foot {
+    padding: 0 48px 28px;
+  }
 }

@@ -141,7 +141,7 @@ function Listed({ id }: { id: string }) {
       <>
         <Back />
         {waiting ? null : (
-          <Problem title="This player could not be found">
+          <Problem title="This player could not be found.">
             It may have been removed, or the link is wrong.
           </Problem>
         )}
@@ -188,7 +188,7 @@ function Listed({ id }: { id: string }) {
       <div className="bx-page-narrow" style={{ margin: "22px 0 0" }}>
         <div className="bx-list">
           <p className="bx-empty">
-            {player.family} is not playing in an event Bearing has at the moment. Their games appear
+            {player.family} is not playing in an event Kiming has at the moment. Their games appear
             here as soon as they are.
           </p>
         </div>
@@ -213,7 +213,7 @@ export function PlayerPage({ playerId }: { playerId: string }) {
     return (
       <>
         <Back />
-        <Problem title="This player could not be found">
+        <Problem title="This player could not be found.">
           They may have been removed, or the link is wrong.
         </Problem>
       </>

@@ -25,6 +25,7 @@ import { useRecents } from "../lib/recents";
 import { type Board, useBoard, useWide } from "./board";
 import { Go } from "./links";
 import { type Dot, type SideView, bestOf, heat, inkOn, plainName, sideOf, standIn } from "./model";
+import { Moment } from "./sky";
 import { type Times, until } from "./time";
 import { Disc, Dots, EventMark, Flag, FollowStar, Ping, Section, Segmented, Tick } from "./ui";
 import { useFidePlayer, useFideSearch } from "../lib/fide";
@@ -657,12 +658,17 @@ export function Following() {
         <span className="bx-date">Last five</span>
       </header>
       {nothing ? (
-        <div className="bx-list" style={{ marginTop: 16 }}>
-          <p className="bx-empty">
-            You are not following anything yet. <Link to="/search">Search</Link> for a team, a
-            player or an event, and tap its star.
-          </p>
-        </div>
+        <Moment
+          title="Pick what you follow."
+          action={
+            <Link to="/search" className="bx-ghost">
+              Find a team or a player
+            </Link>
+          }
+        >
+          Tap the star on a team, a player or an event. It shows up here and on your Today, and you
+          can change it any time.
+        </Moment>
       ) : null}
       <div className="bx-cols">
         {competitors.length ? (
@@ -872,7 +878,7 @@ export function Search() {
             : atlas.world.rankings
                 .filter((r) => r.entries.length)
                 .map((r) => (
-                  <Section key={r.title} label={rankingTitle(r, board)}>
+                  <Section key={r.discipline} label={rankingTitle(r, board)}>
                     <RankingRows ranking={r} board={board} limit={10} />
                     {r.entries.length > 10 ? (
                       <Link

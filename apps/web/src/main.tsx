@@ -44,7 +44,7 @@ window.addEventListener("vite:preloadError", () => window.bearingAgain?.());
 
 createRoot(document.getElementById("app")!).render(
   <StrictMode>
-    <Backend>
+    <Backend navigate={(href, replace) => void router.navigate({ href, replace })}>
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
       </QueryClientProvider>

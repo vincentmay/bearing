@@ -4,10 +4,11 @@
  * At night soft nebula glows, stars and moonlit clouds; by day blue with a few soft cumulus; at dawn
  * and dusk a little warm light behind the clouds.
  *
- * The app only draws the band behind the top of Today, in two keys: "dim" for the dark theme (the
- * upper sky with its lightness held down) and "paper" for the light theme (the same hour as tints
- * on white). It returns a string of SVG built only from numbers and fixed colours, so it can be
- * set as markup without anything from outside reaching it.
+ * The app draws the band behind the top of Today, in two keys: "dim" for the dark theme (the upper
+ * sky with its lightness held down) and "paper" for the light theme (the same hour as tints on
+ * white); and the whole sky in full colour for the moments around the app. Each returns a string
+ * of SVG built only from numbers and fixed colours, so it can be set as markup without anything
+ * from outside reaching it.
  */
 
 type Oklch = [number, number, number];
@@ -210,6 +211,8 @@ function mix(a: Oklch, b: Oklch, t: number): Oklch {
 }
 
 export type SkyTheme = "dark" | "light";
+/** "sky": the whole sky in full colour; "dim": the dark theme's band; "paper": tints on white. */
+type SkyKey = "sky" | "dim" | "paper";
 
 interface SkyState {
   paper: boolean;
@@ -229,8 +232,8 @@ interface SkyState {
   starWarm: string;
 }
 
-/** The band's colours at an hour of the day (0 to 24, with fractions), eased between the keys. */
-function skyState(hour: number, theme: SkyTheme): SkyState {
+/** The sky's colours at an hour of the day (0 to 24, with fractions), eased between the keys. */
+function skyState(hour: number, key: SkyKey): SkyState {
   const h = ((hour % 24) + 24) % 24;
   let i = 0;
   while (i < KEYS.length - 2 && (KEYS[i + 1] as Key)[0] <= h) i++;
@@ -245,7 +248,7 @@ function skyState(hour: number, theme: SkyTheme): SkyState {
   const low = c(3);
   const warm = n(4);
   const stars = n(10);
-  if (theme === "light") {
+  if (key === "paper") {
     // The same hour as tints on white: never darker than L 0.885, so secondary text and the
     // accent still pass 4.5:1 on it; night adds a little colour.
     const dark = 1 - Math.min(1, Math.max(0, (top[0] - 0.24) / 0.2));
@@ -267,6 +270,24 @@ function skyState(hour: number, theme: SkyTheme): SkyState {
       starWarm: hex(0.66, 0.16, 56),
     };
   }
+  if (key === "sky")
+    return {
+      paper: false,
+      warm,
+      stars,
+      top: ok(top),
+      mid: ok(mid),
+      low: ok(low),
+      glow: ok(c(5)),
+      glowA: n(6),
+      warmC: hex(0.81, 0.16, 70),
+      warmSoft: hex(0.87, 0.115, 76),
+      cloudTop: ok(c(7)),
+      cloudUnder: ok(c(8)),
+      cloudA: n(9),
+      star: "#E6EBFF",
+      starWarm: "#FFE7C2",
+    };
   // Dark: the upper sky only, its lightness held down so midday does not glare.
   const dim = (x: Oklch): Oklch => [
     0.2 + (x[0] - 0.2) * 0.55,
@@ -319,32 +340,46 @@ const NEBULA: [number, number, number, number, Oklch, number][] = [
   [0.95, 0.5, 0.16, 0.1, [0.46, 0.17, 294], 0.28],
 ];
 
-/**
- * The band behind the top of Today: sky only, made to be faded into the page with a CSS mask.
- * `id` must be unique on the page (it prefixes the gradients and filters).
- */
-export function skyBand(
-  hour: number,
-  { theme = "dark" as SkyTheme, width = 1400, height = 220, id = "sky" } = {},
-): string {
-  const S = skyState(hour, theme);
-  const w = width;
-  const h = height;
-  const p = id;
-  const unit = Math.min(w, h * 5.5); // clouds keep a size that fits the band
-  const us = Math.max(0.72, Math.min(1.2, w / 1600));
-  const nightA = Math.min(1, S.stars * 1.15);
+interface DrawOptions {
+  key: SkyKey;
+  width: number;
+  height: number;
+  /** Where the sky has given way to the ground, as a share of the height; 1 for none. */
+  horizon: number;
+  /** Clouds sized and placed for a short band. */
+  band: boolean;
+  stars: number;
+  seed: number;
+  /** Lifts the clouds by this share of the height. */
+  cloudLift: number;
+  /** The colour the sky fades into below the horizon. */
+  ground: string;
+  id: string;
+  /** Film grain, for large pictures. */
+  grain: boolean;
+}
 
-  // Stars, thinning towards the foot of the band.
+/** One drawing of the sky (port of skySVG in brand/system/sky3.mjs). */
+function draw(hour: number, o: DrawOptions): string {
+  const S = skyState(hour, o.key);
+  const { width: w, height: h, horizon, band, id: p, ground } = o;
+  const H = h * horizon;
+  const deep = S.paper ? ground : "#08113A"; // the dark sky gives way through deep indigo, never grey
+  const fadeFrom = horizon < 1 ? H * 0.52 : h;
+  const us = Math.max(0.72, Math.min(1.2, w / 1600)); // stars keep a visible size in small drawings
+  const nightA = Math.min(1, S.stars * 1.15);
+  const unit = band ? Math.min(w, h * 5.5) : w; // band clouds keep a size that fits the band
+
+  // Stars, thinning towards the horizon.
   let dots = "";
   let sparks = "";
   if (S.stars > 0.02) {
-    const r = rng(5);
-    for (let i = 0; i < (S.paper ? 70 : 110); i++) {
+    const r = rng(o.seed);
+    for (let i = 0; i < o.stars; i++) {
       const st = { x: r(), y: r() ** 1.35, s: r(), a: r(), k: r() };
-      const y = st.y * h * 0.92;
+      const y = st.y * H * 0.92;
       const x = st.x * w;
-      const fade = Math.min(1, Math.max(0, (1 - y / h) / 0.5));
+      const fade = Math.min(1, Math.max(0, (1 - y / H) / 0.5));
       const a = (0.42 + st.a * 0.58) * S.stars * fade * (S.paper ? 0.6 : 1);
       if (a < 0.03) continue;
       const col = st.k > 0.9 ? S.starWarm : S.star;
@@ -367,18 +402,18 @@ export function skyBand(
       const col = S.paper ? hex(0.8 + (c[0] - 0.44) * 0.3, c[1] * 0.45, c[2]) : ok(c);
       const A = a * nightA * (S.paper ? 0.55 : 1.25);
       const cx = x * w;
-      const cy = y * h;
+      const cy = y * H;
       const R = rx * w;
       nebDefs += `<radialGradient id="${p}n${i}" cx="${f1(cx)}" cy="${f1(cy)}" r="${f1(R)}" gradientTransform="translate(${f1(cx)} ${f1(cy)}) scale(1 ${(ry / rx).toFixed(3)}) translate(${f1(-cx)} ${f1(-cy)})" gradientUnits="userSpaceOnUse"><stop stop-color="${col}" stop-opacity="${A.toFixed(3)}"/><stop offset=".45" stop-color="${col}" stop-opacity="${(A * 0.45).toFixed(3)}"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></radialGradient>`;
-      neb += `<rect width="${w}" height="${h}" fill="url(#${p}n${i})"/>`;
+      neb += `<rect width="${w}" height="${(H + 1).toFixed(0)}" fill="url(#${p}n${i})"/>`;
     });
-    nebDefs += `<filter id="${p}wisp" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="${(2.2 / w).toFixed(5)} ${(4.4 / w).toFixed(5)}" numOctaves="4" seed="5"/><feColorMatrix values="0 0 0 0 ${S.paper ? 0.42 : 0.62}  0 0 0 0 ${S.paper ? 0.46 : 0.66}  0 0 0 0 1  0 0 0 1.6 -0.62"/><feComposite in2="SourceGraphic" operator="in"/></filter>`;
+    nebDefs += `<filter id="${p}wisp" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="${(2.2 / w).toFixed(5)} ${(4.4 / w).toFixed(5)}" numOctaves="4" seed="${o.seed}"/><feColorMatrix values="0 0 0 0 ${S.paper ? 0.42 : 0.62}  0 0 0 0 ${S.paper ? 0.46 : 0.66}  0 0 0 0 1  0 0 0 1.6 -0.62"/><feComposite in2="SourceGraphic" operator="in"/></filter>`;
     neb += `<g filter="url(#${p}wisp)" opacity="${(nightA * (S.paper ? 0.25 : 0.42)).toFixed(2)}">${neb}</g>`;
   }
 
-  // Clouds: a few soft cumulus of different sizes, lit from above.
-  const r = rng(5 * 7 + 3);
-  const base = h * 0.62;
+  // Clouds: a few soft cumulus of different sizes, low in the sky, lit from above.
+  const r = rng(o.seed * 7 + 3);
+  const base = (horizon < 1 ? H * 0.68 : H * 0.92) - o.cloudLift * h;
   let body = "";
   let lite = "";
   let far = "";
@@ -409,30 +444,35 @@ export function skyBand(
   x = w * (0.1 + r() * 0.2);
   for (let i = 0; i < 3 && x < w; i++) {
     const cw = unit * (0.05 + r() * 0.04);
-    far += cumulus(x + cw / 2, base - h * 0.22 - r() * h * 0.08, cw)[0];
+    far += cumulus(x + cw / 2, base - h * (band ? 0.22 : 0.12) - r() * h * 0.08, cw)[0];
     x += cw + w * (0.2 + r() * 0.25);
   }
-  const cA = S.cloudA * (S.paper ? 0.8 : 0.6) * (1 - nightA * 0.4);
+  const cA = S.cloudA * (band ? (S.paper ? 0.8 : 0.6) : 1) * (1 - nightA * 0.4);
 
-  // Warm light at dawn and dusk; none in the dark band, where amber over indigo turns mauve.
+  // Warm light at dawn and dusk, low in the sky; none in the dark band, where amber over indigo
+  // turns mauve.
   const sx = w * 0.66;
-  const warmA = S.paper ? S.warm * 0.75 : 0;
-  const glowA = S.paper ? 0.08 : S.glowA;
+  const warmA = band && o.key === "dim" ? 0 : S.warm * (S.paper ? 0.75 : 1);
+  const warmY = horizon < 1 ? H * 0.66 : H;
+  const glowA = band && S.paper ? 0.08 : S.glowA;
   const blur = (k: number) => (unit * k).toFixed(1);
   const x0 = f1(-w * 0.03);
   const y0 = f1(-h * 0.03);
   const ww = f1(w * 1.06);
   const hh = f1(h * 1.06);
+  const wy = f1(warmY);
   return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" aria-hidden="true">
 <defs>
-<linearGradient id="${p}g" x1="0" y1="0" x2="0" y2="${h}" gradientUnits="userSpaceOnUse"><stop stop-color="${S.top}"/><stop offset=".78" stop-color="${S.mid}"/><stop offset="1" stop-color="${S.low}"/></linearGradient>
-<radialGradient id="${p}r" cx="${f1(sx)}" cy="${h}" r="${f1(w * 0.6)}" gradientTransform="translate(0 ${h}) scale(1 .5) translate(0 ${-h})" gradientUnits="userSpaceOnUse"><stop stop-color="${S.glow}" stop-opacity="${(glowA * (1 - nightA * 0.6)).toFixed(3)}"/><stop offset=".5" stop-color="${S.glow}" stop-opacity="${(glowA * 0.36 * (1 - nightA * 0.6)).toFixed(3)}"/><stop offset="1" stop-color="${S.glow}" stop-opacity="0"/></radialGradient>
+<linearGradient id="${p}g" x1="0" y1="0" x2="${band ? 0 : f1(w * 0.1)}" y2="${f1(H)}" gradientUnits="userSpaceOnUse"><stop stop-color="${S.top}"/><stop offset="${band ? ".78" : ".52"}" stop-color="${S.mid}"/><stop offset="1" stop-color="${S.low}"/></linearGradient>
+<radialGradient id="${p}r" cx="${f1(sx)}" cy="${wy}" r="${f1(w * 0.6)}" gradientTransform="translate(0 ${wy}) scale(1 .5) translate(0 ${f1(-warmY)})" gradientUnits="userSpaceOnUse"><stop stop-color="${S.glow}" stop-opacity="${(glowA * (1 - nightA * 0.6)).toFixed(3)}"/><stop offset=".5" stop-color="${S.glow}" stop-opacity="${(glowA * 0.36 * (1 - nightA * 0.6)).toFixed(3)}"/><stop offset="1" stop-color="${S.glow}" stop-opacity="0"/></radialGradient>
 <radialGradient id="${p}t" cx="${f1(w * 0.14)}" cy="0" r="${f1(w * 0.5)}" gradientUnits="userSpaceOnUse"><stop stop-color="#FFFFFF" stop-opacity="${S.paper ? 0.12 : 0}"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient>
-<radialGradient id="${p}w" cx="${f1(sx)}" cy="${h}" r="${f1(w * 0.42)}" gradientTransform="translate(0 ${h}) scale(1 1.1) translate(0 ${-h})" gradientUnits="userSpaceOnUse"><stop stop-color="${S.warmSoft}" stop-opacity="${(warmA * 0.55).toFixed(3)}"/><stop offset=".35" stop-color="${S.warmC}" stop-opacity="${(warmA * 0.22).toFixed(3)}"/><stop offset="1" stop-color="${S.warmC}" stop-opacity="0"/></radialGradient>
+<radialGradient id="${p}w" cx="${f1(sx)}" cy="${wy}" r="${f1(w * 0.42)}" gradientTransform="translate(0 ${wy}) scale(1 ${band ? 1.1 : 0.3}) translate(0 ${f1(-warmY)})" gradientUnits="userSpaceOnUse"><stop stop-color="${S.warmSoft}" stop-opacity="${(warmA * 0.55).toFixed(3)}"/><stop offset=".35" stop-color="${S.warmC}" stop-opacity="${(warmA * 0.22).toFixed(3)}"/><stop offset="1" stop-color="${S.warmC}" stop-opacity="0"/></radialGradient>
 <filter id="${p}b" x="-20%" y="-60%" width="140%" height="220%"><feGaussianBlur stdDeviation="${blur(0.004)}"/></filter>
 <filter id="${p}b3" x="-20%" y="-60%" width="140%" height="220%"><feGaussianBlur stdDeviation="${blur(0.0065)}"/></filter>
 <filter id="${p}b2" x="-20%" y="-60%" width="140%" height="220%"><feGaussianBlur stdDeviation="${blur(0.009)}"/></filter>
+<linearGradient id="${p}f" x1="0" y1="${f1(fadeFrom)}" x2="0" y2="${f1(Math.min(h, H))}" gradientUnits="userSpaceOnUse"><stop stop-color="${deep}" stop-opacity="0"/><stop offset=".45" stop-color="${deep}" stop-opacity=".6"/><stop offset=".8" stop-color="${ground}" stop-opacity=".94"/><stop offset="1" stop-color="${ground}"/></linearGradient>
 ${nebDefs}
+${o.grain ? `<filter id="${p}gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .55 -.2"/></filter>` : ""}
 </defs>
 <g class="bx-sky-settle"><rect x="${x0}" y="${y0}" width="${ww}" height="${hh}" fill="url(#${p}g)"/><rect x="${x0}" y="${y0}" width="${ww}" height="${hh}" fill="url(#${p}r)"/><rect x="${x0}" y="${y0}" width="${ww}" height="${hh}" fill="url(#${p}t)"/></g>
 ${neb}
@@ -441,7 +481,55 @@ ${dots}${sparks}
 <g filter="url(#${p}b2)" fill="${S.cloudUnder}" fill-opacity="${(cA * 0.5).toFixed(2)}">${far}</g>
 <g filter="url(#${p}b)" fill="${S.cloudUnder}" fill-opacity="${(cA * 0.8).toFixed(2)}">${body}</g>
 <g filter="url(#${p}b3)" fill="${S.cloudTop}" fill-opacity="${(cA * (S.paper ? 0.75 : 0.9)).toFixed(2)}">${lite}</g>
+${horizon < 1 ? `<rect x="${x0}" y="${f1(fadeFrom)}" width="${ww}" height="${f1(h - fadeFrom + h * 0.03)}" fill="url(#${p}f)"/><rect x="${x0}" y="${f1(H - 0.5)}" width="${ww}" height="${f1(h - H + h * 0.03 + 1)}" fill="${ground}"/>` : ""}
+${o.grain ? `<rect width="${w}" height="${h}" filter="url(#${p}gr)" opacity=".08"/>` : ""}
 </svg>`;
+}
+
+/**
+ * The band behind the top of Today: sky only, made to be faded into the page with a CSS mask.
+ * `id` must be unique on the page (it prefixes the gradients and filters).
+ */
+export function skyBand(
+  hour: number,
+  { theme = "dark" as SkyTheme, width = 1400, height = 220, id = "sky" } = {},
+): string {
+  return draw(hour, {
+    key: theme === "dark" ? "dim" : "paper",
+    width,
+    height,
+    horizon: 1,
+    band: true,
+    stars: theme === "dark" ? 110 : 70,
+    seed: 5,
+    cloudLift: 0.3,
+    ground: theme === "dark" ? "#020307" : "#FFFFFF",
+    id,
+    grain: false,
+  });
+}
+
+/**
+ * The whole sky, for the moments around the app (sign-in, nothing on, a lost address): full
+ * colour at any hour, fading into the Night ground below `horizon`. Text on it is white.
+ */
+export function skyScene(
+  hour: number,
+  { width = 1200, height = 900, horizon = 0.82, stars = 200, id = "sky", grain = false } = {},
+): string {
+  return draw(hour, {
+    key: "sky",
+    width,
+    height,
+    horizon,
+    band: false,
+    stars,
+    seed: 11,
+    cloudLift: 0,
+    ground: "#050F2F",
+    id,
+    grain,
+  });
 }
 
 /** The hour of the day, with fractions, at a moment in a time zone (the device's own if none). */

@@ -116,9 +116,11 @@ function Heading({ view, board, wide }: { view: MatchView; board: Board; wide: b
     );
   }
 
-  const big = view.headline.length === 1 && !scheduled ? "bx-big bx-solo" : "bx-big bx-num";
-  // Both names are set at the same size, the smaller one if either is long.
-  const long = Math.max(a.name.length, b.name.length) > (wide ? 16 : 11);
+  const worded = view.headline.length === 1 && !scheduled;
+  const big = worded ? "bx-big bx-solo" : "bx-big bx-num";
+  // Both names are set at the same size, the smaller one if either is long. A score in words
+  // ("Move 27") takes more of the middle than one in figures.
+  const long = Math.max(a.name.length, b.name.length) > (wide ? (worded ? 12 : 16) : 11);
   if (wide) {
     return (
       <div className="bx-hero">
@@ -392,7 +394,7 @@ export function MatchPage({ matchId }: { matchId: string }) {
     return (
       <>
         {back}
-        <Problem title="This match could not be found">
+        <Problem title="This match could not be found.">
           It may have been removed, or the link is wrong.
         </Problem>
       </>

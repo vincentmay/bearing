@@ -14,6 +14,7 @@ import { type Board, useBoard, useWide } from "./board";
 import { Stops } from "./forms";
 import { RoundRow, ScheduleRow } from "./lists";
 import { type MatchView, plainName, stopsOf } from "./model";
+import { Moment } from "./sky";
 import { until } from "./time";
 import { AccountLink, Disc, DotRows, Dots, Mark, Ping, Score, Section, useReady } from "./ui";
 
@@ -265,9 +266,16 @@ export function Today() {
       {lead ? (
         <LeadCard key={lead.id} view={board.view(lead)} board={board} wide={wide} step={ready} />
       ) : (
-        <div className="bx-list" style={{ marginTop: 16 }}>
-          <p className="bx-empty">Nothing is live and nothing is scheduled.</p>
-        </div>
+        <Moment
+          title="Clear horizon."
+          action={
+            <Link to="/schedule" className="bx-ghost">
+              See the schedule
+            </Link>
+          }
+        >
+          Nothing is live and nothing is scheduled.
+        </Moment>
       )}
 
       {/* On a phone: also live, next, earlier. With room, next sits beside the other two. */}

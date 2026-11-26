@@ -85,7 +85,7 @@ for (const { mode, viewport, scheme, scale } of MODES) {
               !el.closest("label"),
           )
           .map((el) => el.outerHTML.slice(0, 90)),
-        notFound: /could not be found|nothing at this address/i.test(text),
+        notFound: /could not be found|nothing at this address|past the horizon/i.test(text),
         waiting: !!document.querySelector(".bx-wait"),
         empty: [...document.querySelectorAll(".bx-empty")].map((el) => el.innerText.slice(0, 70)),
         links: [...document.querySelectorAll('a[href^="/"]')].map((a) => a.getAttribute("href")),
@@ -134,7 +134,7 @@ for (const href of list) {
   const state = await page.evaluate(() => {
     const text = document.querySelector("main")?.innerText ?? "";
     return {
-      notFound: /could not be found|nothing at this address/i.test(text),
+      notFound: /could not be found|nothing at this address|past the horizon/i.test(text),
       length: text.length,
     };
   });
