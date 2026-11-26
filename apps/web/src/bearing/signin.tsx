@@ -49,8 +49,9 @@ export function SignInPage({ back }: { back: string }) {
         {account.state === "in" || account.state === "none" ? null : (
           <div className="bx-si-side">
             <div className="bx-si-form">
-              <SignInForm back={back} />
-              <small>No account yet? Enter your email, and one is made for you.</small>
+              <SignInForm back={back}>
+                <small>No account yet? Enter your email, and one is made for you.</small>
+              </SignInForm>
             </div>
           </div>
         )}

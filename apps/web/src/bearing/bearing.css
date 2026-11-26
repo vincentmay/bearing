@@ -3395,6 +3395,12 @@ body {
   min-height: 220px;
   text-align: center;
 }
+.bx-si-failed {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+  text-align: left;
+}
 .bx-si-foot {
   padding: 0 20px max(20px, env(safe-area-inset-bottom));
   font-size: 12px;

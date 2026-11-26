@@ -2,7 +2,7 @@ import type { Follow } from "@bearing/domain";
 import { ClerkProvider, SignIn, useAuth, useClerk, useUser } from "@clerk/react";
 import { ConvexProvider, useConvexAuth, useMutation, useQuery } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
-import { type ReactNode, useCallback, useEffect } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import { clerkKey, convex } from "./backend";
 import { storedFollows, toggleFollow } from "./follows";
@@ -163,18 +163,41 @@ const ON_SKY = {
 
 /**
  * Signing in or creating an account, in one form: an address that has no account yet gets one.
- * Afterwards the viewer goes back to `back`. Nothing at all where there are no accounts.
+ * Afterwards the viewer goes back to `back`. `children` is shown under the form while it works.
+ * Nothing at all where there are no accounts.
  */
-export function SignInForm({ back }: { back: string }) {
+export function SignInForm({ back, children }: { back: string; children?: ReactNode }) {
   if (!accounts) return null;
+  return <ClerkSignIn back={back} note={children} />;
+}
+
+function ClerkSignIn({ back, note }: { back: string; note?: ReactNode }) {
+  const clerk = useClerk();
+  // When Clerk cannot be reached (no connection, or an address it does not serve) it stays
+  // "loading" rather than failing; after a while that is said in words.
+  const [late, setLate] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setLate(true), 8000);
+    return () => clearTimeout(timer);
+  }, []);
+  if (late && !clerk.loaded) {
+    return (
+      <p className="bx-si-failed" role="status">
+        Signing in is not available right now. What you follow is kept on this device until it is.
+      </p>
+    );
+  }
   return (
-    <SignIn
-      routing="hash"
-      withSignUp
-      fallbackRedirectUrl={back}
-      signUpFallbackRedirectUrl={back}
-      appearance={ON_SKY}
-    />
+    <>
+      <SignIn
+        routing="hash"
+        withSignUp
+        fallbackRedirectUrl={back}
+        signUpFallbackRedirectUrl={back}
+        appearance={ON_SKY}
+      />
+      {note}
+    </>
   );
 }
 
