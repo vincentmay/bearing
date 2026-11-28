@@ -1267,3 +1267,371 @@ html:has(.bx[data-theme="dark"]) {
     justify-content: center;
   }
 }
+
+/*
+ * Parts shared by the pages further in.
+ */
+
+/* Back to where the viewer came from. */
+.bx-page .bx-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  margin: 2px 0 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink2);
+}
+.bx-page .bx-back:hover {
+  color: var(--ink);
+}
+
+/* A panel: one rounded card of content on the page. Panels never nest. */
+.bx-panel {
+  border-radius: var(--r-card);
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  padding: 6px 18px;
+}
+/* The small line over a panel: what it is on the left, a figure or a unit on the right. */
+.bx-cap {
+  margin: 26px 6px 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink3);
+}
+/* Two columns of content under a top card: the main one, and a narrower one beside it. */
+.bx-cols2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+/* The top card of a team, a player, an event, a day: a large name, a line under it, figures. */
+.bx-ent-in {
+  padding: 24px 28px 22px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+.bx-eh {
+  display: flex;
+  align-items: center;
+  gap: 18px 22px;
+  flex-wrap: wrap;
+}
+.bx-eh > div {
+  min-width: 0;
+}
+.bx-eh h1 {
+  font-size: 52px;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+.bx-eh p {
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--soft);
+}
+.bx-eh .bx-hrow {
+  margin-bottom: 12px;
+}
+.bx-eh-acts {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+.bx-figs {
+  margin-left: auto;
+  display: flex;
+  gap: 40px;
+}
+.bx-figs b {
+  display: block;
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.bx-figs span {
+  display: block;
+  margin-top: 6px;
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--soft);
+}
+/* What is on right now for whoever the card is about: one strip of glass in the card. */
+.bx-enow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 8px 8px 8px 14px;
+  border-radius: 30px;
+  background: var(--chip);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.bx-enow-t {
+  min-width: 0;
+  margin-right: auto;
+}
+.bx-enow-t b {
+  display: block;
+  font-size: 16px;
+  font-weight: 750;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-enow-t span {
+  display: block;
+  font-size: 12.5px;
+  color: var(--soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-enow-sc {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 0 10px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.bx-enow-sc small {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--soft);
+}
+.bx-enow-acts {
+  display: flex;
+  gap: 8px;
+}
+
+/* A row of days, or of the parts of an event, to pick one from. */
+.bx-picks {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.bx .bx-picks > a,
+.bx .bx-picks > button {
+  flex: none;
+  min-width: 76px;
+  height: 54px;
+  padding: 0 14px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  background: var(--chip, var(--sunk));
+  font-weight: 800;
+  font-size: 16px;
+  line-height: 1.15;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    transform 0.16s var(--out);
+}
+.bx .bx-picks > a:active,
+.bx .bx-picks > button:active {
+  transform: scale(0.96);
+}
+.bx-picks small {
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.75;
+}
+.bx .bx-picks > [aria-current],
+.bx .bx-picks > [aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--ground);
+}
+.bx-stage .bx-picks > a,
+.bx-stage .bx-picks > button {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.bx .bx-stage .bx-picks > [aria-current],
+.bx .bx-stage .bx-picks > [aria-pressed="true"] {
+  background: #fff;
+  color: var(--k-indigo-900);
+}
+
+@media (max-width: 899.98px) {
+  .bx-cols2 {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .bx-ent-in {
+    padding: 18px 16px;
+    gap: 16px;
+  }
+  .bx-eh {
+    gap: 14px;
+  }
+  .bx-eh h1 {
+    font-size: 36px;
+  }
+  .bx-eh p {
+    font-size: 14px;
+  }
+  .bx-figs {
+    margin: 0;
+    width: 100%;
+    gap: 0;
+    justify-content: space-between;
+  }
+  .bx-figs b {
+    font-size: 30px;
+  }
+  .bx-eh-acts {
+    margin: 0;
+    width: 100%;
+  }
+  .bx-eh-acts .bx-btn[data-k="main"] {
+    flex: 1;
+  }
+  .bx-enow {
+    flex-wrap: wrap;
+    border-radius: 24px;
+    padding: 12px;
+    gap: 12px 10px;
+  }
+  .bx-enow-sc {
+    font-size: 20px;
+    padding: 0 4px 0 0;
+    margin-left: auto;
+    gap: 8px;
+  }
+  .bx-enow-t {
+    order: 2;
+    flex: 1 1 100%;
+    margin: 0;
+  }
+  .bx-enow-acts {
+    order: 3;
+    width: 100%;
+  }
+  .bx-enow-acts .bx-btn[data-k="main"] {
+    flex: 1;
+  }
+}
+
+/* The first visit: things to follow, as cards to tap. */
+.bx-picks[data-k="words"] > button {
+  min-width: 0;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 20px;
+  font-size: 14.5px;
+  font-weight: 750;
+}
+.bx-pks {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.bx .bx-pk {
+  position: relative;
+  min-height: 132px;
+  padding: 16px 16px 14px;
+  border-radius: 24px;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  display: grid;
+  gap: 14px;
+  align-content: space-between;
+  justify-items: start;
+  text-align: left;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.16s var(--out);
+}
+.bx .bx-pk:hover {
+  border-color: var(--edge);
+}
+.bx .bx-pk:active {
+  transform: scale(0.97);
+}
+.bx-pk > span:last-child {
+  min-width: 0;
+  max-width: 100%;
+}
+.bx-pk b {
+  display: block;
+  font-size: 16.5px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-pk small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-pk-tg {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--sunk);
+  color: var(--ink2);
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.bx .bx-pk[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--sunrise-soft);
+}
+.bx-pk[aria-pressed="true"] .bx-pk-tg {
+  background: var(--sunrise);
+  color: var(--ground);
+}
+.bx-pk[aria-pressed="true"] .bx-pk-tg svg {
+  fill: currentColor;
+}
+.bx .bx-btn:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+@media (max-width: 899.98px) {
+  .bx-pks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .bx .bx-pk {
+    padding: 14px;
+    border-radius: 22px;
+  }
+}

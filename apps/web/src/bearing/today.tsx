@@ -19,6 +19,7 @@ import { ListedRow, MatchRow } from "./rows";
 import { Moment } from "./sky";
 import { until } from "./time";
 import { Disc, Ping, Tick } from "./ui";
+import { Welcome, welcomed } from "./welcome";
 
 /** How many other live matches stand as cards before the page points to the schedule. */
 const CARDS = 4;
@@ -260,6 +261,8 @@ export function Today() {
   const wide = useWide();
   const room = useRoom();
   const following = atlas.world.follows.length > 0;
+  // The first visit asks who the viewer follows, once, and stays until they are done picking.
+  const [asking, setAsking] = useState(() => !following && !welcomed());
 
   const mine = upcomingForYou(atlas);
   const open = atlas.upcoming().filter((m) => m.sides.every((s) => s.competitorId));
@@ -297,6 +300,8 @@ export function Today() {
   const { why, mine: own } = lead
     ? reason(atlas, lead, lead.id === picked)
     : { why: undefined, mine: false };
+
+  if (asking) return <Welcome board={board} onDone={() => setAsking(false)} />;
 
   return (
     <>
