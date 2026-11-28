@@ -32,104 +32,195 @@ const expect = (ok, what) => {
 };
 const open = async (path) => {
   await page.goto(base + path, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector(".bx-nav", { timeout: 30000 });
+  await page.waitForSelector(".bx-tabs", { timeout: 30000 });
+  // The frame stands at once; the page is there when its waiting shape has gone.
+  await page.waitForSelector("main .bx-wt", { state: "detached", timeout: 30000 });
   await page.waitForTimeout(1800);
 };
-const tab = (label) => page.locator(`.bx-nav a[title="${label}"]`).click();
+const tab = (label) => page.locator(".bx-tabs a", { hasText: label }).click();
 const text = () => page.locator("main").innerText();
+// Search opens over the page; what it says is in its own box, not in the page.
+const finder = page.locator(".bx-pal");
+const find = async (query) => {
+  if (!(await finder.count())) await page.locator(".bx-bar .bx-find").click();
+  await page.locator(".bx-pal-inp input").fill(query);
+  await page.waitForTimeout(300);
+  if (!(await finder.count()))
+    throw new Error(
+      `search closed itself on "${query}"; the page says "${(await text()).split("\n")[0]}"`,
+    );
+};
 
 await open("/");
-await step("today shows a lead match and lists", async () => {
-  expect((await page.locator("main .bx-list").count()) >= 2, "fewer than two lists");
+await step("first visit asks what is followed, and a card follows and lets go", async () => {
+  expect(/What do you follow/.test(await text()), "no question on the first visit");
+  const cards = await page.locator(".bx-pk").count();
+  expect(cards >= 4, `only ${cards} cards to pick from`);
+  const card = page.locator(".bx-pk").first();
+  await card.click();
+  await page.waitForTimeout(200);
+  expect((await card.getAttribute("aria-pressed")) === "true", "the card did not take");
+  expect(
+    /Done, 1 picked/.test(await page.locator(".bx-eh-acts").innerText()),
+    "Done does not count the pick",
+  );
+  await card.click();
+  await page.waitForTimeout(200);
+  expect((await card.getAttribute("aria-pressed")) === "false", "the card did not let go");
+  await page.locator(".bx-btn", { hasText: "Skip for now" }).click();
+  await page.waitForTimeout(400);
+  expect(!/What do you follow/.test(await text()), "skip did not put it aside");
+  return `${cards} cards`;
+});
+await step("the question is not asked again after a reload", async () => {
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.waitForSelector(".bx-tabs");
+  await page.waitForSelector("main .bx-wt", { state: "detached", timeout: 30000 });
+  await page.waitForTimeout(1500);
+  expect(!/What do you follow/.test(await text()), "asked again");
+});
+await step("live shows a match in front and lists", async () => {
+  expect((await page.locator("main .bx-stage").count()) === 1, "no match in front");
+  expect((await page.locator("main .bx-rows").count()) >= 2, "fewer than two lists");
+});
+await step("live: another live match comes to the front when tapped", async () => {
+  const card = page.locator("main .bx-chan button.bx-ch:has(.bx-disc)").first();
+  if (!(await card.count())) return "no other live match of two sides now, skipped";
+  const names = await card.locator(".bx-ln > span:not(.bx-disc)").allInnerTexts();
+  await card.click();
+  await page.waitForTimeout(700);
+  const front = await page.locator("main .bx-stage").innerText();
+  expect(
+    names.every((n) => front.includes(n)),
+    `the front shows ${front.split("\n").slice(0, 6).join(" ")}`,
+  );
+  return names.join(" v ");
 });
 
 await step("schedule: a week later and back to today", async () => {
   await tab("Schedule");
   await page.waitForTimeout(300);
-  const first = await page.locator(".bx-days button").first().getAttribute("aria-label");
+  const days = page.locator('[aria-label="Day"] button');
+  const first = await days.first().getAttribute("aria-label");
   await page.locator('button[aria-label="A week later"]').click();
   await page.waitForTimeout(200);
-  const moved = await page.locator(".bx-days button").first().getAttribute("aria-label");
+  const moved = await days.first().getAttribute("aria-label");
   expect(first !== moved, "the strip did not move");
-  await page.locator(".bx-pill", { hasText: "Today" }).click();
+  await page.locator(".bx-eh-acts .bx-btn", { hasText: "Today" }).click();
   await page.waitForTimeout(200);
   expect(
-    (await page.locator(".bx-days [data-today][aria-pressed=true]").count()) === 1,
+    /Today/.test(await page.locator('[aria-label="Day"] button[aria-pressed=true]').innerText()),
     "today is not chosen",
   );
 });
 await step("schedule: choose another day, and what I follow", async () => {
-  await page.locator(".bx-days button[data-busy]").last().click();
+  const busy = page.locator('[aria-label="Day"] button:not([aria-label$=", 0 matches"])');
+  await busy.last().click();
   await page.waitForTimeout(200);
-  const heading = await page.locator(".bx-dayname").innerText();
-  await page.locator(".bx-seg button", { hasText: "What I follow" }).click();
+  const heading = await page.locator("main h1").innerText();
+  await page.locator(".bx-scope button", { hasText: "What I follow" }).click();
   await page.waitForTimeout(200);
-  expect(/Nothing you follow|matches? in/.test(await text()), "no answer for what I follow");
-  await page.locator(".bx-seg button", { hasText: "Everything" }).click();
-  return heading.replace(/\n/g, " ");
+  expect(
+    /Nothing you follow is on this day|of yours/.test(await text()),
+    "no answer for what I follow",
+  );
+  await page.locator(".bx-scope button", { hasText: "Everything" }).click();
+  return heading;
 });
 
-await step("search: find a team, open it, follow it", async () => {
-  await tab("Search");
-  await page.waitForTimeout(300);
-  await page.locator('input[type="search"]').fill("fnatic");
+await step("search: Ctrl K and / open it, Escape closes it", async () => {
+  await page.keyboard.press("Control+k");
+  await page.waitForTimeout(200);
+  expect((await finder.count()) === 1, "Ctrl K did not open search");
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(200);
+  expect((await finder.count()) === 0, "Escape did not close it");
+  await page.keyboard.press("/");
+  await page.waitForTimeout(200);
+  expect((await finder.count()) === 1, "/ did not open search");
+  await page.keyboard.press("Escape");
+});
+await step("search: find a team and open it", async () => {
+  await find("fnatic");
   await page.waitForTimeout(500);
-  const row = page.locator('main a[href^="/team/"]').first();
+  const row = page.locator('.bx-res a[href^="/team/"]').first();
   expect((await row.count()) > 0, "no team found for fnatic");
   await row.click();
   await page.waitForTimeout(700);
-  expect(/fnatic/i.test(await page.locator("h1").innerText()), "the team page did not open");
-  await page.locator(".bx-entity .bx-star").click();
+  expect(/fnatic/i.test(await page.locator("main h1").innerText()), "the team page did not open");
+  expect((await finder.count()) === 0, "search stayed open over the team");
+});
+// The team to follow: the one search found, or else the first of the ranking.
+let team = "fnatic";
+await step("team: follow it", async () => {
+  if (!page.url().includes("/team/")) {
+    await open("/ranking/cs2");
+    await page.locator("a.bx-rkl-row").first().click();
+    await page.waitForTimeout(700);
+  }
+  team = await page.locator("main h1").innerText();
+  await page.locator(".bx-pp-follow").click();
   await page.waitForTimeout(300);
   expect(
-    (await page.locator(".bx-entity .bx-star").getAttribute("aria-pressed")) === "true",
-    "the star did not take",
+    (await page.locator(".bx-pp-follow").getAttribute("aria-pressed")) === "true",
+    "the follow did not take",
   );
+  return team;
 });
-await step("following lists what was followed, and today becomes personal", async () => {
+await step("following lists what was followed, and live becomes personal", async () => {
   await tab("Following");
   await page.waitForTimeout(400);
-  expect(/fnatic/i.test(await text()), "fnatic is not under Following");
-  await tab("Today");
+  expect(await text().then((t) => t.includes(team)), `${team} is not under Following`);
+  await tab("Live");
   await page.waitForTimeout(400);
-  expect(!/not following anything/i.test(await text()), "today still says nothing is followed");
+  expect(!/not following anything/i.test(await text()), "live still says nothing is followed");
 });
 await step("a follow survives a reload", async () => {
   await page.reload({ waitUntil: "domcontentloaded" });
-  await page.waitForSelector(".bx-nav");
+  await page.waitForSelector(".bx-tabs");
   await page.waitForTimeout(1500);
   await tab("Following");
   await page.waitForTimeout(400);
-  expect(/fnatic/i.test(await text()), "the follow was lost on reload");
+  expect(await text().then((t) => t.includes(team)), "the follow was lost on reload");
 });
 await step("unfollow from the list", async () => {
   await page.locator("main .bx-star[aria-pressed=true]").first().click();
   await page.waitForTimeout(400);
-  expect(
-    /not following anything/i.test(await text()),
-    "still following after the star was pressed",
-  );
+  expect(/Tap the star/i.test(await text()), "still following after the star was pressed");
 });
 
 await step("search: a chess player in no event", async () => {
-  await tab("Search");
-  await page.locator('input[type="search"]').fill("nakamura");
+  await find("nakamura");
   await page.waitForTimeout(2500);
-  expect((await page.locator('a[href^="/player/fide-"]').count()) > 0, "no listed players");
+  expect((await page.locator('.bx-res a[href^="/player/fide-"]').count()) > 0, "no listed players");
+});
+await step("search: follow straight from a result", async () => {
+  const chip = page.locator(".bx-res .bx-fol").first();
+  expect((await chip.count()) > 0, "no result to follow");
+  await chip.click();
+  await page.waitForTimeout(200);
+  expect((await chip.getAttribute("aria-pressed")) === "true", "the follow did not take");
+  await chip.click();
+  await page.waitForTimeout(200);
+  expect((await chip.getAttribute("aria-pressed")) === "false", "the follow did not let go");
 });
 await step("search: nothing found says so", async () => {
-  await page.locator('input[type="search"]').fill("zzzzqqqq");
+  await find("zzzzqqqq");
   await page.waitForTimeout(1500);
-  expect(/Nothing found/i.test(await text()), "no message for an empty search");
+  expect(/Nothing found/i.test(await finder.innerText()), "no message for an empty search");
 });
+// Search may have left the page in a bad way.
+await open("/");
 await step("ranking: all sixty, and a row leads to its team", async () => {
-  await page.locator('input[type="search"]').fill("");
+  await find("");
   await page.waitForTimeout(300);
-  await page.locator(".bx-more").first().click();
-  await page.waitForTimeout(600);
-  const rows = await page.locator(".bx-rank").count();
+  const way = page.locator('.bx-res a[href^="/ranking/"]').first();
+  expect((await way.count()) > 0, "search offers no ranking");
+  await way.click();
+  await page.waitForTimeout(800);
+  const rows = (await page.locator(".bx-pc").count()) + (await page.locator(".bx-rkl-row").count());
   expect(rows >= 50, `only ${rows} rows`);
-  await page.locator("a.bx-rank").first().click();
+  await page.locator("a.bx-rkl-row").first().click();
   await page.waitForTimeout(700);
   expect(page.url().includes("/team/"), "the row did not lead to a team");
   return `${rows} rows`;
@@ -143,23 +234,24 @@ await step("back leads to where one came from, by name", async () => {
 });
 
 await open("/tournament/ps-serie-11014");
+const stages = page.locator('[aria-label="Stage"] button');
 await step("event: stages can be switched", async () => {
-  const buttons = page.locator(".bx-seg button");
-  const count = await buttons.count();
+  const count = await stages.count();
   expect(count >= 2, "no stage switch");
   for (let i = 0; i < count; i++) {
-    await buttons.nth(i).click();
+    await stages.nth(i).click();
     await page.waitForTimeout(350);
+    expect((await stages.nth(i).getAttribute("aria-pressed")) === "true", `stage ${i} not chosen`);
     expect((await text()).length > 200, `stage ${i} is empty`);
   }
   return `${count} stages`;
 });
 await step("event: pointing at a team traces it through the bracket", async () => {
-  await page.locator(".bx-seg button").last().click();
+  await stages.last().click();
   await page.waitForTimeout(400);
-  await page.locator(".bx-tie-side").first().hover();
+  await page.locator(".bx-bk-side:not([data-open])").first().hover();
   await page.waitForTimeout(250);
-  expect((await page.locator(".bx-bracket[data-tracing]").count()) > 0, "nothing was traced");
+  expect((await page.locator(".bx-bk[data-tracing]").count()) > 0, "nothing was traced");
 });
 
 await open("/match/lichess-Y0JqfYP6");
@@ -221,8 +313,19 @@ await step("settings: another time zone moves the clock", async () => {
   expect((await text()) !== before, "the time did not change");
   await page.locator("select").selectOption("");
 });
+await step("settings: another board is chosen", async () => {
+  const other = page.locator('[aria-label="Board"] button:not([aria-pressed=true])').first();
+  const name = await other.getAttribute("aria-label");
+  const board = page.locator(`[aria-label="Board"] button[aria-label="${name}"]`);
+  await board.click();
+  await page.waitForTimeout(200);
+  expect((await board.getAttribute("aria-pressed")) === "true", `${name} did not take`);
+  return name;
+});
 await step("account menu: opens, closes on Escape, offers sign-in", async () => {
-  await page.locator(".bx-top .bx-account > button").click();
+  const button = page.locator(".bx-bar .bx-account > button");
+  if (!(await button.count())) return "this copy has no accounts, skipped";
+  await button.click();
   await page.waitForTimeout(250);
   const items = await page.locator(".bx-menu [role=menuitem]").allInnerTexts();
   expect(
@@ -232,13 +335,13 @@ await step("account menu: opens, closes on Escape, offers sign-in", async () => 
   await page.keyboard.press("Escape");
   await page.waitForTimeout(200);
   expect((await page.locator(".bx-menu").count()) === 0, "Escape did not close it");
-  await page.locator(".bx-top .bx-account > button").click();
+  await button.click();
   await page.locator(".bx-menu [role=menuitem]", { hasText: "Sign in" }).click();
-  await page.waitForTimeout(2500);
-  expect(
-    (await page.locator(".cl-modalContent, .cl-signIn-root, .cl-rootBox").count()) > 0,
-    "sign-in did not open",
-  );
+  await page.waitForSelector(".cl-rootBox, .cl-signIn-root, .bx-si-failed", { timeout: 15000 });
+  expect(page.url().includes("/sign-in"), "sign-in did not open");
+  // Where Clerk does not serve the address (a preview), the page says so; there is no form.
+  if (await page.locator(".bx-si-failed").count())
+    return "signing in is not available at this address, the form was skipped";
 });
 
 console.log(results.join("\n"));

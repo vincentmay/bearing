@@ -591,9 +591,14 @@
   color: var(--ink2);
   white-space: nowrap;
 }
+/* One column that may not grow with what is in it: each half scrolls sideways inside itself. */
 .bx-bk-double {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 22px;
+}
+.bx-bk-double > section {
+  min-width: 0;
 }
 .bx-bk-part {
   margin: 0 4px 10px;

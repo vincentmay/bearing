@@ -19,13 +19,13 @@ await page.evaluate((to) => {
   history.pushState({}, "", to);
   dispatchEvent(new PopStateEvent("popstate"));
 }, path);
-await page.waitForSelector(".bx-parts a");
+await page.waitForSelector("nav.bx-e-picks a");
 await page.waitForTimeout(1500);
 await page.evaluate(() => {
   document.querySelector("main").dataset.same = "yes";
   scrollTo(0, 240);
 });
-const parts = await page.locator(".bx-parts a").count();
+const parts = await page.locator("nav.bx-e-picks a").count();
 let bad = 0;
 // Where the page was scrolled to before each move; a shorter part may not reach that far.
 let held = 240;
@@ -35,9 +35,10 @@ for (let i = 0; i < parts; i++) {
   const note = (r) => requests.push(r.url());
   page.on("request", note);
   const t0 = Date.now();
-  await page.locator(".bx-parts a").nth(i).click();
+  await page.locator("nav.bx-e-picks a").nth(i).click();
   await page.waitForFunction(
-    (n) => document.querySelectorAll(".bx-parts a")[n]?.getAttribute("aria-current") === "page",
+    (n) =>
+      document.querySelectorAll("nav.bx-e-picks a")[n]?.getAttribute("aria-current") === "page",
     i,
   );
   const took = Date.now() - t0;
@@ -46,7 +47,7 @@ for (let i = 0; i < parts; i++) {
   const state = await page.evaluate(() => ({
     same: document.querySelector("main").dataset.same === "yes",
     scroll: Math.round(scrollY),
-    waiting: !!document.querySelector(".bx-wait"),
+    waiting: !!document.querySelector(".bx-wt"),
     reach: Math.max(0, Math.round(document.documentElement.scrollHeight - innerHeight)),
     title: document.querySelector("h1")?.innerText,
     length: document.querySelector("main").innerText.length,

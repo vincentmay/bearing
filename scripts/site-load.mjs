@@ -33,11 +33,11 @@ for (const run of ["cold", "warm"]) {
   marks.commit = Date.now() - start;
   await page.waitForSelector(".bx-tabs", { timeout: 60000 });
   marks.frame = Date.now() - start;
-  await page.waitForSelector(".bx-wait", { timeout: 2000 }).then(
+  await page.waitForSelector(".bx-wt", { timeout: 2000 }).then(
     () => (marks.skeleton = Date.now() - start),
     () => {},
   );
-  await page.waitForSelector("main .bx-list, main .bx-hero, main .bx-entity", { timeout: 60000 });
+  await page.waitForSelector("main .bx-stage, main .bx-rows, main .bx-panel", { timeout: 60000 });
   marks.content = Date.now() - start;
   await page.waitForTimeout(2500);
   const paint = await page.evaluate(() =>

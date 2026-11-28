@@ -21,7 +21,7 @@ await context.addInitScript(keepLocal);
 const page = await context.newPage();
 
 await page.goto(base + "/?world=slow");
-await page.waitForSelector(".bx-wait");
+await page.waitForSelector(".bx-wt");
 await page.screenshot({ path: `${out}/waiting.png` });
 
 await page.goto(base + "/?world=fail");

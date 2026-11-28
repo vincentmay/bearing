@@ -8,7 +8,7 @@ import { Go } from "./links";
 import { type MatchView, type SideView, bestOf } from "./model";
 import { CardSky, light } from "./sky";
 import { until } from "./time";
-import { Disc, Ping, Score } from "./ui";
+import { Disc, Ping, Score, Tick } from "./ui";
 
 const ROOM = "(min-width: 1100px) and (min-height: 720px)";
 
@@ -140,8 +140,9 @@ function FollowSide({ follow, name, short }: { follow: Follow; name: string; sho
 function Chips({ view }: { view: MatchView }) {
   const { match, sides } = view;
   if (view.solo || match.bestOf < 2 || match.games.length < 2) return null;
-  // A long match (fourteen games of chess) is not a row of chips.
-  if (match.games.length > 5) return null;
+  // A long match (fourteen games of chess) is not a row of chips, and a match that has not
+  // begun has nothing to say in them yet.
+  if (match.games.length > 5 || match.games.every((g) => g.status === "scheduled")) return null;
   return (
     <div className="bx-chips">
       {match.games.map((g, i) => {
@@ -167,16 +168,19 @@ function figure(view: MatchView, board: Board): { kind?: "time" | "words"; node:
   const { match } = view;
   if (match.status === "scheduled" && !view.resumes)
     return { kind: "time", node: board.times.clock(match.scheduledAt) };
-  if (view.headline.length === 2)
+  if (view.headline.length === 2) {
+    // While it is played, a number that changes rises into place.
+    const part = (text: string | undefined) => (view.live ? <Tick>{text ?? ""}</Tick> : text);
     return {
       node: (
         <>
-          {view.headline[0]}
+          {part(view.headline[0])}
           <i>:</i>
-          {view.headline[1]}
+          {part(view.headline[1])}
         </>
       ),
     };
+  }
   return { kind: "words", node: <Score view={view} times={board.times} /> };
 }
 
@@ -281,10 +285,12 @@ export function Front({
     </span>
   ) : null;
   const sky = <CardSky first={first} live={live} />;
-  const team = (side: SideView | undefined, mark: ReactNode) =>
+  // `named`: the link holds only a logo, so it carries the name for whoever cannot see it.
+  const team = (side: SideView | undefined, mark: ReactNode, named = false) =>
     side?.id ? (
       <Go to={{ kind: view.discipline.competitor === "team" ? "team" : "player", id: side.id }}>
         {mark}
+        {named ? <span className="bx-only">{side.name}</span> : null}
       </Go>
     ) : (
       mark
@@ -337,6 +343,7 @@ export function Front({
                 <span {...light(a.color, reach * la[0], la[1])}>
                   <Disc side={a} size={44} />
                 </span>,
+                true,
               )}
               <b data-k={fig.kind}>{fig.node}</b>
               {team(
@@ -344,6 +351,7 @@ export function Front({
                 <span {...light(b.color, reach * lb[0], lb[1])}>
                   <Disc side={b} size={44} />
                 </span>,
+                true,
               )}
               <span data-long={b.label.length > 12 ? "" : undefined}>{b.label}</span>
             </div>

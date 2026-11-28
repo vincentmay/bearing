@@ -44,6 +44,9 @@ const PAGES = [
 // when a backend is configured.
 const keepLocal = () => localStorage.setItem("bearing.source", "local");
 const browser = await chromium.launch({ channel: "chrome" });
+// Without a backend configured, React Query says "No queryFn" for the queries the sample does
+// not need; that is this machine's setup, not something the page did.
+const real = (m) => m.type() === "error" && !m.text().includes("No queryFn");
 const problems = [];
 for (const [size, viewport] of Object.entries(SIZES)) {
   for (const scheme of ["light", "dark"]) {
@@ -56,10 +59,7 @@ for (const [size, viewport] of Object.entries(SIZES)) {
     });
     await page.addInitScript(keepLocal);
     page.on("pageerror", (e) => problems.push(`${size} ${scheme}: ${e}`));
-    page.on(
-      "console",
-      (m) => m.type() === "error" && problems.push(`${size} ${scheme}: ${m.text()}`),
-    );
+    page.on("console", (m) => real(m) && problems.push(`${size} ${scheme}: ${m.text()}`));
     for (const [name, path] of PAGES) {
       await page.goto(base + path, { waitUntil: "networkidle" });
       await page.waitForSelector(".bx-tabs");

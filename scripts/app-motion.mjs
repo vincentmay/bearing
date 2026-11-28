@@ -1,6 +1,6 @@
-// Checks that the live behaviour works in the running app (vp dev on :5810): a dot lands when
-// something is won, the score ticks, the next match steps forward when one ends, and nothing
-// animates when the device asks for reduced motion.
+// Checks that the live behaviour works in the running app (vp dev on :5810): the score in the
+// top card ticks when something is won, the next match takes its place when one ends, and
+// nothing animates when the device asks for reduced motion.
 // Usage: node scripts/app-motion.mjs [out-dir]
 import { chromium } from "@playwright/test";
 import { mkdirSync } from "node:fs";
@@ -12,6 +12,9 @@ mkdirSync(out, { recursive: true });
 // when a backend is configured.
 const keepLocal = () => localStorage.setItem("bearing.source", "local");
 const browser = await chromium.launch({ channel: "chrome" });
+// Without a backend configured, React Query says "No queryFn" for the queries the sample does
+// not need; that is this machine's setup, not something the page did.
+const real = (m) => m.type() === "error" && !m.text().includes("No queryFn");
 const results = [];
 const check = (name, ok, detail = "") => results.push(`${ok ? "ok  " : "FAIL"} ${name} ${detail}`);
 
@@ -25,9 +28,9 @@ async function open(options = {}) {
   await page.addInitScript(keepLocal);
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
-  page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
+  page.on("console", (m) => real(m) && errors.push(m.text()));
   await page.goto(base + "/", { waitUntil: "networkidle" });
-  await page.waitForSelector(".bx-card");
+  await page.waitForSelector(".bx-stage");
   await page.evaluate(() => window.bearing.pause());
   return { page, errors };
 }
@@ -45,43 +48,44 @@ async function until(page, test, limit = 400) {
 // 1. On load nothing has just landed or ticked.
 {
   const { page, errors } = await open();
-  const fresh = await page.locator(".bx-land, .bx-tick, .bx-step").count();
+  const fresh = await page.locator(".bx-stage .bx-tick").count();
   check("nothing animates in on first load", fresh === 0, `(${fresh} found)`);
 
-  // 2. A round is won: one dot lands and the score ticks.
-  const score = () => document.querySelector(".bx-card .bx-score").textContent;
-  const before = await page.evaluate(score);
-  await page.evaluate((b) => (window.__before = b), before);
+  // 2. A round is won: the changed number in the top card ticks.
+  const SCORE = ".bx-stage .bx-fig b, .bx-stage .bx-cduel > b";
+  const before = await page.locator(SCORE).first().innerText();
+  await page.evaluate(
+    ([b, sel]) => ((window.__before = b), (window.__score = sel)),
+    [before, SCORE],
+  );
   const beats = await until(
     page,
-    () => document.querySelector(".bx-card .bx-score").textContent !== window.__before,
+    () => document.querySelector(window.__score).innerText !== window.__before,
   );
-  const landed = await page.locator(".bx-card .bx-land").count();
-  const ticked = await page.locator(".bx-card .bx-tick").count();
-  check("a round was won in the lead match", beats >= 0, `after ${beats} beats`);
-  check("exactly one dot lands", landed === 1, `(${landed})`);
+  const ticked = await page.locator(".bx-stage .bx-tick").count();
+  check("a round was won in the match in front", beats >= 0, `after ${beats} beats`);
   check("the changed number ticks", ticked === 1, `(${ticked})`);
-  check("one open dot remains", (await page.locator(".bx-card .bx-dot-now").count()) === 1);
   await page.screenshot({ path: `${out}/landed.png` });
 
-  // 3. The match ends: it says so, then the next one steps into its place.
-  const first = await page.locator(".bx-card").getAttribute("href");
-  const ended = await until(page, () =>
-    document.querySelector(".bx-card .bx-meta").textContent.startsWith("Final"),
+  // 3. The match ends: it says so, then the next one takes its place.
+  const way = ".bx-stage a.bx-btn[href^='/match/']";
+  const first = await page.locator(way).first().getAttribute("href");
+  const ended = await until(
+    page,
+    () => document.querySelector(".bx-stage .bx-tag")?.textContent === "Final",
   );
-  check("the lead match ends and says so", ended >= 0, `after ${ended} more beats`);
+  check("the match in front ends and says so", ended >= 0, `after ${ended} more beats`);
   check(
     "it is still the same match for a moment",
-    (await page.locator(".bx-card").getAttribute("href")) === first,
+    (await page.locator(way).first().getAttribute("href")) === first,
   );
   await page.screenshot({ path: `${out}/ended.png` });
   await page.waitForTimeout(4200);
-  const second = await page.locator(".bx-card").getAttribute("href");
+  const second = await page.locator(way).first().getAttribute("href");
   check("the next match takes its place", second !== first, `${first} -> ${second}`);
-  check("the new card steps forward", (await page.locator(".bx-card.bx-step").count()) === 1);
   check(
-    "the finished match is now under Earlier",
-    (await page.locator(`.bx-mr[href="${first}"]`).count()) === 1,
+    "the finished match is now under Results",
+    (await page.locator(`.bx-rw a.bx-rw-go[href="${first}"]`).count()) === 1,
   );
   await page.screenshot({ path: `${out}/stepped.png`, fullPage: true });
 

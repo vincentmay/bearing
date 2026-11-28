@@ -1,6 +1,7 @@
 // A sweep of the live site: every kind of page, light and dark, wide and phone. For each it
 // notes what threw, what scrolls sideways, pictures that did not arrive, controls without a
-// name, and pages that say they could not be found. Then it follows every internal link once.
+// name, pages that say they could not be found, and pages where something broke. Then it
+// follows every internal link once.
 // Usage: node scripts/site-sweep.mjs [base] [--shots]
 import { chromium } from "@playwright/test";
 import { mkdirSync } from "node:fs";
@@ -23,7 +24,7 @@ const PAGES = [
   ["event-chess", "/tournament/lichess-E2Ux0N0V"],
   ["event-matches", "/tournament/lichess-qEXour3L"],
   ["match-of-games", "/match/lichess-qEXour3L-24116068-623539"],
-  ["event-rl", "/tournament/ps-serie-10903"],
+  ["event-stages", "/tournament/ps-serie-11176"],
   ["match-lol", "/match/ps-match-1711021"],
   ["match-cs", "/match/ps-match-1762449"],
   ["match-chess", "/match/lichess-Y0JqfYP6"],
@@ -34,6 +35,8 @@ const PAGES = [
   ["nowhere", "/nothing/here"],
   ["match-none", "/match/does-not-exist"],
 ];
+// The first visit's question would stand where Live is; it has been answered here.
+const answered = () => localStorage.setItem("bearing.welcome.v1", "1");
 const MODES = [
   { mode: "wide-dark", viewport: { width: 1280, height: 860 }, scheme: "dark", scale: 1 },
   { mode: "wide-light", viewport: { width: 1280, height: 860 }, scheme: "light", scale: 1 },
@@ -52,6 +55,7 @@ for (const { mode, viewport, scheme, scale } of MODES) {
     locale: "en-GB",
     timezoneId: "Europe/Berlin",
   });
+  await context.addInitScript(answered);
   for (const [name, path] of PAGES) {
     const page = await context.newPage();
     const thrown = [];
@@ -69,6 +73,7 @@ for (const { mode, viewport, scheme, scale } of MODES) {
         return r.width > 0 && r.height > 0;
       };
       const text = document.querySelector("main")?.innerText ?? "";
+      const notFound = /could not be found|nothing at this address|past the horizon/i.test(text);
       return {
         sideways: document.documentElement.scrollWidth > innerWidth + 1,
         pictures: [...document.images]
@@ -85,9 +90,12 @@ for (const { mode, viewport, scheme, scale } of MODES) {
               !el.closest("label"),
           )
           .map((el) => el.outerHTML.slice(0, 90)),
-        notFound: /could not be found|nothing at this address|past the horizon/i.test(text),
-        waiting: !!document.querySelector(".bx-wait"),
-        empty: [...document.querySelectorAll(".bx-empty")].map((el) => el.innerText.slice(0, 70)),
+        notFound,
+        waiting: !!document.querySelector(".bx-wt"),
+        // Something that broke: the page stands in for a problem (not a page that is not there).
+        problem: notFound
+          ? ""
+          : (document.querySelector(".bx-problem")?.innerText.split("\n")[0] ?? ""),
         links: [...document.querySelectorAll('a[href^="/"]')].map((a) => a.getAttribute("href")),
         length: text.length,
       };
@@ -102,6 +110,7 @@ for (const { mode, viewport, scheme, scale } of MODES) {
       said.push(`${report.unnamed.length} unnamed controls: ${report.unnamed[0]}`);
     if (report.waiting) said.push("still waiting after 2.6 s");
     if (report.notFound && !/none|nowhere/.test(name)) said.push("says NOT FOUND");
+    if (report.problem) said.push(`BROKE: ${report.problem}`);
     if (report.length < 80) said.push(`almost empty (${report.length} characters)`);
     if (said.length) findings.push(`${mode} ${name}: ${said.join(" | ")}`);
     if (shots && (mode === "wide-light" || mode === "phone-dark"))
@@ -117,6 +126,7 @@ console.log(findings.length ? findings.join("\n") : "pages: nothing found");
 
 // Every internal link seen, followed once.
 const context = await browser.newContext({ viewport: { width: 1280, height: 860 }, userAgent: UA });
+await context.addInitScript(answered);
 const page = await context.newPage();
 const broken = [];
 const list = [...links].filter((href) => !PAGES.some(([, p]) => p === href)).slice(0, 220);
@@ -130,16 +140,22 @@ for (const href of list) {
   }, href);
   await page.waitForTimeout(350);
   // A page that asks for something of its own (an older match) is given the time to get it.
-  await page.waitForSelector(".bx-wait", { state: "detached", timeout: 5000 }).catch(() => {});
+  await page.waitForSelector(".bx-wt", { state: "detached", timeout: 5000 }).catch(() => {});
   const state = await page.evaluate(() => {
     const text = document.querySelector("main")?.innerText ?? "";
     return {
       notFound: /could not be found|nothing at this address|past the horizon/i.test(text),
+      problem: !!document.querySelector(".bx-problem"),
       length: text.length,
     };
   });
-  if (state.notFound || state.length < 60)
-    broken.push(`${href} (${state.notFound ? "not found" : "empty"})`);
+  if (state.notFound || state.problem || state.length < 60)
+    broken.push(`${href} (${state.notFound ? "not found" : state.problem ? "broke" : "empty"})`);
+  // A page that broke leaves the app broken; the next link starts from a fresh load.
+  if (state.problem) {
+    await page.goto(base + "/", { waitUntil: "domcontentloaded" });
+    await page.waitForSelector(".bx-tabs", { timeout: 30000 });
+  }
 }
 console.log(`links: ${list.length} followed, ${broken.length} broken`);
 if (broken.length) console.log(broken.slice(0, 30).join("\n"));

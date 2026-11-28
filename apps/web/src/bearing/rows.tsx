@@ -176,12 +176,8 @@ export function RoundLine({
             : games;
   return (
     <div className="bx-rw" data-s={live ? "live" : done === matches.length ? "done" : "next"}>
-      <Go
-        to={{ kind: "tournament", id: tournament.id }}
-        className="bx-rw-go"
-        aria-label={`${tournament.name}, ${round}`}
-      >
-        {""}
+      <Go to={{ kind: "tournament", id: tournament.id }} className="bx-rw-go">
+        <span className="bx-only">{`${tournament.name}, ${round}`}</span>
       </Go>
       <div className="bx-rw-t">
         <b>
