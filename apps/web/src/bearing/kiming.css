@@ -1654,3 +1654,8 @@ html:has(.bx[data-theme="dark"]) {
     border-radius: 28px;
   }
 }
+
+/* The search field is the whole top of its pane: the caret shows where one is, no ring around it. */
+.bx .bx-pal-inp input:focus-visible {
+  outline: none;
+}

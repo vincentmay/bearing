@@ -386,6 +386,11 @@ export function target(atlas: Atlas, follow: Follow): Target | undefined {
   }
 }
 
+/** "Quarterfinal B" inside a sentence: "quarterfinal B". The letter of a heat stays a capital. */
+function inSentence(name: string): string {
+  return name.slice(0, 1).toLowerCase() + name.slice(1);
+}
+
 function when(times: Times, at: string, now: number): string {
   const day = times.day(at, now);
   return `${/^(Today|Tomorrow)/.test(day) ? day.toLowerCase() : day} at ${times.clock(at)}`;
@@ -398,8 +403,8 @@ function when(times: Times, at: string, now: number): string {
 function against(atlas: Atlas, follow: Follow, m: Match): string {
   const t = atlas.tournamentOf(m);
   const names = m.sides.flatMap((s) => (s.competitorId ? [s.competitorId] : []));
-  if (follow.kind === "tournament") return heat(atlas, m).toLowerCase();
-  if (m.sides.length !== 2) return `${t.short}, ${heat(atlas, m).toLowerCase()}`;
+  if (follow.kind === "tournament") return inSentence(heat(atlas, m));
+  if (m.sides.length !== 2) return `${t.short}, ${inSentence(heat(atlas, m))}`;
   if (follow.kind === "discipline")
     return names.map((id) => plainName(atlas, id)).join(" v ") || t.short;
   const own = (id: string) =>
