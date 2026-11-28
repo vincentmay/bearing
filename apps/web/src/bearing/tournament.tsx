@@ -640,7 +640,7 @@ export function TournamentPage({ tournamentId }: { tournamentId: string }) {
     <>
       <Back />
       <section className="bx-stage bx-e-card" data-live={lead ? "" : undefined}>
-        <CardSky live={!!lead} />
+        <CardSky />
         <div className="bx-ent-in">
           <div className="bx-eh">
             <div>

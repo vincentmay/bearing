@@ -388,7 +388,7 @@ export function PlayerPage({ playerId }: { playerId: string }) {
     <>
       <Back parent={team ? { kind: "team", id: team.id } : undefined} />
       <section className="bx-stage" data-live={live.length ? "" : undefined}>
-        <CardSky live={live.length > 0} />
+        <CardSky />
         <div className="bx-ent-in">
           <div className="bx-eh">
             <Face side={side} />

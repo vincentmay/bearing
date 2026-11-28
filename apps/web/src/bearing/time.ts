@@ -61,7 +61,18 @@ export function timesFor(prefs: Pick<Prefs, "hours" | "zone">): Times {
     f({ timeZoneName: "short" })
       .formatToParts(new Date())
       .find((p) => p.type === "timeZoneName")?.value ?? "";
-  const dayKey = (when: string | number) => key.format(at(when));
+  // Every list asks for the day of every match, again on every page: a day once worked out is
+  // remembered (formatting a date is slow, and there are thousands of them).
+  const days = new Map<string | number, string>();
+  const dayKey = (when: string | number) => {
+    let day = days.get(when);
+    if (day === undefined) {
+      day = key.format(at(when));
+      if (days.size > 20000) days.clear();
+      days.set(when, day);
+    }
+    return day;
+  };
   return {
     clock: (when) => clock.format(at(when)).toLowerCase(),
     dayKey,
@@ -82,7 +93,23 @@ export function timesFor(prefs: Pick<Prefs, "hours" | "zone">): Times {
 
 export function useTimes(): Times {
   const { hours, zone } = usePrefs();
-  return useMemo(() => timesFor({ hours, zone }), [hours, zone]);
+  return useMemo(() => shared({ hours, zone }), [hours, zone]);
+}
+
+const made = new Map<string, Times>();
+
+/**
+ * One set of times for each choice of clock and zone, kept for the whole visit: making the
+ * formatters is slow, and what they have worked out is worth keeping from page to page.
+ */
+function shared(prefs: Pick<Prefs, "hours" | "zone">): Times {
+  const id = `${prefs.hours}|${prefs.zone ?? ""}`;
+  let times = made.get(id);
+  if (!times) {
+    times = timesFor(prefs);
+    made.set(id, times);
+  }
+  return times;
 }
 
 /** "in 50 min", "in 1 h 20 min", "in 3 days", "now", "2 h ago". */

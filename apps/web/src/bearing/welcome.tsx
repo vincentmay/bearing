@@ -1,6 +1,7 @@
-import { type Follow, type Match, tournamentStatus, winnerOf } from "@bearing/domain";
-import { Check, Plus, Star, Trophy } from "lucide-react";
-import { type CSSProperties, type ReactNode, useState } from "react";
+import { type Atlas, type DisciplineId, type Follow, tournamentStatus } from "@bearing/domain";
+import { Link } from "@tanstack/react-router";
+import { Check, Plus, Search, Star, Trophy } from "lucide-react";
+import { type CSSProperties, type ReactNode, useMemo, useState } from "react";
 import { useFollow } from "../lib/world";
 import type { Board } from "./board";
 import { plainName, sideOf } from "./model";
@@ -52,109 +53,201 @@ function PickCard({ pick }: { pick: Pick }) {
   );
 }
 
-/** What a team or player is doing today, in a few words: playing, about to, or done. */
-function doing(board: Board, match: Match, id: string): string {
-  const { atlas, times } = board;
-  const other = match.sides.map((s) => s.competitorId).find((x) => x && x !== id);
-  const versus = match.sides.length === 2 && other ? plainName(atlas, other) : undefined;
-  if (match.status === "live") return versus ? `Live against ${versus}` : "Playing now";
-  if (match.status === "scheduled") {
-    const at = times.clock(match.scheduledAt);
-    return versus ? `Plays ${versus} at ${at}` : `Plays at ${at}`;
-  }
-  const w = winnerOf(match);
-  const won = typeof w === "number" && match.sides[w]?.competitorId === id;
-  return versus ? `${won ? "Won" : "Lost"} against ${versus} today` : "Played today";
+const tier = { S: 0, A: 1, B: 2 } as const;
+
+interface Standing {
+  /** Lower is better; only compared within one game. */
+  order: number;
+  /** What it rests on, in a few words: "No. 3 in the world", "GM · 2839", an event's name. */
+  says: string;
 }
+
+/**
+ * Who matters most in each game, best first. A game with a ranking uses it (Valve's for
+ * Counter-Strike); one whose players carry a rating uses that (FIDE's for chess); for the rest
+ * it is whoever plays in the biggest events Kiming knows of.
+ */
+function standings(atlas: Atlas): Map<string, { id: string; standing: Standing }[]> {
+  const out = new Map<string, { id: string; standing: Standing }[]>();
+  for (const d of atlas.world.disciplines) {
+    const ranking = atlas.world.rankings.find((r) => r.discipline === d.id);
+    const world = ranking && /world/i.test(ranking.title) ? " in the world" : "";
+    const ranked = (ranking?.entries ?? [])
+      .map((e, i) => ({
+        id: e.competitorId,
+        standing: { order: i, says: `No. ${e.rank ?? i + 1}${world}` },
+      }))
+      .filter((e) => atlas.competitor(e.id)?.kind === d.competitor);
+    if (ranked.length) {
+      out.set(d.id, ranked);
+      continue;
+    }
+    const rated = atlas.world.competitors
+      .filter((c) => c.kind === "player" && c.discipline === d.id && c.rating)
+      .map((c) => {
+        const p = c as Extract<typeof c, { kind: "player" }>;
+        const value = p.rating?.value ?? 0;
+        return {
+          id: p.id,
+          standing: { order: -value, says: p.title ? `${p.title} · ${value}` : `${value}` },
+        };
+      })
+      .sort((a, b) => a.standing.order - b.standing.order);
+    if (d.competitor === "player" && rated.length) {
+      out.set(d.id, rated);
+      continue;
+    }
+    // No ranking and no rating: the biggest event each one plays in, then how much they play.
+    const seen = new Map<string, { best: number; event: string; games: number }>();
+    for (const match of atlas.world.matches) {
+      const t = atlas.tournamentOf(match);
+      if (t.discipline !== d.id) continue;
+      for (const side of match.sides) {
+        const id = side.competitorId;
+        if (!id || atlas.competitor(id)?.kind !== d.competitor) continue;
+        const was = seen.get(id);
+        const best = tier[t.tier];
+        if (!was) seen.set(id, { best, event: t.name, games: 1 });
+        else {
+          was.games++;
+          if (best < was.best) {
+            was.best = best;
+            was.event = t.name;
+          }
+        }
+      }
+    }
+    const playing = [...seen]
+      .sort((a, b) => a[1].best - b[1].best || b[1].games - a[1].games)
+      .map(([id, s], i) => ({ id, standing: { order: i, says: s.event } }));
+    if (playing.length) out.set(d.id, playing);
+  }
+  return out;
+}
+
+/** What a team or player is doing today, if anything: playing, or about to. */
+function doing(board: Board, id: string): string | undefined {
+  const { atlas, now, times } = board;
+  const today = times.dayKey(now);
+  const mine = atlas.world.matches.filter(
+    (m) => m.sides.length === 2 && m.sides.some((s) => s.competitorId === id),
+  );
+  const live = mine.find((m) => m.status === "live");
+  if (live) {
+    const other = live.sides.map((s) => s.competitorId).find((x) => x && x !== id);
+    return other ? `Live against ${plainName(atlas, other)}` : "Live now";
+  }
+  const next = mine
+    .filter((m) => m.status === "scheduled" && times.dayKey(m.scheduledAt) === today)
+    .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))[0];
+  return next ? `plays at ${times.clock(next.scheduledAt)}` : undefined;
+}
+
+/** The first of each list, then the second of each, and so on: no one game fills the grid. */
+function inTurn<T>(lists: T[][], most: number): T[] {
+  const out: T[] = [];
+  for (let i = 0; out.length < most && lists.some((l) => i < l.length); i++) {
+    for (const list of lists) {
+      const entry = list[i];
+      if (entry !== undefined && out.length < most) out.push(entry);
+    }
+  }
+  return out;
+}
+
+/** How many cards each grid holds: three rows of people, one of events (two once a game is chosen). */
+const PEOPLE = 12;
+const EVENTS = 4;
 
 /**
  * The first visit: who do you follow? A few taps here and every page puts the viewer's own
  * matches first. It asks once per device, can be put aside, and needs no account.
+ *
+ * It offers the names most people come for (the top of each game, every game in turn), not
+ * whoever happens to play at this hour; anyone else is a search away.
  */
 export function Welcome({ board, onDone }: { board: Board; onDone: () => void }) {
-  const { atlas, now, times } = board;
+  const { atlas, now } = board;
   const [game, setGame] = useState<string>();
-  const today = times.dayKey(now);
 
-  // Whoever plays today: the biggest events first, within them the live ones; each team or
-  // player once.
-  const order = { live: 0, scheduled: 1, finished: 2 } as const;
-  const tier = { S: 0, A: 1, B: 2 } as const;
-  const matches = atlas.world.matches
-    .filter((m) => m.status === "live" || times.dayKey(m.scheduledAt) === today)
-    .sort(
-      (a, b) =>
-        tier[atlas.tournamentOf(a).tier] - tier[atlas.tournamentOf(b).tier] ||
-        order[a.status] - order[b.status] ||
-        a.scheduledAt.localeCompare(b.scheduledAt),
-    );
-  const seen = new Set<string>();
-  const playing: Pick[] = [];
-  for (const match of matches) {
-    const tournament = atlas.tournamentOf(match);
-    const discipline = atlas.discipline(tournament.discipline);
-    // A field of forty boards is not forty cards: only matches of two.
-    if (match.sides.length !== 2) continue;
-    for (const side of match.sides) {
-      const id = side.competitorId;
-      const c = id ? atlas.competitor(id) : undefined;
-      if (!id || !c || seen.has(id)) continue;
-      seen.add(id);
-      playing.push({
+  const best = useMemo(() => standings(atlas), [atlas]);
+  const events = useMemo(() => {
+    const on = new Set(atlas.live().map((m) => m.tournamentId));
+    const days = (t: { start: string; end: string }) =>
+      Math.round((Date.parse(`${t.end}T00:00:00Z`) - Date.parse(`${t.start}T00:00:00Z`)) / DAY) + 1;
+    // The biggest first; among those, what is being played right now, and a week's event
+    // before a league that runs for most of a year.
+    return atlas.world.tournaments
+      .filter((t) => tournamentStatus(atlas, t, now) === "live")
+      .sort(
+        (a, b) =>
+          tier[a.tier] - tier[b.tier] ||
+          Number(on.has(b.id)) - Number(on.has(a.id)) ||
+          days(a) - days(b) ||
+          a.start.localeCompare(b.start),
+      )
+      .map((t): Pick => {
+        const first = Date.parse(`${t.start}T00:00:00Z`);
+        const all = days(t);
+        const day = Math.min(all, Math.max(1, Math.floor((now - first) / DAY) + 1));
+        return {
+          follow: { kind: "tournament", id: t.id },
+          name: t.name,
+          line: `${atlas.discipline(t.discipline).short} · Day ${day} of ${all}`,
+          mark: (
+            <span
+              className="bx-disc bx-disc-plain"
+              style={{ "--s": "44px" } as CSSProperties}
+              aria-hidden
+            >
+              <Trophy size={20} />
+            </span>
+          ),
+          game: t.discipline,
+        };
+      });
+  }, [atlas, now]);
+
+  const games = atlas.world.disciplines.filter(
+    (d) => best.has(d.id) || events.some((e) => e.game === d.id),
+  );
+  // With every game shown, each takes its turn: the first of each, then the second of each.
+  const people = useMemo(() => {
+    const lists = (game ? [game] : games.map((d) => d.id)).map((id) => best.get(id) ?? []);
+    return inTurn(lists, PEOPLE).map((entry) => entry.id);
+    // `games` follows from `atlas` and `best`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [atlas, best, game]);
+  const picks: Pick[] = people.flatMap((id) => {
+    const c = atlas.competitor(id);
+    if (!c) return [];
+    const discipline = atlas.discipline(c.discipline);
+    const says = best.get(c.discipline)?.find((e) => e.id === id)?.standing.says;
+    const today = doing(board, id);
+    // Playing right now is the news; otherwise where they stand, and when they play today.
+    const line = today?.startsWith("Live") ? today : [says, today].filter(Boolean).join(" · ");
+    return [
+      {
         follow: { kind: c.kind, id },
         name: plainName(atlas, id),
-        line: `${discipline.short} · ${doing(board, match, id)}`,
+        line: `${discipline.short} · ${line}`,
         mark: <Disc side={sideOf(atlas, id)} size={44} />,
-        game: discipline.id,
-      });
-    }
-  }
-  const events: Pick[] = atlas.world.tournaments
-    .filter((t) => tournamentStatus(atlas, t, now) === "live")
-    .sort((a, b) => tier[a.tier] - tier[b.tier] || a.start.localeCompare(b.start))
-    .map((t) => {
-      const first = Date.parse(`${t.start}T00:00:00Z`);
-      const last = Date.parse(`${t.end}T00:00:00Z`);
-      const days = Math.round((last - first) / DAY) + 1;
-      const day = Math.min(days, Math.max(1, Math.floor((now - first) / DAY) + 1));
-      return {
-        follow: { kind: "tournament", id: t.id } satisfies Follow,
-        name: t.name,
-        line: `${atlas.discipline(t.discipline).short} · Day ${day} of ${days}`,
-        mark: (
-          <span
-            className="bx-disc bx-disc-plain"
-            style={{ "--s": "44px" } as CSSProperties}
-            aria-hidden
-          >
-            <Trophy size={20} />
-          </span>
-        ),
-        game: t.discipline,
-      };
-    });
-  const games = atlas.world.disciplines.filter(
-    (d) => playing.some((p) => p.game === d.id) || events.some((e) => e.game === d.id),
-  );
-  // With every game shown, no single one takes the whole grid: each gets its share first.
-  const shown = (list: Pick[], most: number) => {
-    if (game) return list.filter((p) => p.game === game).slice(0, most);
-    const share = Math.max(2, Math.ceil(most / Math.max(1, games.length)));
-    const taken = new Map<string, number>();
-    const first = list.filter((p) => {
-      const n = taken.get(p.game) ?? 0;
-      taken.set(p.game, n + 1);
-      return n < share;
-    });
-    return [...first, ...list.filter((p) => !first.includes(p))].slice(0, most);
-  };
+        game: c.discipline,
+      },
+    ];
+  });
+  const on = game
+    ? events.filter((e) => e.game === game).slice(0, EVENTS * 2)
+    : inTurn(
+        games.map((d) => events.filter((e) => e.game === d.id)),
+        EVENTS,
+      );
+
   const picked = atlas.world.follows.length;
   const done = () => {
     remember();
     onDone();
   };
-  const people = shown(playing, 12);
-  const on = shown(events, 8);
 
   return (
     <>
@@ -206,13 +299,20 @@ export function Welcome({ board, onDone }: { board: Board; onDone: () => void })
           ) : null}
         </div>
       </section>
-      {people.length ? (
+      {picks.length ? (
         <>
           <h2 className="bx-h2">
-            Playing today <small>tap to follow</small>
+            {game
+              ? `The top of ${atlas.discipline(game as DisciplineId).name}`
+              : "The top of each game"}
+            <small>tap to follow</small>
+            <Link to="/search" data-k="find">
+              <Search size={15} aria-hidden />
+              <span>Find someone else</span>
+            </Link>
           </h2>
           <div className="bx-pks">
-            {people.map((p) => (
+            {picks.map((p) => (
               <PickCard key={p.follow.id} pick={p} />
             ))}
           </div>

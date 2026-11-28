@@ -609,7 +609,7 @@ export function TeamPage({ teamId }: { teamId: string }) {
     <>
       <Back />
       <section className="bx-stage" data-live={live.length ? "" : undefined}>
-        <CardSky live={live.length > 0} />
+        <CardSky />
         <div className="bx-ent-in">
           <div className="bx-eh">
             <span className="bx-pp-mark" {...light(side.color, 620, 1)}>

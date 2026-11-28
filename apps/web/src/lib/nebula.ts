@@ -2,8 +2,14 @@
  * What a top card's sky holds of the teams and players on it. The form follows the hour, as the
  * sky's own does (lib/sky.ts): by day it is a little cloud that takes their colour, at dawn and
  * dusk the low light along the bottom of the sky, at night a faint nebula. It is drawn by one
- * fragment shader on a canvas laid over the sky of the hour. The canvas is premultiplied, so one
- * pass both adds light and lets cloud cover what is behind it.
+ * fragment shader into a picture laid over the sky of the hour. The picture is premultiplied, so
+ * one pass both adds light and lets cloud cover what is behind it.
+ *
+ * It is a still picture, drawn again only when the card changes, and one painter serves every
+ * card in the app. Both matter where a browser has no graphics card behind it: there a picture
+ * costs a few hundredths of a second, which twenty times a second made every press wait. The
+ * painter's program is also built off the main thread where the browser can, because building
+ * it takes most of a second.
  *
  * Nothing here is needed for the page to work: without WebGL the card keeps the plain sky.
  */
@@ -30,8 +36,6 @@ export interface NebulaView {
   form: SkyForm;
   /** The amber light before a start the viewer is waiting for, 0 to 1. */
   first: number;
-  /** A match is on: its lights breathe. */
-  live: boolean;
   /** Moves the clouds, so that two cards and two days do not look alike. */
   seed: number;
 }
@@ -210,64 +214,112 @@ export function skyColours(hex: string): [[number, number, number], [number, num
   return [rgbOf(L, C, h), rgbOf(L * 0.9, Math.min(0.22, C * 1.1), (h + turn + 360) % 360)];
 }
 
-/** One card's canvas and the program that draws on it. */
-export class Nebula {
-  private gl: WebGLRenderingContext | null;
+/** The one canvas and program every card's picture is drawn with. */
+class Painter {
+  private canvas: OffscreenCanvas;
+  private gl: WebGLRenderingContext | null = null;
   private at: (name: string) => WebGLUniformLocation | null = () => null;
   private colours = new Map<string, ReturnType<typeof skyColours>>();
+  private waiting: (() => void)[] = [];
+  /** Being built, able to draw, or not able to (no WebGL, or the context was taken away). */
+  state: "making" | "ready" | "none" = "making";
+  /** The context was there and was taken away, so asking again may work. */
+  lost = false;
 
-  constructor(private canvas: HTMLCanvasElement) {
-    const gl = canvas.getContext("webgl", {
+  constructor() {
+    this.canvas = new OffscreenCanvas(2, 2);
+    const gl = this.canvas.getContext("webgl", {
       premultipliedAlpha: true,
       alpha: true,
       antialias: false,
     });
+    if (!gl) {
+      this.state = "none";
+      return;
+    }
     this.gl = gl;
-    if (!gl) return;
+    this.canvas.addEventListener("webglcontextlost", () => {
+      this.lost = true;
+      this.settle("none");
+    });
+    // Asked for before anything is compiled: with it the browser builds the program on another
+    // thread and says when it is done, and nothing here waits for it.
+    const parallel = gl.getExtension("KHR_parallel_shader_compile");
     const shader = (type: number, source: string) => {
       const s = gl.createShader(type);
       if (!s) return null;
       gl.shaderSource(s, source);
       gl.compileShader(s);
-      return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
+      return s;
     };
     const vs = shader(gl.VERTEX_SHADER, VERTEX);
     const fs = shader(gl.FRAGMENT_SHADER, FRAGMENT);
     const program = gl.createProgram();
     if (!vs || !fs || !program) {
-      this.gl = null;
+      this.state = "none";
       return;
     }
     gl.attachShader(program, vs);
     gl.attachShader(program, fs);
     gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      this.gl = null;
-      return;
+    const finish = () => {
+      if (this.state !== "making") return;
+      if (gl.isContextLost() || !gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        this.settle("none");
+        return;
+      }
+      gl.useProgram(program);
+      // One triangle that covers the canvas.
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+      const p = gl.getAttribLocation(program, "p");
+      gl.enableVertexAttribArray(p);
+      gl.vertexAttribPointer(p, 2, gl.FLOAT, false, 0, 0);
+      const found = new Map<string, WebGLUniformLocation | null>();
+      this.at = (name) => {
+        if (!found.has(name)) found.set(name, gl.getUniformLocation(program, name));
+        return found.get(name) ?? null;
+      };
+      this.settle("ready");
+    };
+    if (parallel) {
+      const look = () => {
+        if (this.state !== "making") return;
+        if (gl.isContextLost()) this.settle("none");
+        else if (gl.getProgramParameter(program, parallel.COMPLETION_STATUS_KHR)) finish();
+        else setTimeout(look, 50);
+      };
+      setTimeout(look, 50);
+    } else if (typeof requestIdleCallback === "function") {
+      // Asking whether it is done waits until it is: left for a moment when nothing else is on.
+      requestIdleCallback(finish, { timeout: 4000 });
+    } else {
+      setTimeout(finish, 1500);
     }
-    gl.useProgram(program);
-    // One triangle that covers the canvas.
-    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-    const p = gl.getAttribLocation(program, "p");
-    gl.enableVertexAttribArray(p);
-    gl.vertexAttribPointer(p, 2, gl.FLOAT, false, 0, 0);
-    const found = new Map<string, WebGLUniformLocation | null>();
-    this.at = (name) => {
-      if (!found.has(name)) found.set(name, gl.getUniformLocation(program, name));
-      return found.get(name) ?? null;
+  }
+
+  private settle(state: "ready" | "none") {
+    this.state = state;
+    if (state === "none") this.gl = null;
+    for (const told of this.waiting.splice(0)) told();
+  }
+
+  /** Calls back once it is known whether pictures can be drawn. Returns a way to stop waiting. */
+  whenSettled(told: () => void): () => void {
+    if (this.state !== "making") {
+      told();
+      return () => {};
+    }
+    this.waiting.push(told);
+    return () => {
+      this.waiting = this.waiting.filter((x) => x !== told);
     };
   }
 
-  /** Whether anything can be drawn at all. */
-  get works(): boolean {
-    return this.gl !== null;
-  }
-
-  /** Draws the card as it is `time` seconds in. */
-  draw(view: NebulaView, time: number) {
+  /** The picture for one card, or nothing if none can be drawn (yet). */
+  draw(view: NebulaView): ImageBitmap | null {
     const gl = this.gl;
-    if (!gl || gl.isContextLost()) return;
+    if (!gl || this.state !== "ready" || gl.isContextLost()) return null;
     const w = Math.max(1, Math.round(view.width * SCALE));
     const h = Math.max(1, Math.round(view.height * SCALE));
     if (this.canvas.width !== w || this.canvas.height !== h) {
@@ -280,9 +332,7 @@ export class Nebula {
     const ld = new Float32Array(MOST * 3);
     const lk = new Float32Array(MOST);
     lights.forEach((l, i) => {
-      // While a match is on, its lights breathe, slowly and out of step.
-      const breath = view.live ? 1 + 0.07 * Math.sin(time * (0.8 + i * 0.17) + i * 2.1) : 1;
-      lp.set([l.x, l.y, l.r * breath, l.a], i * 4);
+      lp.set([l.x, l.y, l.r, l.a], i * 4);
       let pair = this.colours.get(l.color);
       if (!pair) {
         pair = skyColours(l.color);
@@ -295,7 +345,7 @@ export class Nebula {
     gl.viewport(0, 0, w, h);
     gl.uniform2f(this.at("uRes"), w, h);
     gl.uniform1f(this.at("uScale"), SCALE);
-    gl.uniform1f(this.at("uT"), time);
+    gl.uniform1f(this.at("uT"), 0);
     gl.uniform1f(this.at("uNight"), view.form.night);
     gl.uniform1f(this.at("uDay"), view.form.day);
     gl.uniform1f(this.at("uTwi"), view.form.twilight);
@@ -310,11 +360,34 @@ export class Nebula {
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
+    return this.canvas.transferToImageBitmap();
   }
+}
 
-  /** Gives the graphics memory back; the canvas is not used again. */
-  dispose() {
-    this.gl?.getExtension("WEBGL_lose_context")?.loseContext();
-    this.gl = null;
-  }
+let painter: Painter | undefined;
+
+/** The app's one painter, made the first time a card asks; none where the browser lacks the parts. */
+function painterOf(): Painter | undefined {
+  if (typeof OffscreenCanvas === "undefined" || typeof ImageBitmap === "undefined")
+    return undefined;
+  // A context the browser took away (a sleeping laptop, a driver update) is asked for again.
+  if (!painter || (painter.state === "none" && painter.lost)) painter = new Painter();
+  return painter;
+}
+
+/**
+ * Calls back once pictures can be asked for (at once if they can already), and never where they
+ * cannot be drawn at all. Returns a way to stop waiting.
+ */
+export function whenNebulaReady(told: () => void): () => void {
+  const p = painterOf();
+  if (!p) return () => {};
+  return p.whenSettled(() => {
+    if (p.state === "ready") told();
+  });
+}
+
+/** The picture of one card's colours, to be laid over its sky; nothing while none can be drawn. */
+export function nebulaPicture(view: NebulaView): ImageBitmap | null {
+  return painterOf()?.draw(view) ?? null;
 }

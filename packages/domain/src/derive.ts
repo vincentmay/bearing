@@ -19,6 +19,8 @@ export class Atlas {
   private readonly tournamentById = new Map<string, Tournament>();
   private readonly matchById = new Map<string, Match>();
   private readonly disciplineById = new Map<DisciplineId, Discipline>();
+  /** The team each player is on now; built the first time it is asked for. */
+  private teamNow?: Map<string, string>;
 
   constructor(world: World) {
     this.world = world;
@@ -134,17 +136,28 @@ export class Atlas {
     return this.world.follows.some((f) => {
       if ((f.kind === "team" || f.kind === "player") && f.id === id) return true;
       if (f.kind === "organization" && c?.kind === "team" && c.orgId === f.id) return true;
-      if (f.kind === "player") {
-        const stint = this.world.stints.find((s) => s.playerId === f.id && !s.to);
-        return stint?.teamId === id;
-      }
+      if (f.kind === "player") return this.teamOf(f.id) === id;
       return false;
     });
   }
 
+  /**
+   * The team a player is on now. Every page asks this for every match and every follow, so the
+   * answer is looked up, not searched for among all stints each time.
+   */
+  private teamOf(playerId: string): string | undefined {
+    if (!this.teamNow) {
+      this.teamNow = new Map();
+      for (const s of this.world.stints) {
+        if (!s.to && !this.teamNow.has(s.playerId)) this.teamNow.set(s.playerId, s.teamId);
+      }
+    }
+    return this.teamNow.get(playerId);
+  }
+
   private rosterTouches(match: Match, playerId: string): boolean {
-    const stint = this.world.stints.find((s) => s.playerId === playerId && !s.to);
-    return !!stint && match.sides.some((s) => s.competitorId === stint.teamId);
+    const teamId = this.teamOf(playerId);
+    return !!teamId && match.sides.some((s) => s.competitorId === teamId);
   }
 
   stints(teamId: string): Stint[] {

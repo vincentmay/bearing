@@ -284,7 +284,7 @@ export function Front({
       {why}
     </span>
   ) : null;
-  const sky = <CardSky first={first} live={live} />;
+  const sky = <CardSky first={first} />;
   // `named`: the link holds only a logo, so it carries the name for whoever cannot see it.
   const team = (side: SideView | undefined, mark: ReactNode, named = false) =>
     side?.id ? (

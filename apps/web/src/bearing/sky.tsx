@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useId, useMemo, useRef } from "react";
-import { type Light, Nebula, type NebulaView } from "../lib/nebula";
+import { type Light, type NebulaView, nebulaPicture, whenNebulaReady } from "../lib/nebula";
 import { usePrefs } from "../lib/prefs";
 import { type SkyForm, hourIn, skyCard, skyForm, skyScene } from "../lib/sky";
 import { useMinute } from "../lib/world";
@@ -26,7 +26,6 @@ export function light(
 interface CardSkyState {
   form: SkyForm;
   first: number;
-  live: boolean;
   seed: number;
 }
 
@@ -38,12 +37,9 @@ interface CardSkyState {
  */
 export function CardSky({
   first = 0,
-  live = false,
 }: {
   /** The amber light before a start the viewer is waiting for, 0 to 1. */
   first?: number;
-  /** A match is on: the colours breathe. */
-  live?: boolean;
 }) {
   const step = useSkyHour();
   // Gradients and filters are found by id, so each drawing on the page needs its own.
@@ -53,8 +49,8 @@ export function CardSky({
   const svg = useMemo(() => skyCard(step, { id, seed }), [step, id, seed]);
   const form = useMemo(() => skyForm(step), [step]);
   const box = useRef<HTMLDivElement>(null);
-  const state = useRef<CardSkyState>({ form, first, live, seed });
-  state.current = { form, first, live, seed };
+  const state = useRef<CardSkyState>({ form, first, seed });
+  state.current = { form, first, seed };
   const again = useRef<() => void>(() => {});
 
   useEffect(() => {
@@ -63,16 +59,15 @@ export function CardSky({
     if (!el || !card) return;
     const canvas = document.createElement("canvas");
     canvas.className = "bx-neb";
-    const nebula = new Nebula(canvas);
-    if (!nebula.works) return;
+    const target = canvas.getContext("bitmaprenderer");
+    if (!target) return;
     el.appendChild(canvas);
-    const still = matchMedia("(prefers-reduced-motion: reduce)");
-    let view: NebulaView | null = null;
-    let idle = true;
+    const born = performance.now();
 
-    const measure = () => {
+    /** What the card holds right now, or nothing if there is no colour to show. */
+    const measure = (): NebulaView | null => {
       const R = card.getBoundingClientRect();
-      if (!R.width || !R.height) return;
+      if (!R.width || !R.height) return null;
       const small = R.width < 700 ? 0.62 : 1;
       const lights: Light[] = [];
       for (const source of card.querySelectorAll<HTMLElement>("[data-light]")) {
@@ -80,62 +75,81 @@ export function CardSky({
         const [color, reach, strength] = (source.dataset.light ?? "").split(";");
         if (!r.width || !color) continue;
         lights.push({
-          x: r.left + r.width / 2 - R.left,
-          y: r.top + r.height / 2 - R.top,
-          r: Math.min(R.width * 0.46, Number(reach) * small),
+          x: Math.round(r.left + r.width / 2 - R.left),
+          y: Math.round(r.top + r.height / 2 - R.top),
+          r: Math.round(Math.min(R.width * 0.46, Number(reach) * small)),
           color,
           a: Number(strength),
           k: r.width / 2,
         });
       }
       const now = state.current;
-      view = {
-        width: R.width,
-        height: R.height,
+      // With nobody on the card and no low light, there is nothing to draw.
+      if (!lights.length && now.form.twilight < 0.01 && now.first < 0.01) return null;
+      return {
+        width: Math.round(R.width),
+        height: Math.round(R.height),
         lights,
         form: now.form,
         first: now.first,
-        live: now.live,
         seed: now.seed + 0.37,
       };
-      // With nobody on the card and no low light, there is nothing to draw or to move.
-      idle = !lights.length && now.form.twilight < 0.01 && now.first < 0.01;
     };
-    const paint = (ms: number) => {
-      if (view) nebula.draw(view, still.matches ? 0 : ms / 1000);
-    };
-    const refresh = () => {
-      measure();
-      paint(performance.now());
-    };
-    again.current = refresh;
-    refresh();
-    // Fonts and logos arriving move what is on the card.
-    void document.fonts.ready.then(refresh);
-    const sizes = new ResizeObserver(refresh);
-    sizes.observe(card);
 
-    // The gas drifts slowly: twenty pictures a second are plenty, and none while out of sight.
-    let seen = true;
-    const sight = new IntersectionObserver(([entry]) => {
-      seen = entry?.isIntersecting ?? true;
-    });
-    sight.observe(card);
+    // The picture is still: it is drawn again only when what it shows has changed, at most a
+    // few times a second (a window being dragged wider asks sixty times).
+    let shown = "";
     let frame = 0;
-    let last = 0;
-    const tick = (ms: number) => {
-      frame = requestAnimationFrame(tick);
-      if (idle || !seen || document.hidden || still.matches || ms - last < 50) return;
-      last = ms;
-      paint(ms);
+    let timer = 0;
+    let last = -1000;
+    const ask = () => {
+      if (!frame) frame = requestAnimationFrame(paint);
     };
-    frame = requestAnimationFrame(tick);
+    let fonts = false;
+    const paint = () => {
+      frame = 0;
+      // Fonts arriving move what is on the card. Asked here and not when the card is made:
+      // asking makes the browser lay the page out, which at this point it has done anyway.
+      if (!fonts) {
+        fonts = true;
+        void document.fonts.ready.then(ask);
+      }
+      const wait = last + 150 - performance.now();
+      if (wait > 0) {
+        clearTimeout(timer);
+        timer = window.setTimeout(ask, wait);
+        return;
+      }
+      const view = measure();
+      const key = view ? JSON.stringify(view) : "";
+      if (key === shown) return;
+      if (!view) {
+        target.transferFromImageBitmap(null);
+        shown = key;
+        return;
+      }
+      const picture = nebulaPicture(view);
+      // Not ready yet: `ready` below asks again when it is.
+      if (!picture) return;
+      shown = key;
+      last = performance.now();
+      canvas.width = picture.width;
+      canvas.height = picture.height;
+      target.transferFromImageBitmap(picture);
+      // A picture that comes after the page already stood fades in; one that is there with the
+      // page is simply there.
+      if (!canvas.dataset.on) canvas.dataset.on = last - born > 250 ? "late" : "first";
+    };
+    again.current = ask;
+    const waiting = whenNebulaReady(ask);
+    const sizes = new ResizeObserver(ask);
+    sizes.observe(card);
     return () => {
+      waiting();
       cancelAnimationFrame(frame);
+      clearTimeout(timer);
       sizes.disconnect();
-      sight.disconnect();
       again.current = () => {};
-      nebula.dispose();
       canvas.remove();
     };
   }, []);
