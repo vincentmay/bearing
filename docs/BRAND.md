@@ -1,5 +1,10 @@
 # Bearing identity, version 2
 
+> **Replaced (2026-11-28).** This is the black-and-white Bearing identity of 2026-11-16. The app
+> now wears the Kiming identity (indigo, Sunrise amber, Zalando Sans, the sky of the hour) in a
+> new design; see the note at the top of `REQUIREMENTS.md` and `apps/web/src/bearing/kiming.css`.
+> Kept here for the reasoning behind dots, discs and motion, parts of which live on.
+
 Agreed step by step on 2026-11-16. The working version is the live prototype
 `docs/identity/round-10.html`; the reasoning behind the product is in `BRAND-CORE.md`. The app
 uses this identity under `apps/web/src/bearing/`; the six earlier directions and the retired

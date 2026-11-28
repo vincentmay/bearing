@@ -1,5 +1,25 @@
 # Bearing: requirements
 
+> **Read this first (2026-11-28).** The app was redesigned from the ground up as Kiming, and the
+> owner said of the old design: "Everything from before can be thrown out." What this document
+> says about data, sources, accounts and what each page must be able to show still holds. What
+> it says about how things look and where they sit does not: sections 3 and 4 (identity,
+> navigation, the layout of each screen) describe the design that was replaced. The design that
+> is built now:
+>
+> - Three places, Live, Schedule and Following, in a pill at the top (on a phone in a capsule at
+>   the bottom). Search is not a place: it opens over any page with Ctrl K.
+> - One card at the top of each page wears the sky of the viewer's hour, in both themes: cumulus
+>   by day, low light at dawn and dusk, stars and a violet nebula at night. Teams and players on
+>   the card give the sky a little of their colour, and the side that is ahead gives more
+>   (`apps/web/src/lib/sky.ts`, `lib/nebula.ts`, `bearing/sky.tsx`). Following keeps the plain sky.
+> - Everything else is large rounded rows and panels on plain black or white
+>   (`apps/web/src/bearing/kiming.css` and the `pages-*.css` beside it).
+> - Live puts one match in front: something followed that is live, else the biggest live match
+>   (event tier, then how far into the event), else the viewer's next match
+>   (`apps/web/src/lib/view.ts`, `bearing/today.tsx`, `bearing/front.tsx`).
+> - A first visit asks once what the viewer follows (`bearing/welcome.tsx`).
+
 Written on 2026-11-16 as a handover. It is meant to be enough for someone who was not part of the
 design work to build the application with the agreed brand identity.
 
