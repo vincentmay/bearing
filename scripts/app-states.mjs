@@ -33,7 +33,7 @@ await page.waitForSelector(".bx-problem");
 await page.screenshot({ path: `${out}/not-found.png` });
 
 await page.goto(base + "/search", { waitUntil: "networkidle" });
-await page.locator(".bx-field input").fill("zzzz");
+await page.locator(".bx-pal-inp input").fill("zzzz");
 await page.waitForTimeout(300);
 await page.screenshot({ path: `${out}/nothing-found.png` });
 
@@ -44,7 +44,7 @@ for (const [name, path] of [
   ["following-empty", "/following"],
 ]) {
   await page.goto(base + path, { waitUntil: "networkidle" });
-  await page.waitForSelector(".bx-nav");
+  await page.waitForSelector(".bx-tabs");
   await page.evaluate(() => window.bearing?.pause());
   await page.waitForTimeout(400);
   await page.screenshot({ path: `${out}/${name}.png` });

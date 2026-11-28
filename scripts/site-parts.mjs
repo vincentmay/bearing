@@ -14,7 +14,7 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 800 }, use
 const thrown = [];
 page.on("pageerror", (e) => thrown.push(String(e).slice(0, 160)));
 await page.goto(base + "/", { waitUntil: "domcontentloaded" });
-await page.waitForSelector(".bx-nav");
+await page.waitForSelector(".bx-tabs");
 await page.evaluate((to) => {
   history.pushState({}, "", to);
   dispatchEvent(new PopStateEvent("popstate"));

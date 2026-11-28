@@ -31,7 +31,7 @@ for (const run of ["cold", "warm"]) {
   const marks = {};
   await page.goto(base + path, { waitUntil: "commit" });
   marks.commit = Date.now() - start;
-  await page.waitForSelector(".bx-nav", { timeout: 60000 });
+  await page.waitForSelector(".bx-tabs", { timeout: 60000 });
   marks.frame = Date.now() - start;
   await page.waitForSelector(".bx-wait", { timeout: 2000 }).then(
     () => (marks.skeleton = Date.now() - start),

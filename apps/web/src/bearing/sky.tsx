@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useId, useMemo, useRef } from "react";
 import { type Light, Nebula, type NebulaView } from "../lib/nebula";
 import { usePrefs } from "../lib/prefs";
-import { type SkyForm, hourIn, skyBand, skyCard, skyForm, skyScene } from "../lib/sky";
+import { type SkyForm, hourIn, skyCard, skyForm, skyScene } from "../lib/sky";
 import { useMinute } from "../lib/world";
 
 /** The viewer's hour, in steps of five minutes: the sky changes slowly. */
@@ -9,25 +9,6 @@ function useSkyHour(): number {
   const now = useMinute();
   const { zone } = usePrefs();
   return Math.round(hourIn(now, zone) * 12) / 12;
-}
-
-/**
- * The sky band at the top of Today (brand book §8): the sky at the viewer's own hour, fading into
- * the page. It is drawn once every five minutes at most, carries no text, and never sits behind a
- * list. Both drawings are made, the dimmed sky for the dark theme and the paper sky for the light
- * one, and CSS shows the one that matches the theme, so it follows the system setting with no
- * script.
- */
-export function SkyBand() {
-  const step = useSkyHour();
-  const dark = useMemo(() => skyBand(step, { theme: "dark", id: "bxskyd" }), [step]);
-  const light = useMemo(() => skyBand(step, { theme: "light", id: "bxskyl" }), [step]);
-  return (
-    <div className="bx-skyband" aria-hidden>
-      <div className="bx-sky-dark" dangerouslySetInnerHTML={{ __html: dark }} />
-      <div className="bx-sky-light" dangerouslySetInnerHTML={{ __html: light }} />
-    </div>
-  );
 }
 
 /**

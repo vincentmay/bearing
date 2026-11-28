@@ -61,7 +61,7 @@ for (const { mode, viewport, scheme, scale } of MODES) {
         thrown.push("console: " + m.text().slice(0, 160));
     });
     await page.goto(base + path, { waitUntil: "domcontentloaded" });
-    await page.waitForSelector(".bx-nav, .bx-problem, main", { timeout: 30000 }).catch(() => {});
+    await page.waitForSelector(".bx-tabs, .bx-problem, main", { timeout: 30000 }).catch(() => {});
     await page.waitForTimeout(2600);
     const report = await page.evaluate(() => {
       const visible = (el) => {
@@ -121,7 +121,7 @@ const page = await context.newPage();
 const broken = [];
 const list = [...links].filter((href) => !PAGES.some(([, p]) => p === href)).slice(0, 220);
 await page.goto(base + "/", { waitUntil: "domcontentloaded" });
-await page.waitForSelector(".bx-nav", { timeout: 30000 });
+await page.waitForSelector(".bx-tabs", { timeout: 30000 });
 for (const href of list) {
   // Moved to within the app, as a press on the link would: no reload.
   await page.evaluate((to) => {

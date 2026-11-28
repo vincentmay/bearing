@@ -15,6 +15,7 @@ import {
   ArrowUpDown,
   Check,
   ChevronLeft,
+  Clock,
   ChevronRight,
   Copy,
   Pause,
@@ -36,9 +37,9 @@ import {
 import { useGameJudgements, useJudgement } from "../../lib/engine";
 import { BOARDS, PIECES, setPrefs, usePrefs } from "../../lib/prefs";
 import type { SideView } from "../model";
-import { Disc, Flag } from "../ui";
+import { Disc, Flag, Ping } from "../ui";
 import { Board, type Shape, type Verdict } from "./board";
-import { MARKS, chances, clock, markOf, written } from "./judge";
+import { MARKS, chances, clock, markOf, said, written } from "./judge";
 import { follow, taken } from "./men";
 
 /** Who sits on one side of the board, and what is known of them. */
@@ -57,6 +58,7 @@ interface Own {
 }
 
 const BOARD_NAMES: Record<string, string> = {
+  indigo: "Indigo",
   ink: "Ink",
   slate: "Slate",
   green: "Green",
@@ -106,7 +108,12 @@ export function ChessGame({
   white,
   black,
   opening,
+  name,
+  state,
 }: {
+  /** The line over the board: which game it is, and where it stands. */
+  name?: string;
+  state?: string;
   moves: string[];
   evals?: number[];
   clocks?: number[];
@@ -365,7 +372,7 @@ export function ChessGame({
         data-face={who.side.image ? "" : undefined}
         data-turn={!over && toMove === colour ? "" : undefined}
       >
-        <Disc side={side} size={32} />
+        <Disc side={side} size={30} />
         <span className="bx-seat-who">
           <b>
             {who.title ? <i>{who.title}</i> : null}
@@ -396,6 +403,7 @@ export function ChessGame({
             data-low={running && toMove === colour && time < 20 ? "" : undefined}
             aria-label={`${colour ? "Black" : "White"}'s clock`}
           >
+            {!over && !own && toMove === colour ? <Clock size={15} strokeWidth={2.4} /> : null}
             {clock(time)}
           </span>
         ) : null}
@@ -461,6 +469,12 @@ export function ChessGame({
         spoken = me.current;
       }}
     >
+      {name ? (
+        <div className="bx-cap bx-chess-name">
+          <span>{name}</span>
+          {state ? <span>{state}</span> : null}
+        </div>
+      ) : null}
       <div className="bx-chess-main">
         {seat(top, turned ? 0 : 1)}
         <div className="bx-chess-table">
@@ -475,7 +489,6 @@ export function ChessGame({
               aria-label={`The engine's judgement: ${written(now)} for ${now >= 0 ? "White" : "Black"}`}
             >
               <i />
-              <b className="bx-num">{written(now).replace(/^[+−]/, "")}</b>
             </div>
           ) : null}
           <Board
@@ -599,64 +612,98 @@ export function ChessGame({
             </div>
           </div>
         ) : null}
+        {live ? (
+          <button
+            type="button"
+            className="bx-chess-live"
+            data-with={atEnd ? "" : undefined}
+            onClick={() => go(plies.length)}
+            aria-label={atEnd ? "Following the game as it is played" : "Back to the live move"}
+          >
+            <Ping />
+            {atEnd
+              ? `Live · ${toMove ? "Black" : "White"} to move`
+              : `Back to live${plies.length - base > 0 ? ` · ${plies.length - base} on` : ""}`}
+          </button>
+        ) : null}
       </div>
 
       <div className="bx-chess-side">
-        <div className="bx-chess-head">
-          {opening ? (
-            <p className="bx-chess-opening">
-              {code ? <i>{code}</i> : null}
-              {code ? opening.slice(4) : opening}
-            </p>
-          ) : null}
-          {live ? (
-            <button
-              type="button"
-              className="bx-chess-live"
-              data-with={atEnd ? "" : undefined}
-              onClick={() => go(plies.length)}
-              aria-label={atEnd ? "Following the game as it is played" : "Back to the live move"}
-            >
-              <i />
-              {atEnd
-                ? "Live"
-                : `Live · ${plies.length - base > 0 ? `${plies.length - base} on` : "return"}`}
-            </button>
-          ) : null}
-        </div>
-        {prefs.engine ? (
-          <div className="bx-engine" data-ahead={now >= 0 ? "white" : "black"}>
-            <b className="bx-num">{written(now)}</b>
-            <span className="bx-engine-line">
-              {expected.length ? (
-                expected.map((ply, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => explore(expected.slice(0, i + 1))}
-                    title="Play this line on the board"
-                  >
-                    <i>{numbered(played + i, i === 0)}</i>
-                    {ply.san}
-                  </button>
-                ))
-              ) : (
-                <span className="bx-sub">
-                  {mated ? "Checkmate" : judgement ? "" : "Looking at the position…"}
-                </span>
-              )}
-            </span>
+        {judging || curve ? (
+          <div className="bx-cap">
+            <span>The engine</span>
             {judgement && !mated ? (
-              <span className="bx-engine-by bx-mono">
+              <span>
                 {judgement.by === "Stockfish" ? "Stockfish 19" : "Lichess"} · depth{" "}
                 {judgement.depth}
               </span>
             ) : null}
           </div>
         ) : null}
+        {judging || curve ? (
+          <div className="bx-engine" data-ahead={now >= 0 ? "white" : "black"}>
+            <div className="bx-engine-top">
+              <b className="bx-num">{written(now)}</b>
+              <span>{said(now)}</span>
+            </div>
+            <div
+              className="bx-engine-bar"
+              style={{ "--w": `${share}%` } as CSSProperties}
+              aria-hidden
+            >
+              <i />
+            </div>
+            {prefs.engine && !mated && (expected.length || !judgement) ? (
+              <span className="bx-engine-line">
+                {expected.length ? (
+                  expected.map((ply, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => explore(expected.slice(0, i + 1))}
+                      title="Play this line on the board"
+                    >
+                      <i>{numbered(played + i, i === 0)}</i>
+                      {ply.san}
+                    </button>
+                  ))
+                ) : (
+                  <span className="bx-engine-wait">Looking at the position…</span>
+                )}
+              </span>
+            ) : null}
+            {curve ? (
+              <svg
+                className="bx-evalgraph"
+                viewBox={`0 0 ${judged.length - 1} 40`}
+                preserveAspectRatio="none"
+                onPointerDown={pick}
+                onPointerMove={pick}
+                role="img"
+                aria-label="The engine's judgement through the game; point at it to go to a move"
+              >
+                <path data-area="" d={curve.area} />
+                <path data-line="" d={curve.line} />
+                {base > 0 ? (
+                  <line
+                    data-at=""
+                    x1={Math.min(base, judged.length) - 1}
+                    x2={Math.min(base, judged.length) - 1}
+                    y1="0"
+                    y2="40"
+                  />
+                ) : null}
+              </svg>
+            ) : null}
+          </div>
+        ) : null}
+        {own ? (
+          <div className="bx-cap">
+            <span>Your line</span>
+          </div>
+        ) : null}
         {own ? (
           <div className="bx-ownline">
-            <span className="bx-kicker">Your line</span>
             <div>
               {own.plies.map((ply, i) => (
                 <button
@@ -676,6 +723,15 @@ export function ChessGame({
             </button>
           </div>
         ) : null}
+        <div className="bx-cap">
+          <span>Moves</span>
+          {opening ? (
+            <span className="bx-chess-opening" title={opening}>
+              {code ? <i>{code}</i> : null}
+              {code ? opening.slice(4) : opening}
+            </span>
+          ) : null}
+        </div>
         <ol className="bx-moves" ref={list} data-dim={own ? "" : undefined}>
           {pairs.map((n) => (
             <li key={n}>
@@ -707,30 +763,6 @@ export function ChessGame({
           ))}
         </ol>
       </div>
-
-      {curve ? (
-        <svg
-          className="bx-evalgraph"
-          viewBox={`0 0 ${judged.length - 1} 40`}
-          preserveAspectRatio="none"
-          onPointerDown={pick}
-          onPointerMove={pick}
-          role="img"
-          aria-label="The engine's judgement through the game; point at it to go to a move"
-        >
-          <path data-area="" d={curve.area} />
-          <path data-line="" d={curve.line} />
-          {base > 0 ? (
-            <line
-              data-at=""
-              x1={Math.min(base, judged.length) - 1}
-              x2={Math.min(base, judged.length) - 1}
-              y1="0"
-              y2="40"
-            />
-          ) : null}
-        </svg>
-      ) : null}
     </div>
   );
 }

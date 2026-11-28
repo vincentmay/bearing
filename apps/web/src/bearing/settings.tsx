@@ -1,12 +1,23 @@
+import "./pages-you.css";
 import { Link } from "@tanstack/react-router";
-import { ChevronLeft } from "lucide-react";
-import { useAccount } from "../lib/account";
+import { ChevronDown, ChevronLeft, LogIn, Settings as Gear, UserRound } from "lucide-react";
+import type { ReactNode } from "react";
+import { type Account, useAccount } from "../lib/account";
 import { reader } from "../lib/backend";
-import { type Prefs, setPrefs, usePrefs } from "../lib/prefs";
+import {
+  BOARDS,
+  type BoardStyle,
+  PIECES,
+  type PieceSet,
+  type Prefs,
+  setPrefs,
+  usePrefs,
+} from "../lib/prefs";
 import { pinned, useMinute } from "../lib/world";
 import { useOrigin } from "./shell";
+import { CardSky } from "./sky";
 import { useTimes } from "./time";
-import { Section, Segmented } from "./ui";
+import { Segmented } from "./ui";
 
 const THEMES = [
   { value: "system", label: "As the device" },
@@ -20,11 +31,75 @@ const HOURS = [
   { value: "12", label: "12 hours" },
 ] as const satisfies readonly { value: Prefs["hours"]; label: string }[];
 
+const PIECE_NAMES: Record<PieceSet, string> = {
+  mpchess: "Modern",
+  cburnett: "Classic",
+  merida: "Merida",
+};
+const PIECE_SETS = PIECES.map((value) => ({ value, label: PIECE_NAMES[value] }));
+
+const BOARD_NAMES: Record<BoardStyle, string> = {
+  indigo: "Indigo",
+  ink: "Ink",
+  slate: "Slate",
+  green: "Green",
+  walnut: "Walnut",
+};
+
 function zones(): string[] {
   try {
     return Intl.supportedValuesOf("timeZone");
   } catch {
     return [];
+  }
+}
+
+/** One setting: its name, a line under it only where the control does not say it, the control. */
+function Row({ name, line, children }: { name: string; line?: ReactNode; children: ReactNode }) {
+  return (
+    <div className="bx-set-row">
+      <div>
+        <b>{name}</b>
+        {line ? <span>{line}</span> : null}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/** The viewer in the top card: their picture or initial, a figure, or a gear with no accounts. */
+function Face({ account }: { account: Account }) {
+  if (account.state === "in") {
+    return (
+      <span className="bx-set-av">
+        {account.image ? (
+          <img src={account.image} alt="" />
+        ) : (
+          <b aria-hidden>{(account.name ?? account.email ?? "?").slice(0, 1).toUpperCase()}</b>
+        )}
+      </span>
+    );
+  }
+  return (
+    <span className="bx-set-av" aria-hidden>
+      {account.state === "none" ? <Gear size={30} /> : <UserRound size={30} />}
+    </span>
+  );
+}
+
+function who(account: Account): string {
+  switch (account.state) {
+    case "in": {
+      const name = account.name ?? account.email ?? "you";
+      const mail = account.email && account.email !== name ? ` (${account.email})` : "";
+      return `Signed in as ${name}${mail}. What you follow is the same on every device.`;
+    }
+    case "out":
+      return "Not signed in. What you follow is kept on this device; signing in keeps it the same on every device.";
+    case "none":
+      return "This copy of Kiming runs without accounts. What you follow is kept on this device.";
+    default:
+      return "Looking for your account.";
   }
 }
 
@@ -37,136 +112,140 @@ export function Settings() {
   const account = useAccount();
   const device = Intl.DateTimeFormat().resolvedOptions().timeZone;
   return (
-    <div className="bx-page-narrow">
+    <div className="bx-page-set bx-set">
       <Link to={origin.to} className="bx-back">
         <ChevronLeft size={18} />
         {origin.label}
       </Link>
-      <header className="bx-head" style={{ marginTop: 12 }}>
-        <h1 className="bx-title">Settings</h1>
-      </header>
 
-      <Section label="Account">
-        <div className="bx-list">
-          {account.state === "in" ? (
-            <div className="bx-result bx-profile">
-              <span className="bx-menu-face" data-big="">
-                {account.image ? (
-                  <img src={account.image} alt="" />
-                ) : (
-                  <span aria-hidden>
-                    {(account.name ?? account.email ?? "?").slice(0, 1).toUpperCase()}
-                  </span>
-                )}
-              </span>
-              <span style={{ minWidth: 0 }}>
-                <b>{account.name ?? account.email ?? "Signed in"}</b>
-                <span className="bx-sub">
-                  {account.name && account.email ? `${account.email} · ` : ""}
-                  What you follow is kept in your account and is the same on every device.
-                </span>
-              </span>
+      <section className="bx-stage">
+        <CardSky />
+        <div className="bx-ent-in">
+          <div className="bx-eh">
+            <Face account={account} />
+            <div>
+              <h1>Settings</h1>
+              <p>{who(account)}</p>
             </div>
-          ) : (
-            <p className="bx-empty">
-              {account.state === "none"
-                ? "This copy of Kiming runs without accounts. What you follow is kept on this device."
-                : "You do not need an account. What you follow is kept on this device; signing in keeps it the same on every device."}
-            </p>
-          )}
+            {account.state === "in" ? (
+              <div className="bx-eh-acts">
+                <button type="button" className="bx-btn" data-k="quiet" onClick={account.manage}>
+                  Manage account
+                </button>
+                <button type="button" className="bx-btn" data-k="quiet" onClick={account.signOut}>
+                  Sign out
+                </button>
+              </div>
+            ) : account.state === "out" ? (
+              <div className="bx-eh-acts">
+                <Link to="/sign-in" search={{ from: "/settings" }} className="bx-btn" data-k="main">
+                  <LogIn size={16} aria-hidden />
+                  Sign in or create an account
+                </Link>
+              </div>
+            ) : null}
+          </div>
         </div>
-        {account.state === "out" ? (
-          <p style={{ margin: "12px 0 0" }}>
-            <Link to="/sign-in" search={{ from: "/settings" }} className="bx-button">
-              Sign in or create an account
-            </Link>
-          </p>
-        ) : null}
-        {account.state === "in" ? (
-          <p className="bx-row" style={{ margin: "12px 0 0", gap: 8, flexWrap: "wrap" }}>
-            <button type="button" className="bx-button" onClick={account.manage}>
-              Manage account
-            </button>
-            <button type="button" className="bx-button bx-button-quiet" onClick={account.signOut}>
-              Sign out
-            </button>
-          </p>
-        ) : null}
-        <p className="bx-note">
-          An account holds an email address and the list of what you follow, nothing else. The
-          settings above stay on this device.
-        </p>
-      </Section>
+      </section>
 
-      <Section label="Appearance">
-        <Segmented
-          options={THEMES}
-          value={prefs.theme}
-          onChange={(theme) => setPrefs({ theme })}
-          label="Appearance"
-        />
-      </Section>
+      <h2 className="bx-h2">Look</h2>
+      <div className="bx-panel">
+        <Row name="Appearance">
+          <Segmented
+            options={THEMES}
+            value={prefs.theme}
+            onChange={(theme) => setPrefs({ theme })}
+            label="Appearance"
+          />
+        </Row>
+      </div>
 
-      <Section label="Clock">
-        <Segmented
-          options={HOURS}
-          value={prefs.hours}
-          onChange={(hours) => setPrefs({ hours })}
-          label="Clock"
-        />
-        <p className="bx-note">
-          It is {times.clock(now)} on {times.date(now)}
-          {times.zone ? ` (${times.zone})` : ""}. Every time in Kiming is shown this way.
-        </p>
-      </Section>
+      <h2 className="bx-h2">Time</h2>
+      <div className="bx-panel">
+        <Row
+          name="Clock"
+          line={`It is ${times.clock(now)} on ${times.date(now)}${times.zone ? ` (${times.zone})` : ""}.`}
+        >
+          <Segmented
+            options={HOURS}
+            value={prefs.hours}
+            onChange={(hours) => setPrefs({ hours })}
+            label="Clock"
+          />
+        </Row>
+        <Row name="Time zone">
+          <label className="bx-set-sel">
+            <span className="bx-only">Time zone</span>
+            <select
+              value={prefs.zone ?? ""}
+              onChange={(e) => setPrefs({ zone: e.target.value || null })}
+            >
+              <option value="">As the device ({device})</option>
+              {zones().map((z) => (
+                <option key={z} value={z}>
+                  {z.replaceAll("_", " ")}
+                </option>
+              ))}
+            </select>
+            <ChevronDown size={16} aria-hidden />
+          </label>
+        </Row>
+      </div>
 
-      <Section label="Time zone">
-        <label className="bx-field" style={{ marginTop: 0 }}>
-          <span className="bx-only">Time zone</span>
-          <select
-            value={prefs.zone ?? ""}
-            onChange={(e) => setPrefs({ zone: e.target.value || null })}
-            style={{
-              all: "unset",
-              flex: 1,
-              minWidth: 0,
-              font: "500 14px var(--face)",
-              color: "var(--ink)",
-              cursor: "pointer",
-            }}
-          >
-            <option value="">As the device ({device})</option>
-            {zones().map((z) => (
-              <option key={z} value={z}>
-                {z.replaceAll("_", " ")}
-              </option>
+      <h2 className="bx-h2">Chess</h2>
+      <div className="bx-panel">
+        <Row name="Pieces">
+          <Segmented
+            options={PIECE_SETS}
+            value={prefs.pieces}
+            onChange={(pieces) => setPrefs({ pieces })}
+            label="Pieces"
+          />
+        </Row>
+        <Row name="Board">
+          <div className="bx-set-sws" role="group" aria-label="Board">
+            {BOARDS.map((name) => (
+              <button
+                key={name}
+                type="button"
+                data-board={name}
+                aria-pressed={prefs.board === name}
+                aria-label={BOARD_NAMES[name]}
+                title={BOARD_NAMES[name]}
+                onClick={() => setPrefs({ board: name })}
+              />
             ))}
-          </select>
-        </label>
-      </Section>
+          </div>
+        </Row>
+      </div>
 
-      <Section label="The data">
-        <div className="bx-list">
-          {pinned() ? (
-            <p className="bx-empty">
-              Kiming is running on sample data: real names, fictional events and generated results.
-              The live matches are played forward faster than real time so that there is something
-              to follow.{" "}
-              {reader
-                ? "The sample is kept on the server, so every open screen sees the same moment."
-                : "The sample is kept in this browser and starts again when the page is reloaded."}
-            </p>
-          ) : (
-            <p className="bx-empty">
-              What Kiming shows is real, and comes from those who publish it: schedules, results and
-              line-ups from PandaScore; the inside of League of Legends games from lolesports.com
-              and Leaguepedia (CC BY-SA 3.0); chess from Lichess broadcasts; the Counter-Strike
-              ranking from Valve. Every match and event names its sources and when they were last
-              asked, at the foot of its page.
-            </p>
-          )}
-        </div>
-      </Section>
+      <h2 className="bx-h2">The data</h2>
+      <div className="bx-panel bx-set-text">
+        {pinned() ? (
+          <p>
+            Kiming is running on sample data: real names, fictional events and generated results.
+            The live matches are played forward faster than real time so that there is something to
+            follow.{" "}
+            {reader
+              ? "The sample is kept on the server, so every open screen sees the same moment."
+              : "The sample is kept in this browser and starts again when the page is reloaded."}
+          </p>
+        ) : (
+          <p>
+            What Kiming shows is real, and comes from those who publish it: schedules, results and
+            line-ups from PandaScore; the inside of League of Legends games from lolesports.com and
+            Leaguepedia (CC BY-SA 3.0); chess from Lichess broadcasts; the Counter-Strike ranking
+            from Valve. Every match and event names its sources and when they were last asked, at
+            the foot of its page.
+          </p>
+        )}
+        {account.state === "none" ? null : (
+          <p>
+            An account holds an email address and the list of what you follow, nothing else. The
+            settings on this page stay on this device.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

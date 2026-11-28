@@ -1,4 +1,4 @@
-import { type Follow, type Match, seriesScore, winnerOf } from "@bearing/domain";
+import { type Follow, seriesScore, winnerOf } from "@bearing/domain";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Play, Rows3, Star, Zap } from "lucide-react";
 import { type ReactNode, useSyncExternalStore } from "react";
@@ -185,6 +185,9 @@ function under(view: MatchView, board: Board): string {
   const { match } = view;
   if (view.live) {
     const where = view.status.replace(/^Live( · )?/, "");
+    // A single game of chess leads with its move count: the line under it says the round instead.
+    if (view.headline.length === 1 && view.headline[0]?.toLowerCase() === where.toLowerCase())
+      return view.subs[1] || view.where;
     const label = view.discipline.id === "cs2" ? view.game?.label : undefined;
     return [label, where].filter(Boolean).join(" · ") || "Live";
   }
@@ -328,7 +331,7 @@ export function Front({
           </div>
           <div className="bx-cmid">
             <div className="bx-cduel">
-              <span>{a.label}</span>
+              <span data-long={a.label.length > 12 ? "" : undefined}>{a.label}</span>
               {team(
                 a,
                 <span {...light(a.color, reach * la[0], la[1])}>
@@ -342,7 +345,7 @@ export function Front({
                   <Disc side={b} size={44} />
                 </span>,
               )}
-              <span>{b.label}</span>
+              <span data-long={b.label.length > 12 ? "" : undefined}>{b.label}</span>
             </div>
             <small>{line}</small>
           </div>
@@ -419,9 +422,4 @@ export function Front({
       </div>
     </section>
   );
-}
-
-/** Whether a match is the viewer's own: one of its sides, or its event, is followed. */
-export function isMine(board: Board, match: Match): boolean {
-  return board.atlas.isFollowed(match);
 }

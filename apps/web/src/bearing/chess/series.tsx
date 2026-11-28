@@ -1,3 +1,5 @@
+import "./chess.css";
+
 import { type Match, formatPoints, seriesScore } from "@bearing/domain";
 import { Link } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useRef } from "react";

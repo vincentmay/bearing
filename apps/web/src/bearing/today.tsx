@@ -414,8 +414,3 @@ export function Today() {
     </>
   );
 }
-
-/** A live or finished match, in the same row as everywhere else. */
-export function ResultRow({ match, board }: { match: Match; board: Board }) {
-  return <MatchRow match={match} board={board} day />;
-}

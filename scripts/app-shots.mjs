@@ -62,9 +62,9 @@ for (const [size, viewport] of Object.entries(SIZES)) {
     );
     for (const [name, path] of PAGES) {
       await page.goto(base + path, { waitUntil: "networkidle" });
-      await page.waitForSelector(".bx-nav");
+      await page.waitForSelector(".bx-tabs");
       await page.evaluate(() => window.bearing?.pause());
-      if (name === "search") await page.locator(".bx-field input").fill("vit");
+      if (name === "search") await page.locator(".bx-pal-inp input").fill("vit");
       await page.waitForTimeout(450);
       await page.screenshot({ path: `${out}/${name}-${size}-${scheme}.png`, fullPage: true });
       const overflow = await page.evaluate(
@@ -81,7 +81,7 @@ const narrow = await browser.newPage({ viewport: { width: 320, height: 700 } });
 await narrow.addInitScript(keepLocal);
 for (const [name, path] of PAGES) {
   await narrow.goto(base + path, { waitUntil: "networkidle" });
-  await narrow.waitForSelector(".bx-nav");
+  await narrow.waitForSelector(".bx-tabs");
   await narrow.evaluate(() => document.fonts.ready);
   const overflow = await narrow.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth + 1,

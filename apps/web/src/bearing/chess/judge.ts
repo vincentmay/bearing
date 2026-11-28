@@ -18,6 +18,18 @@ export function written(pawns: number): string {
   return text === "0.0" ? "0.0" : `${pawns > 0 ? "+" : "−"}${text}`;
 }
 
+/** A judgement in words, for whoever reads the figure beside it: "Level", "Black is better". */
+export function said(pawns: number): string {
+  const side = pawns > 0 ? "White" : "Black";
+  if (Math.abs(pawns) >= MATE) return "Checkmate";
+  if (Math.abs(pawns) > MATE - 200) return `${side} mates`;
+  const lead = Math.abs(chances(pawns));
+  if (lead < 0.08) return "Level";
+  if (lead < 0.25) return `${side} is a little better`;
+  if (lead < 0.55) return `${side} is better`;
+  return `${side} is winning`;
+}
+
 /** Seconds as a clock shows them: "1:30:10", "4:05", "0:38". */
 export function clock(seconds: number): string {
   const whole = Math.max(0, Math.floor(seconds));

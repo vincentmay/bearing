@@ -37,7 +37,7 @@ async function open(colorScheme = "light") {
 
 async function go(page, path) {
   await page.goto(base + path, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector(".bx-nav");
+  await page.waitForSelector(".bx-tabs");
   await page.waitForTimeout(600);
 }
 
@@ -81,7 +81,7 @@ async function signIn(page, shot) {
 // One browser follows something before it has an account.
 const a = await open();
 await go(a.page, "/search");
-await a.page.locator(".bx-field input").fill("mouz");
+await a.page.locator(".bx-pal-inp input").fill("mouz");
 await a.page.waitForTimeout(500);
 const star = a.page.locator(".bx-result .bx-star").first();
 if ((await star.getAttribute("aria-pressed")) !== "true") await star.click();

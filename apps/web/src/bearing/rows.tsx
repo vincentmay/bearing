@@ -112,7 +112,9 @@ export function MatchRow({
         ) : (
           <div className="bx-rw-vs">
             <Disc side={a} size={24} />
-            <span data-lost={lost(0)}>{a.name}</span>
+            <span data-lost={lost(0)} data-short={a.name.length < 9 ? "" : undefined}>
+              {a.name}
+            </span>
             {marks ? (
               <b>
                 {live ? <Tick>{marks[0] ?? ""}</Tick> : marks[0]}–
@@ -121,13 +123,16 @@ export function MatchRow({
             ) : (
               <small>vs</small>
             )}
-            <span data-lost={lost(1)}>{b.name}</span>
+            <span data-lost={lost(1)} data-short={b.name.length < 9 ? "" : undefined}>
+              {b.name}
+            </span>
             <Disc side={b} size={24} />
           </div>
         )}
         <div className="bx-rw-ev">
-          {view.solo && known.length ? `${known.slice(0, 4).join(", ")} · ` : ""}
-          {sub}
+          {[view.solo && known.length ? known.slice(0, 4).join(", ") : "", sub]
+            .filter(Boolean)
+            .join(" · ")}
         </div>
       </div>
       {atlas.isFollowed(match) ? (

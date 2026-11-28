@@ -1,0 +1,1101 @@
+/*
+ * An event's page and a ranking, in the Kiming language: the top card with the sky, then the
+ * event's stage drawn by its system, its matches, and its facts beside them.
+ */
+
+/* The main column and a narrower one beside it. With nothing beside, the main one takes it all. */
+.bx-e-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 40px;
+  align-items: start;
+}
+.bx-e-cols:has(> div:last-child:empty) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* The top card. */
+.bx-e-name {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.bx-e-mark {
+  display: inline-flex;
+  flex: none;
+}
+/* A line that breaks between facts, never inside one; the dot stays with the fact before it. */
+.bx-e-facts > span {
+  white-space: nowrap;
+}
+.bx-e-facts > span:not(:last-child)::after {
+  content: "·";
+  margin: 0 3px 0 7px;
+}
+.bx-e-where {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  vertical-align: bottom;
+}
+.bx-e-where .bx-flag {
+  width: 18px;
+  height: 13px;
+  border-radius: 3px;
+  object-fit: cover;
+}
+.bx .bx-e-card .bx-btn[data-k="quiet"] {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* What is on now in the event: the two sides, the score, a way in. */
+.bx-e-duos {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 4px 8px;
+  margin: -4px 0;
+  border-radius: 20px;
+  transition:
+    background 0.2s,
+    transform 0.16s var(--out);
+}
+.bx-e-duos:hover {
+  background: rgb(255 255 255 / 0.1);
+}
+.bx-e-duos:active {
+  transform: scale(0.98);
+}
+.bx-e-duo {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.bx-e-duo > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-e-duo i {
+  font-style: normal;
+}
+.bx-e-duo i + i {
+  display: none;
+}
+.bx-e-duo b {
+  padding: 0 4px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.bx-e-now .bx-enow-t {
+  margin-right: auto;
+}
+
+/* The parts of an event as picks in the card: a small line over the name, set to the left. */
+.bx .bx-e-picks > a,
+.bx .bx-e-picks > button {
+  min-width: 148px;
+  justify-items: start;
+  padding: 0 18px;
+  text-align: left;
+}
+.bx .bx-stage .bx-e-picks > :not([aria-current]):not([aria-pressed="true"]):hover {
+  background: rgb(255 255 255 / 0.24);
+}
+
+/* Small parts of the columns below. */
+.bx-e-note {
+  margin: 14px 6px 0;
+  max-width: 68ch;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink2);
+}
+.bx-e-blurb {
+  margin-top: 12px;
+  padding: 16px 18px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  font-weight: 550;
+}
+.bx-e-empty {
+  padding: 22px 20px;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  color: var(--ink2);
+  font-weight: 600;
+}
+.bx-e-pad {
+  padding: 18px;
+}
+
+/* A line of a panel: an icon or a mark, a name over a small line, something at the end. */
+.bx-e-li {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-top: 1px solid var(--hair);
+}
+.bx-panel > :first-child .bx-e-li,
+.bx-panel > .bx-e-li:first-child {
+  border-top: 0;
+}
+.bx-e-li b {
+  display: block;
+  font-size: 15px;
+  font-weight: 750;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bx-e-li > div > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+.bx-e-li em {
+  font-style: normal;
+  font-weight: 800;
+  font-size: 13px;
+  text-align: right;
+  white-space: nowrap;
+}
+.bx-e-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--accent);
+}
+.bx-e-ico {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--sunk);
+  color: var(--ink2);
+}
+.bx-e-lgo {
+  display: block;
+  margin: 0 -10px;
+  padding: 0 10px;
+  border-radius: 16px;
+  transition: background 0.2s;
+}
+.bx-e-lgo:hover {
+  background: var(--hover);
+}
+.bx-e-lgo + .bx-e-lgo .bx-e-li,
+.bx-e-lgo + .bx-e-li,
+.bx-e-li + .bx-e-lgo .bx-e-li {
+  border-top: 1px solid var(--hair);
+}
+
+/* Places and prize money. */
+.bx-e-place {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  padding: 13px 0;
+  border-top: 1px solid var(--hair);
+}
+.bx-e-place:first-child {
+  border-top: 0;
+}
+.bx-e-place > b {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink2);
+  line-height: 24px;
+}
+.bx-e-place[data-first] > b {
+  color: var(--sunrise);
+}
+.bx-e-place > span {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.bx-e-place > span > a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  height: 24px;
+  border-radius: 8px;
+}
+.bx-e-place > span > a:hover b {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.bx-e-place > span > a b {
+  font-weight: 700;
+  font-size: 14.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-e-place small {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink3);
+  line-height: 24px;
+}
+.bx-e-place > em {
+  font-style: normal;
+  font-weight: 750;
+  font-size: 14px;
+  line-height: 24px;
+  white-space: nowrap;
+}
+
+/* Everyone in the event, as chips. */
+.bx-e-ents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.bx-e-ent {
+  height: 44px;
+  padding: 0 16px 0 9px;
+  border-radius: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  max-width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  font-size: 14.5px;
+  transition:
+    background 0.2s,
+    transform 0.16s var(--out);
+}
+.bx-e-ent:hover {
+  background: var(--hover);
+}
+.bx-e-ent:active {
+  transform: scale(0.97);
+}
+.bx-e-ent b {
+  font-weight: 750;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* A Swiss stage as a ladder: through at the top, out at the bottom, the records between. */
+.bx-sw {
+  border-radius: var(--r-card);
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  overflow: hidden;
+}
+.bx-rung {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  padding: 14px 18px;
+  border-top: 1px solid var(--hair);
+}
+.bx-rung:first-child {
+  border-top: 0;
+}
+.bx-rk b {
+  display: block;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.bx-rk span {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+.bx-rung[data-k="in"] {
+  background: var(--accent-soft);
+}
+.bx-rung[data-k="in"] .bx-rk b {
+  color: var(--accent);
+}
+.bx-rung[data-k="out"] .bx-rk b,
+.bx-rung[data-k="out"] .bx-tcp {
+  color: var(--ink2);
+}
+.bx-rung[data-k="out"] .bx-tcp .bx-disc {
+  opacity: 0.55;
+}
+.bx-ts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+.bx .bx-tcp {
+  height: 42px;
+  max-width: 100%;
+  padding: 0 14px 0 9px;
+  border-radius: 21px;
+  background: var(--sunk);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14.5px;
+  white-space: nowrap;
+  transition:
+    box-shadow 0.2s,
+    filter 0.2s,
+    transform 0.16s var(--out);
+}
+.bx .bx-tcp:hover {
+  box-shadow: inset 0 0 0 1.5px var(--edge);
+}
+.bx .bx-tcp:active {
+  transform: scale(0.97);
+}
+.bx .bx-tcp[aria-pressed="true"],
+.bx .bx-tcp[data-on] {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+.bx-rung[data-k="in"] .bx-tcp {
+  background: var(--surface);
+}
+.bx-tcp b {
+  font-weight: 750;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-tcp small {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink2);
+}
+.bx .bx-tcp[data-pair] {
+  padding: 0 10px 0 9px;
+}
+.bx-tcp em {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 4px;
+  font-style: normal;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--ink2);
+}
+.bx-tcp[data-live] em {
+  color: var(--accent);
+  font-size: 14.5px;
+}
+.bx-tcp .bx-starred {
+  flex: none;
+}
+
+/* The way one team took through the stage, under the ladder. */
+.bx-sw-story {
+  margin-top: 12px;
+  padding: 14px 18px;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+}
+.bx-sw-team {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 10px 4px 4px;
+  margin: -4px 0 -4px -4px;
+  border-radius: 22px;
+  transition: background 0.2s;
+}
+.bx-sw-team:hover {
+  background: var(--hover);
+}
+.bx-sw-team b {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.bx-sw-team span {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink2);
+}
+.bx-sw-story ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.bx-sw-story li {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 17px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--sunk);
+  color: var(--ink2);
+  font-size: 13.5px;
+  font-weight: 650;
+}
+.bx-sw-story li[data-won] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.bx-sw-story li small {
+  font-size: 11.5px;
+  font-weight: 700;
+  opacity: 0.75;
+}
+
+/* A bracket: rounds as columns, a plate per match. Wider than its frame, it moves sideways. */
+.bx-bk-frame {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.bx-bk-frame::-webkit-scrollbar {
+  display: none;
+}
+.bx-bk-frame[data-wider] {
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+}
+.bx-bk {
+  position: relative;
+}
+.bx-bk svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+.bx-bk-round {
+  position: absolute;
+  top: 0;
+  padding-left: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink3);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.bx-bk path {
+  fill: none;
+  stroke: var(--edge);
+  stroke-width: 1.5;
+  transition:
+    stroke 0.2s var(--out),
+    opacity 0.2s var(--out),
+    stroke-width 0.2s var(--out);
+}
+.bx-bk path[data-done] {
+  stroke: var(--ink3);
+}
+.bx-bk[data-tracing] path {
+  opacity: 0.2;
+}
+.bx-bk[data-tracing] path[data-on] {
+  opacity: 1;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+}
+.bx-bk-tie {
+  position: absolute;
+  display: block;
+  min-width: 0;
+  padding: 6px 12px 0 10px;
+  border-radius: 16px;
+  background: var(--sunk);
+  transition:
+    opacity 0.2s var(--out),
+    box-shadow 0.2s var(--out),
+    transform 0.16s var(--out);
+}
+.bx-bk-tie:hover {
+  box-shadow: inset 0 0 0 1.5px var(--edge);
+}
+.bx-bk[data-tracing] .bx-bk-tie:not([data-on]) {
+  opacity: 0.4;
+}
+.bx .bx-bk-tie[data-on] {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.bx-bk-tie:active {
+  transform: scale(0.97);
+}
+.bx-bk-side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  min-width: 0;
+}
+.bx-bk-side b {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 750;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-bk-side .bx-num {
+  font-size: 15px;
+  font-weight: 800;
+}
+.bx-bk-side[data-lost] b,
+.bx-bk-side[data-lost] .bx-num {
+  font-weight: 600;
+  color: var(--ink2);
+}
+.bx-bk-side[data-open] b {
+  font-weight: 600;
+  color: var(--ink3);
+}
+.bx-bk-side[data-me] b {
+  color: var(--accent);
+}
+.bx-bk-foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 18px;
+  padding-left: 28px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink2);
+  white-space: nowrap;
+}
+.bx-bk-double {
+  display: grid;
+  gap: 22px;
+}
+.bx-bk-part {
+  margin: 0 4px 10px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* Everyone against everyone: a table of results, a row per player. */
+.bx-xt {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) repeat(var(--n), minmax(14px, 34px)) 42px;
+  align-items: center;
+}
+.bx-xt-head {
+  padding-bottom: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink3);
+  text-align: center;
+}
+.bx-xt-head[data-end] {
+  text-align: right;
+}
+.bx-xt-row {
+  display: grid;
+  grid-template-columns: subgrid;
+  align-items: center;
+  min-height: 46px;
+  box-shadow: inset 0 1px 0 var(--hair);
+  transition: background 0.2s;
+}
+.bx-xt-row:hover {
+  background: var(--hover);
+}
+.bx-xt-n {
+  padding-left: 4px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink3);
+}
+.bx-xt-name {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.bx-xt-name b {
+  font-size: 14.5px;
+  font-weight: 750;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-xt-name .bx-flag {
+  flex: none;
+  width: 18px;
+  height: 13px;
+  border-radius: 3px;
+  object-fit: cover;
+}
+.bx-xt-cell {
+  display: grid;
+  place-items: center;
+}
+.bx-xt-cell i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.bx-xt-cell i[data-k="win"] {
+  background: var(--accent);
+}
+.bx-xt-cell i[data-k="draw"] {
+  background: linear-gradient(90deg, var(--accent) 50%, transparent 50%);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.bx-xt-cell i[data-k="loss"] {
+  box-shadow: inset 0 0 0 2px var(--ink3);
+}
+.bx-xt-cell i[data-k="self"] {
+  width: 4px;
+  height: 4px;
+  background: var(--ink3);
+  opacity: 0.5;
+}
+.bx-xt-pts {
+  padding-right: 4px;
+  text-align: right;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+/* A cup: each round's heats side by side, each a card with its field in order. */
+.bx-e-cup {
+  display: grid;
+  gap: 12px;
+}
+.bx-e-heats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.bx-ht {
+  display: grid;
+  gap: 2px;
+  padding: 14px 18px 12px;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  transition:
+    border-color 0.2s,
+    transform 0.16s var(--out);
+}
+.bx-ht:hover {
+  border-color: var(--edge);
+}
+.bx-ht:active {
+  transform: scale(0.99);
+}
+.bx-ht-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.bx-ht-head b {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.bx-ht-head span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink2);
+  white-space: nowrap;
+}
+.bx-ht[data-live] .bx-ht-head span {
+  color: var(--accent);
+}
+.bx-ht-lane {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto 36px;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+}
+.bx-ht-lane b {
+  font-weight: 700;
+  font-size: 14.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-ht-lane small {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.bx-ht-lane > span:last-child {
+  text-align: right;
+  font-weight: 800;
+}
+.bx-ht-lane[data-open] b {
+  font-weight: 600;
+  color: var(--ink3);
+}
+
+/* Rounds of many boards: one fold per round, a line per pairing. */
+.bx-e-round + .bx-e-round .bx-cap {
+  margin-top: 22px;
+}
+.bx-e-round .bx-cap {
+  margin-top: 0;
+}
+.bx-e-folds {
+  display: grid;
+  gap: 10px;
+}
+.bx-e-fold {
+  border-radius: var(--r-card);
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  overflow: hidden;
+}
+.bx-e-fold summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 0 20px;
+  cursor: pointer;
+  list-style: none;
+  transition: background 0.2s;
+}
+.bx-e-fold summary::-webkit-details-marker {
+  display: none;
+}
+.bx-e-fold summary:hover {
+  background: var(--hover);
+}
+.bx-e-fold summary b {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.bx-e-fold summary span {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--ink2);
+}
+.bx-e-pairs {
+  padding-bottom: 6px;
+}
+.bx-e-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 84px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  box-shadow: inset 0 1px 0 var(--hair);
+  transition: background 0.2s;
+}
+.bx-e-pair:hover {
+  background: var(--hover);
+}
+.bx-e-pside {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.bx-e-pside[data-mirror] {
+  flex-direction: row-reverse;
+}
+.bx-e-pside b {
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-e-pside[data-lost] b {
+  font-weight: 550;
+  color: var(--ink2);
+}
+.bx-e-pside i {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--ink2);
+}
+.bx-e-pside small {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--ink3);
+}
+.bx-e-pside .bx-flag {
+  flex: none;
+  width: 18px;
+  height: 13px;
+  border-radius: 3px;
+  object-fit: cover;
+}
+.bx-e-pmid {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.bx-e-pmid[data-live] {
+  color: var(--accent);
+  font-size: 13px;
+}
+
+/* The ranking: the first three as cards, the rest as one panel of rows. */
+.bx-pod {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.bx-pc {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 16px;
+  align-items: center;
+  padding: 18px 20px;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  box-shadow: var(--sh);
+  transition:
+    border-color 0.2s,
+    transform 0.16s var(--out);
+}
+a.bx-pc:hover {
+  border-color: var(--edge);
+}
+a.bx-pc:active {
+  transform: scale(0.98);
+}
+.bx-pc-n {
+  grid-row: 1 / 3;
+  min-width: 36px;
+  font-size: 56px;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  color: var(--ink3);
+}
+.bx-pc[data-n="1"] .bx-pc-n {
+  color: var(--sunrise);
+}
+.bx-pc-w {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.bx-pc-w b {
+  min-width: 0;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-pc-w .bx-starred {
+  flex: none;
+}
+.bx-pc-p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink2);
+  white-space: nowrap;
+}
+.bx-mv {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--ink3);
+  white-space: nowrap;
+}
+.bx-mv[data-up] {
+  color: var(--accent);
+}
+.bx-rkl {
+  padding: 6px 0;
+  overflow: hidden;
+}
+.bx-rkl-row {
+  display: grid;
+  grid-template-columns: 30px 30px minmax(0, 1fr) 46px 64px;
+  gap: 12px;
+  align-items: center;
+  min-height: 54px;
+  padding: 0 18px;
+  box-shadow: inset 0 1px 0 var(--hair);
+  transition: background 0.2s;
+}
+.bx-rkl-row:first-child {
+  box-shadow: none;
+}
+a.bx-rkl-row:hover {
+  background: var(--hover);
+}
+.bx-rkl-n {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink2);
+}
+.bx-rkl-row > b {
+  font-size: 15px;
+  font-weight: 750;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-rkl-pts {
+  text-align: right;
+  font-size: 14.5px;
+  font-weight: 750;
+}
+
+@media (max-width: 899.98px) {
+  .bx-e-cols {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .bx-e-name {
+    gap: 12px;
+  }
+  .bx-e-mark .bx-disc {
+    --s: 40px !important;
+    width: 40px !important;
+    height: 40px !important;
+  }
+  .bx-e-card .bx-eh h1 {
+    font-size: 32px;
+    line-height: 1.05;
+  }
+  .bx-e-duos {
+    order: 2;
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+  .bx-e-duo {
+    font-size: 14.5px;
+  }
+  .bx-e-duo i {
+    display: none;
+  }
+  .bx-e-duo i + i {
+    display: inline;
+  }
+  .bx-xt {
+    grid-template-columns: 20px minmax(84px, 1fr) repeat(var(--n), minmax(0, 22px)) 32px;
+  }
+  .bx-xt-cell i {
+    width: 10px;
+    height: 10px;
+  }
+  .bx-e-duo b {
+    font-size: 20px;
+  }
+  .bx-e-now .bx-enow-t {
+    display: none;
+  }
+  .bx .bx-e-picks > a,
+  .bx .bx-e-picks > button {
+    min-width: 124px;
+    padding: 0 14px;
+  }
+  .bx-rung {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: 14px;
+  }
+  .bx-rk {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .bx-rk b {
+    font-size: 19px;
+  }
+  .bx-ts {
+    gap: 6px;
+  }
+  .bx .bx-tcp {
+    height: 40px;
+    font-size: 13.5px;
+  }
+  .bx .bx-tcp[data-pair] {
+    width: 100%;
+  }
+  .bx-tcp[data-pair] em {
+    margin: 0 auto;
+  }
+  .bx-e-pad {
+    padding: 14px 12px;
+  }
+  .bx-e-heats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bx-e-pair {
+    grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr);
+    padding: 0 12px;
+  }
+  .bx-e-pside small,
+  .bx-e-pside i {
+    display: none;
+  }
+  .bx-pod {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+  .bx-pc-n {
+    font-size: 40px;
+  }
+  .bx-rkl-row {
+    grid-template-columns: 24px 30px minmax(0, 1fr) 40px 52px;
+    gap: 10px;
+    padding: 0 16px;
+  }
+  .bx-e-place {
+    grid-template-columns: 76px minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+}

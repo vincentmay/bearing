@@ -12,10 +12,14 @@ interface Placed {
   y: number;
 }
 
-const TILE = 66;
-const TILE_MIN = 118;
+/** A plate: a little room above, a row for each side, and a foot for how the series went. */
+const PAD = 6;
+const ROW = 30;
+const FOOT = 18;
+const TILE = PAD + 2 * ROW + FOOT;
+const TILE_MIN = 132;
 const GAP = 12;
-const HEAD = 24;
+const HEAD = 30;
 
 /**
  * Single elimination, drawn as a tree. Each round is a column; a match sits level with the
@@ -50,9 +54,9 @@ export function Bracket({
       matches: round.matchIds.flatMap((id) => board.atlas.match(id) ?? []),
     }))
     .filter((r) => r.matches.length);
-  if (!rounds.length) return <p className="bx-empty">The bracket has not been drawn yet.</p>;
+  if (!rounds.length) return <p className="bx-e-empty">The bracket has not been drawn yet.</p>;
 
-  const gutter = wide ? 30 : 14;
+  const gutter = wide ? 32 : 16;
   const count = Math.max(rounds.length, columns ?? 0);
   // A plate is never narrower than a short name, a score and a mark need. Where the rounds do
   // not fit side by side at that width, the bracket is wider than its frame and is moved
@@ -60,7 +64,7 @@ export function Bracket({
   const tileW = Math.max(TILE_MIN, (width - gutter * (count - 1)) / count);
   const canvas = count * tileW + gutter * (count - 1);
   // A full name needs room; a narrow column takes the short one.
-  const roomy = wide && tileW >= 150;
+  const roomy = wide && tileW >= 160;
   const placed = new Map<string, Placed>();
   rounds.forEach((round, column) => {
     const before = rounds[column - 1]?.matches ?? [];
@@ -103,9 +107,9 @@ export function Bracket({
     // The line ends at the row its winner takes: the upper feeder above, the lower one below.
     const row = p.y + TILE / 2 <= next.y + TILE / 2 ? 0 : 1;
     const x1 = p.x + tileW;
-    const y1 = p.y + 26;
+    const y1 = p.y + PAD + ROW;
     const x2 = next.x;
-    const y2 = next.y + 13 + row * 26;
+    const y2 = next.y + PAD + ROW / 2 + row * ROW;
     const mid = x1 + gutter / 2;
     const r = Math.min(8, Math.abs(y2 - y1) / 2, gutter / 2);
     const dir = y2 > y1 ? 1 : -1;
@@ -124,9 +128,9 @@ export function Bracket({
   });
 
   return (
-    <div ref={frame} className="bx-bracket-frame" data-wider={canvas > width + 1 ? "" : undefined}>
+    <div ref={frame} className="bx-bk-frame" data-wider={canvas > width + 1 ? "" : undefined}>
       <div
-        className="bx-bracket"
+        className="bx-bk"
         style={{ height: width ? height : 240, width: width ? canvas : undefined }}
         data-tracing={pointed ? "" : undefined}
         onPointerLeave={() => setPointed(undefined)}
@@ -146,7 +150,7 @@ export function Bracket({
             {rounds.map(({ round }, column) => (
               <h3
                 key={round.id}
-                className="bx-label"
+                className="bx-bk-round"
                 style={{ left: column * (tileW + gutter), width: tileW }}
               >
                 {wide ? round.name : round.short}
@@ -161,14 +165,14 @@ export function Bracket({
                   key={match.id}
                   to="/match/$matchId"
                   params={{ matchId: match.id }}
-                  className="bx-tie"
+                  className="bx-bk-tie"
                   style={{ left: x, top: y, width: tileW }}
                   data-on={pointed && has(match, pointed) ? "" : undefined}
                 >
                   {view.sides.map((side, i) => (
                     <span
                       key={i}
-                      className="bx-tie-side"
+                      className="bx-bk-side"
                       data-lost={typeof w === "number" && w !== i ? "" : undefined}
                       data-open={side.id ? undefined : ""}
                       data-me={side.id && side.id === pointed ? "" : undefined}
@@ -176,7 +180,7 @@ export function Bracket({
                         if (e.pointerType === "mouse" && side.id) setPointed(side.id);
                       }}
                     >
-                      <Disc side={side} size={18} />
+                      <Disc side={side} size={20} />
                       <b>
                         {side.id
                           ? roomy
@@ -193,13 +197,13 @@ export function Bracket({
                       )}
                     </span>
                   ))}
-                  <span className="bx-tie-foot">
+                  <span className="bx-bk-foot">
                     {match.status === "scheduled" ? (
                       `${board.times.weekday(match.scheduledAt)} ${board.times.clock(match.scheduledAt)}`
                     ) : (
                       <>
                         {view.live ? <Ping /> : null}
-                        <Dots dots={view.series} sides={view.sides} size={6} gap={3} fix />
+                        <Dots dots={view.series} sides={view.sides} size={7} gap={3} fix />
                       </>
                     )}
                   </span>
@@ -250,13 +254,13 @@ export function DoubleBracket({
   const columns = Math.max(upper.rounds.length, lower.rounds.length);
   const shared = { board, wide, columns, pointed, onPoint: setPointed };
   return (
-    <div className="bx-double">
+    <div className="bx-bk-double">
       <section>
-        <h3 className="bx-double-name">Upper bracket</h3>
+        <h3 className="bx-bk-part">Upper bracket</h3>
         <Bracket stage={upper} {...shared} />
       </section>
       <section>
-        <h3 className="bx-double-name">Lower bracket</h3>
+        <h3 className="bx-bk-part">Lower bracket</h3>
         <Bracket stage={lower} {...shared} />
       </section>
     </div>

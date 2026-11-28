@@ -1,0 +1,562 @@
+/*
+ * The pages of a team and of a player: the top card with the sky in their colour, the year as
+ * cards, the people as rows, a chess player's run as a strip of squares.
+ */
+
+/* On the top card. */
+.bx-pp-mark {
+  flex: none;
+}
+.bx-pp-also {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+.bx-eh p.bx-pp-also {
+  margin-top: 10px;
+  font-size: 13.5px;
+}
+.bx-pp-also a {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 28px;
+  padding: 0 8px 0 12px;
+  border-radius: 14px;
+  background: var(--chip);
+  color: #fff;
+  font-weight: 700;
+  transition:
+    background 0.2s,
+    transform 0.16s var(--out);
+}
+.bx-pp-also a:hover {
+  background: rgb(255 255 255 / 0.24);
+}
+.bx-pp-also a:active {
+  transform: scale(0.96);
+}
+/* The team a player is in, as a glass chip under the name. */
+.bx-pp-team {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  max-width: 100%;
+  height: 38px;
+  padding: 0 10px 0 8px;
+  border-radius: 19px;
+  background: var(--chip);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  font-size: 13.5px;
+  transition:
+    background 0.2s,
+    transform 0.16s var(--out);
+}
+.bx-pp-team:hover {
+  background: rgb(255 255 255 / 0.24);
+}
+.bx-pp-team:active {
+  transform: scale(0.97);
+}
+.bx-pp-team b {
+  font-weight: 800;
+  white-space: nowrap;
+}
+.bx-pp-team span:not(.bx-disc) {
+  color: var(--soft);
+  font-weight: 650;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.bx-pp-team svg {
+  flex: none;
+  color: var(--soft);
+}
+.bx .bx-btn.bx-pp-follow:disabled {
+  cursor: default;
+  filter: none;
+  transform: none;
+  opacity: 0.85;
+}
+.bx-pp-opp {
+  flex: none;
+}
+.bx-enow .bx-pp-nowt {
+  border-radius: 12px;
+}
+.bx-enow .bx-pp-nowt:hover b {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+}
+
+/* The year as cards, one per event. */
+.bx-pp-yr {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+.bx .bx-pp-yc {
+  min-height: 132px;
+  padding: 14px 16px;
+  border-radius: var(--r-row);
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  display: grid;
+  gap: 8px;
+  align-content: space-between;
+  min-width: 0;
+  transition:
+    border-color 0.2s,
+    transform 0.2s var(--out);
+}
+.bx .bx-pp-yc:hover {
+  border-color: var(--edge);
+  transform: translateY(-2px);
+}
+.bx .bx-pp-yc:active {
+  transform: scale(0.98);
+}
+.bx-pp-yc > small {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  height: 20px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink3);
+  white-space: nowrap;
+}
+.bx-pp-yc > small svg {
+  flex: none;
+  color: var(--sunrise);
+}
+.bx-pp-yc > small[data-k="now"] {
+  justify-content: flex-start;
+  color: var(--accent);
+}
+.bx-pp-yc > div {
+  min-width: 0;
+}
+.bx-pp-yc b {
+  display: block;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-pp-yc > div > span {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-pp-yc > div[data-k="later"] b {
+  color: var(--ink2);
+}
+/* The event being played: the accent's card. */
+.bx .bx-pp-yc:has(> small[data-k="now"]) {
+  background: var(--accent-soft);
+  border-color: transparent;
+}
+.bx .bx-pp-yc:has(> small[data-k="now"]):hover {
+  border-color: var(--accent);
+}
+
+/* A row in a panel: a disc, a name with a line under it, something on the right. */
+.bx-pp-li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 62px;
+  padding: 10px 0;
+  border-top: 1px solid var(--hair);
+}
+.bx-pp-li:first-child {
+  border-top: 0;
+}
+a.bx-pp-li {
+  margin: 0 -10px;
+  padding: 10px;
+  border-radius: 16px;
+  transition: background 0.2s;
+}
+a.bx-pp-li + a.bx-pp-li {
+  border-top-color: var(--hair);
+}
+a.bx-pp-li:hover {
+  background: var(--hover);
+}
+.bx-pp-li > span:nth-child(2) {
+  min-width: 0;
+}
+.bx-pp-li > span:nth-child(2) > b {
+  display: block;
+  font-size: 15px;
+  font-weight: 750;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-pp-li > span:nth-child(2) > span {
+  display: block;
+  font-size: 12.5px;
+  color: var(--ink2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-pp-role {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+}
+.bx-pp-role small {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--ink3);
+}
+.bx-pp-role[data-on] {
+  color: var(--accent);
+}
+/* A figure on the right of a row, with a word under it. */
+.bx-pp-out {
+  display: grid;
+  justify-items: end;
+  white-space: nowrap;
+}
+.bx-pp-out b {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.bx-pp-out small {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink3);
+}
+.bx-pp-out[data-w="0"] b {
+  color: var(--ink2);
+  font-weight: 650;
+}
+
+/* A map, a rating: the name, a line of dots, the figure. */
+.bx-pp-bm {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 0;
+  border-top: 1px solid var(--hair);
+}
+.bx-pp-bm:first-child {
+  border-top: 0;
+}
+.bx-pp-bm > b {
+  font-size: 15px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.bx-pp-bm > span:last-child {
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Who played when: a line per player from the day they joined. */
+.bx-pp-hist {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.bx-pp-st {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  height: 30px;
+  margin: 0 -8px;
+  padding: 0 8px;
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+a.bx-pp-st:hover {
+  background: var(--hover);
+}
+.bx-pp-st > b {
+  font-size: 13.5px;
+  font-weight: 750;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-pp-tr {
+  position: relative;
+  height: 100%;
+  margin-right: 6px;
+}
+.bx-pp-yl {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-style: normal;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink3);
+}
+.bx-pp-tl {
+  position: absolute;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: var(--ink3);
+}
+.bx-pp-tl[data-on] {
+  background: var(--ink);
+}
+.bx-pp-td {
+  position: absolute;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  border-radius: 50%;
+  background: var(--pp-c, var(--accent));
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
+.bx-pp-td[data-end] {
+  background: var(--surface);
+  box-shadow: inset 0 0 0 2px var(--ink3);
+}
+
+/* A chess player's run through an event: one square a round. */
+.bx-pp-gs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+  gap: 6px;
+  padding: 14px;
+}
+.bx .bx-pp-g {
+  height: 72px;
+  padding: 0 4px;
+  border-radius: 14px;
+  background: var(--sunk);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  min-width: 0;
+  transition:
+    transform 0.16s var(--out),
+    box-shadow 0.2s;
+}
+.bx .bx-pp-g:hover {
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
+.bx .bx-pp-g:active {
+  transform: scale(0.95);
+}
+.bx-pp-g small {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--ink3);
+}
+.bx-pp-g b {
+  height: 20px;
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  font-weight: 800;
+}
+.bx-pp-g b > i:not(.bx-ping) {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink3);
+  opacity: 0.5;
+}
+.bx-pp-g em {
+  max-width: 100%;
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--ink2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx .bx-pp-g[data-k="n"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.bx-pp-g[data-k="n"] small,
+.bx-pp-g[data-k="n"] em {
+  color: inherit;
+}
+.bx-pp-g[data-k="l"] b {
+  color: var(--ink3);
+}
+
+/* A League player's champions: how often each was played, and how often it won. */
+.bx-pp-bar {
+  margin-top: 7px;
+  height: 6px;
+}
+.bx-pp-bar > i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--sunk);
+  overflow: hidden;
+}
+.bx-pp-bar > i > i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+.bx-pp-pool .bx-champ {
+  border-radius: 50%;
+}
+
+/* A player's team, large, with its mark. */
+.bx .bx-pp-tcard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  min-height: 88px;
+  padding: 14px 18px;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  transition:
+    border-color 0.2s,
+    transform 0.2s var(--out);
+}
+.bx .bx-pp-tcard:hover {
+  border-color: var(--edge);
+}
+.bx .bx-pp-tcard:active {
+  transform: scale(0.99);
+}
+.bx-pp-tcard > span:nth-child(2) {
+  min-width: 0;
+}
+.bx-pp-tcard > span:nth-child(2) > b {
+  display: block;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-pp-tcard > span:nth-child(2) > span {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--ink2);
+}
+.bx-pp-tcard > svg {
+  color: var(--ink3);
+}
+
+/* Where a picture or a list comes from. */
+.bx-pp-src {
+  margin: 36px 6px 0;
+  font-size: 12.5px;
+  color: var(--ink3);
+}
+.bx-pp-src a {
+  color: var(--ink2);
+  font-weight: 700;
+}
+.bx-pp-src a:hover {
+  color: var(--ink);
+}
+
+@media (max-width: 899.98px) {
+  .bx-pp-mark .bx-disc {
+    --s: 64px !important;
+  }
+  /* The name stays beside the mark, and wraps there when it is long. */
+  .bx-pp-mark + div {
+    flex: 1 1 180px;
+  }
+  /* Three figures of any width share the row without running into each other. */
+  .bx-pp-mark ~ .bx-figs {
+    display: grid;
+    grid-auto-flow: column;
+    justify-content: space-between;
+    gap: 14px;
+  }
+  .bx-pp-mark ~ .bx-figs b {
+    font-size: 27px;
+  }
+  .bx-pp-yr {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 -12px;
+    padding: 0 12px 4px;
+    scroll-snap-type: x proximity;
+  }
+  .bx .bx-pp-yc {
+    flex: none;
+    width: 152px;
+    scroll-snap-align: start;
+  }
+  .bx .bx-pp-yc:hover {
+    transform: none;
+  }
+  .bx-pp-bm {
+    grid-template-columns: 92px minmax(0, 1fr) auto;
+  }
+  .bx-pp-st {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+  .bx-pp-gs {
+    grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+    padding: 12px;
+  }
+  .bx-pp-g em {
+    display: none;
+  }
+  .bx .bx-pp-g {
+    height: 56px;
+  }
+  .bx-enow .bx-pp-opp {
+    display: none;
+  }
+}
+
+/* On the narrowest phones the follow star in the strip goes without its word, so that the way
+   to the match keeps its own. */
+@media (max-width: 419.98px) {
+  .bx-enow .bx-pp-fl {
+    display: none;
+  }
+  .bx .bx-enow .bx-pp-follow {
+    width: 44px;
+    padding: 0;
+  }
+}

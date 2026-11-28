@@ -18,7 +18,7 @@ export interface Prefs {
   hint: boolean;
 }
 
-export const BOARDS = ["ink", "slate", "green", "walnut"] as const;
+export const BOARDS = ["indigo", "ink", "slate", "green", "walnut"] as const;
 export type BoardStyle = (typeof BOARDS)[number];
 export const PIECES = ["mpchess", "cburnett", "merida"] as const;
 export type PieceSet = (typeof PIECES)[number];
@@ -28,7 +28,7 @@ const DEFAULTS: Prefs = {
   theme: "system",
   hours: "auto",
   zone: null,
-  board: "ink",
+  board: "indigo",
   pieces: "mpchess",
   engine: true,
   hint: false,

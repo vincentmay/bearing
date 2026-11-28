@@ -1,0 +1,439 @@
+/*
+ * A match's own page: under the top card, how the match went on the left and what surrounds it
+ * on the right, each as a small line and a panel of rows.
+ */
+
+.bx-mp-chess {
+  margin-top: 20px;
+}
+
+/* The small line over a panel, with a side's colour where the panel is about one side. */
+.bx-mp-cap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.bx-mp-dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
+
+/* Rows in a panel are parted by a hairline. */
+.bx-mp-cols .bx-panel > * + * {
+  border-top: 1px solid var(--hair);
+}
+
+/*
+ * A row that leads somewhere reaches a little past the text, so that its hover has room; its
+ * hairline keeps to the width of the text.
+ */
+.bx-mp-li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  margin: 0 -10px;
+  padding: 10px;
+  border-radius: 16px;
+  transition:
+    background-color 0.18s,
+    transform 0.16s var(--out);
+}
+.bx-mp-cols .bx-panel > .bx-mp-li {
+  border-top: 0;
+}
+.bx-mp-cols .bx-panel > * + .bx-mp-li {
+  background: linear-gradient(var(--hair), var(--hair)) 10px 0 / calc(100% - 20px) 1px no-repeat;
+}
+.bx-mp-cols .bx-panel > .bx-mp-li + :not(.bx-mp-li) {
+  border-top: 1px solid var(--hair);
+}
+.bx-mp-cols .bx-panel > a.bx-mp-li:hover {
+  background: var(--hover);
+}
+.bx-mp-cols .bx-panel > a.bx-mp-li:active {
+  transform: scale(0.985);
+}
+.bx-mp-t {
+  min-width: 0;
+}
+.bx-mp-t b {
+  display: block;
+  font-size: 15px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-mp-t small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  font-weight: 550;
+  color: var(--ink2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-mp-li em {
+  font-style: normal;
+  font-size: 13.5px;
+  font-weight: 750;
+  text-align: right;
+  white-space: nowrap;
+}
+.bx-mp-ic {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--sunk);
+  color: var(--ink2);
+}
+.bx-mp-ic[data-k="watch"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.bx-mp-go {
+  color: var(--ink3);
+  transition: color 0.18s;
+}
+a.bx-mp-li:hover .bx-mp-go {
+  color: var(--ink);
+}
+
+/* Where the match sits in its event, in a sentence. */
+.bx-mp-note {
+  padding: 14px 0;
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 550;
+  text-wrap: pretty;
+}
+
+/* A map or a game: the name large, the score at the right, a small line under it. */
+.bx-mp-g {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 3px 12px;
+  padding: 15px 0;
+}
+.bx-mp-g > b {
+  min-width: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-mp-who {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.bx-mp-r {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-align: right;
+  white-space: nowrap;
+}
+.bx-mp-r small {
+  margin-left: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--ink3);
+}
+.bx-mp-g[data-live] .bx-mp-r {
+  color: var(--accent);
+}
+.bx-mp-g > small {
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+.bx-mp-aside {
+  justify-self: end;
+  align-self: center;
+}
+.bx-mp-g[data-dim] > b,
+.bx-mp-g[data-dim] > small {
+  color: var(--ink3);
+}
+.bx-mp-x {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin-top: 10px;
+}
+
+/* The rounds of a map on one line, a gap at half time; rounds not yet played sit sunk. */
+.bx-mp-rounds .bx-dots {
+  --dh: 10px;
+}
+.bx-mp-rounds .bx-dot-open {
+  background: var(--sunk);
+  box-shadow: none;
+}
+
+/* Momentum: one side's rounds above the line, the other's below, each named at its start. */
+.bx-mp-mom {
+  display: grid;
+  grid-template-columns: auto repeat(12, minmax(0, 1fr)) 10px repeat(12, minmax(0, 1fr));
+  align-items: center;
+  gap: 3px 2px;
+}
+.bx-mp-mom > i:not(.bx-mp-mom-axis) {
+  width: min(100%, 9px);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  border-radius: 50%;
+}
+.bx-mp-mom > i[data-on] {
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
+.bx-mp-mom-n {
+  padding-right: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink3);
+  white-space: nowrap;
+}
+.bx-mp-mom-axis {
+  grid-column: 2 / -1;
+  height: 1.5px;
+  border-radius: 1px;
+  background: var(--ink3);
+}
+
+/* Events on a game's clock, with its minutes in the page's own small type. */
+.bx-mp-clock .bx-tl span {
+  font: 650 10.5px var(--face);
+  color: var(--ink3);
+}
+
+/* Who led in gold, minute by minute. */
+.bx-mp-gold > span {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+.bx-mp-gold b {
+  font-weight: 750;
+  color: var(--ink);
+}
+.bx-mp-gold svg {
+  display: block;
+  width: 100%;
+  height: 44px;
+  margin-top: 6px;
+  border-radius: 6px;
+  background: linear-gradient(var(--hair), var(--hair)) 0 50% / 100% 1px no-repeat;
+}
+
+/*
+ * A game of League as it was played: lane against lane. Each half is a champion, the player
+ * and their line; the right half is the left one mirrored, so the two meet at the lane's sign.
+ */
+.bx-mp-sb {
+  display: grid;
+  gap: 2px;
+  container-type: inline-size;
+}
+.bx-mp-sbr {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+}
+.bx-mp-sbr > .bx-role {
+  justify-content: center;
+  color: var(--ink3);
+}
+.bx-mp-sbr > .bx-role svg {
+  color: inherit;
+}
+.bx-mp-sbh {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+.bx-mp-sbh[data-side="1"] {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+.bx-mp-sbn {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 700;
+}
+a.bx-mp-sbn:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.bx-mp-sbk,
+.bx-mp-sbg {
+  flex: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink2);
+  white-space: nowrap;
+}
+.bx-mp-sbk b {
+  color: var(--ink);
+  font-weight: 750;
+}
+.bx-mp-sbg {
+  display: none;
+  color: var(--ink3);
+}
+.bx-mp-sbb {
+  min-height: 0;
+  margin-top: 8px;
+}
+.bx-mp-sbb .bx-mp-sbh {
+  gap: 4px;
+}
+@container (min-width: 520px) {
+  .bx-mp-sbg {
+    display: inline;
+  }
+  .bx-mp-sbr {
+    gap: 14px;
+  }
+}
+
+/* A driver or a player in a field: who, the rounds or games they won, their points. */
+.bx-mp-lane {
+  grid-template-columns: minmax(0, 38%) minmax(0, 1fr) auto;
+  min-height: 50px;
+}
+.bx-mp-lane > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.bx-mp-lane b {
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 750;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-mp-lane em {
+  font-size: 15px;
+  font-weight: 800;
+}
+.bx-mp-lane em[data-at] {
+  color: var(--accent);
+}
+.bx-mp-foot {
+  padding: 12px 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+.bx-mp-places .bx-dot-num {
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* The two line-ups side by side, each its own panel. */
+.bx-mp-lu {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 14px;
+}
+.bx-mp-pl {
+  grid-template-columns: auto minmax(0, 1fr) auto 34px;
+  gap: 10px;
+  min-height: 54px;
+}
+.bx-mp-pl em {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--ink2);
+}
+
+/* Head to head: who won how often, as two figures and a bar. */
+.bx-mp-h2h {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 0 14px;
+}
+.bx-mp-h2h > b {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.bx-mp-h2h > span {
+  display: flex;
+  gap: 3px;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.bx-mp-h2h > span i {
+  flex: 0 0 0;
+  min-width: 0;
+}
+.bx-mp-even {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--sunk);
+  font-weight: 800;
+  color: var(--ink2);
+}
+
+/* Where the facts come from: one quiet line at the foot of the page. */
+.bx-src {
+  margin: 30px 6px 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink3);
+}
+.bx-src a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.bx-src a:hover {
+  color: var(--ink);
+}
+.bx-src b {
+  color: var(--ink);
+}
+
+@media (max-width: 899.98px) {
+  .bx-mp-chess {
+    margin-top: 14px;
+  }
+  .bx-mp-lu {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bx-mp-note {
+    font-size: 14.5px;
+  }
+}

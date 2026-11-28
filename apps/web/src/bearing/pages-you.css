@@ -1,0 +1,558 @@
+/*
+ * The viewer's own corner: Settings, signing in, the account menu, and the shapes shown while a
+ * page loads or when it could not be loaded.
+ */
+
+/* Settings: the account in the top card, then one panel per group, one row per setting. */
+.bx-set .bx-stage {
+  margin-top: 2px;
+}
+.bx-set-av {
+  flex: none;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--chip);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #fff;
+}
+.bx-set-av b {
+  font-size: 30px;
+  font-weight: 800;
+}
+.bx-set-av img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.bx-set .bx-eh p {
+  max-width: 560px;
+  line-height: 1.4;
+}
+.bx-set-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  min-height: 76px;
+  padding: 14px 0;
+  border-top: 1px solid var(--hair);
+}
+.bx-set-row:first-child {
+  border-top: 0;
+}
+.bx-set-row > div:first-child {
+  min-width: 0;
+}
+.bx-set-row b {
+  display: block;
+  font-size: 16px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+.bx-set-row > div:first-child > span {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--ink2);
+}
+.bx-set .bx-seg {
+  margin-top: 0;
+}
+/* The time zone: the browser's own list, dressed as the other controls. */
+.bx-set-sel {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  max-width: 320px;
+  height: 42px;
+  border-radius: 15px;
+  background: var(--sunk);
+  color: var(--ink);
+  transition: background 0.16s var(--out);
+}
+.bx-set-sel select {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0 40px 0 16px;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  color: inherit;
+  font: 700 13.5px var(--face);
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.bx-set-sel select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.bx-set-sel option {
+  background: var(--surface);
+  color: var(--ink);
+}
+.bx-set-sel svg {
+  position: absolute;
+  right: 14px;
+  pointer-events: none;
+  color: var(--ink2);
+}
+.bx-set-sel:hover {
+  background: color-mix(in srgb, var(--sunk) 86%, var(--ink));
+}
+/* The four boards: each a disc of its two squares. */
+.bx-set-sws {
+  display: flex;
+  gap: 12px;
+  padding: 4px;
+}
+.bx-set-sws [data-board="indigo"] {
+  --sq-l: #e3e8ff;
+  --sq-d: #8fa2f0;
+}
+.bx-set-sws [data-board="ink"] {
+  --sq-l: #ececee;
+  --sq-d: #a9acb3;
+}
+.bx-set-sws [data-board="slate"] {
+  --sq-l: #e4e9f0;
+  --sq-d: #7f93ad;
+}
+.bx-set-sws [data-board="green"] {
+  --sq-l: #ebecd0;
+  --sq-d: #739552;
+}
+.bx-set-sws [data-board="walnut"] {
+  --sq-l: #f0d9b5;
+  --sq-d: #b58863;
+}
+.bx .bx-set-sws button {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--sq-l) 50%, var(--sq-d) 50%);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
+  transition:
+    transform 0.16s var(--out),
+    box-shadow 0.2s var(--out);
+}
+.bx .bx-set-sws button:hover {
+  transform: scale(1.08);
+}
+.bx .bx-set-sws button:active {
+  transform: scale(0.92);
+}
+.bx .bx-set-sws button[aria-pressed="true"] {
+  box-shadow:
+    0 0 0 3px var(--surface),
+    0 0 0 5px var(--accent);
+}
+.bx .bx-set-sws button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 6px;
+}
+.bx-set-text {
+  padding: 14px 18px;
+}
+.bx-set-text p {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 550;
+  line-height: 1.5;
+  color: var(--ink2);
+}
+.bx-set-text p + p {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--hair);
+}
+
+/* A choice between a few things: a sunk capsule, the chosen one lifted on the ground. */
+.bx .bx-seg {
+  height: 42px;
+  padding: 3px;
+  border-radius: 15px;
+  background: var(--sunk);
+}
+.bx .bx-seg i {
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc((100% - 6px) / var(--n, 2));
+  border-radius: 12px;
+  background: var(--ground);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.18);
+}
+.bx .bx-seg button {
+  padding: 0 14px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink2);
+}
+.bx .bx-seg button:hover,
+.bx .bx-seg [aria-pressed="true"] {
+  color: var(--ink);
+}
+.bx .bx-seg button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* The account menu: one rounded pane of glass under the button. */
+.bx .bx-menu {
+  top: calc(100% + 12px);
+  width: 292px;
+  padding: 8px;
+  border-radius: 28px;
+  box-shadow: 0 24px 50px -20px rgb(0 0 0 / 0.45);
+}
+.bx .bx-menu-who {
+  gap: 12px;
+  padding: 8px 8px 14px;
+  margin-bottom: 6px;
+}
+.bx .bx-menu-who b {
+  font-size: 15px;
+  font-weight: 750;
+}
+.bx .bx-menu-who .bx-sub {
+  margin-top: 1px;
+  font-size: 12.5px;
+  color: var(--ink2);
+}
+.bx .bx-menu-face {
+  width: 40px;
+  height: 40px;
+}
+.bx .bx-menu-face[data-out] {
+  background: var(--sunk);
+  color: var(--ink2);
+}
+.bx .bx-menu > a,
+.bx .bx-menu > button {
+  height: 44px;
+  padding: 0 14px;
+  gap: 12px;
+  border-radius: 22px;
+  font-size: 14px;
+  font-weight: 650;
+}
+.bx .bx-menu > a:hover,
+.bx .bx-menu > button:hover {
+  background: var(--hover);
+}
+.bx .bx-menu > a:hover svg,
+.bx .bx-menu > button:hover svg {
+  color: var(--ink);
+}
+.bx .bx-menu > a:focus-visible,
+.bx .bx-menu > button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* While a page loads: its shape, breathing slowly. */
+.bx-wt {
+  display: grid;
+  gap: 8px;
+  padding-top: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .bx-wt {
+    animation: bx-wt 1.8s ease-in-out infinite;
+  }
+}
+@keyframes bx-wt {
+  50% {
+    opacity: 0.5;
+  }
+}
+.bx-wt i {
+  display: block;
+}
+.bx-wt-card {
+  height: 240px;
+  padding: 28px;
+  border-radius: 32px;
+  background: var(--sunk);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 14px;
+}
+.bx-wt-card i {
+  height: 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sunk) 88%, var(--ink));
+}
+.bx-wt-h {
+  width: 160px;
+  height: 22px;
+  margin: 24px 4px 6px;
+  border-radius: 11px;
+  background: var(--sunk);
+}
+.bx-wt-row {
+  height: 76px;
+  padding: 0 18px;
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--sunk) 60%, transparent);
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+.bx-wt-row > i {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--sunk);
+}
+.bx-wt-row > span {
+  display: grid;
+  gap: 9px;
+}
+.bx-wt-row > span i {
+  height: 12px;
+  border-radius: 999px;
+  background: var(--sunk);
+}
+.bx-wt-row > span i + i {
+  height: 9px;
+}
+
+/* Something could not be loaded: the way on is a white button on the sky. */
+.bx-problem {
+  --btn: #fff;
+  --btn-ink: var(--k-indigo-900);
+}
+.bx-problem :focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+/* Signing in: the whole sky, the sentence large, the form in a pane of dark glass. */
+.bx-sin-top,
+.bx-sin-main,
+.bx-sin-foot {
+  position: relative;
+  z-index: 1;
+}
+.bx-sin-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+  padding: env(safe-area-inset-top) 28px 0;
+}
+.bx .bx-sin-logo {
+  display: flex;
+  border-radius: 10px;
+  color: #fff;
+}
+.bx .bx-sin-x {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: rgb(255 255 255 / 0.14);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition:
+    background 0.16s var(--out),
+    transform 0.16s var(--out);
+}
+.bx .bx-sin-x:hover {
+  background: rgb(255 255 255 / 0.24);
+}
+.bx .bx-sin-x:active {
+  transform: scale(0.9);
+}
+.bx-sin :focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+.bx-sin-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  gap: 64px;
+  align-items: center;
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px 28px;
+}
+.bx-sin-words h1 {
+  margin: 0;
+  font-size: 68px;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+.bx-sin-words p {
+  margin: 22px 0 0;
+  max-width: 440px;
+  font-size: 18px;
+  font-weight: 550;
+  line-height: 1.4;
+  opacity: 0.9;
+}
+.bx-sin-pane {
+  min-width: 0;
+  padding: 26px;
+  border-radius: 32px;
+  display: grid;
+  gap: 14px;
+  background: rgb(8 14 40 / 0.42);
+  -webkit-backdrop-filter: blur(26px) saturate(1.3);
+  backdrop-filter: blur(26px) saturate(1.3);
+  border: 1px solid rgb(255 255 255 / 0.16);
+  box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.6);
+}
+.bx-sin-pane > b {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+.bx-sin-pane > p,
+.bx-sin .bx-si-failed {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 550;
+  line-height: 1.45;
+  color: rgb(255 255 255 / 0.86);
+}
+.bx-sin-form {
+  min-width: 0;
+  min-height: 120px;
+}
+.bx-sin-form small {
+  display: block;
+  margin-top: 14px;
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: 0.82;
+}
+.bx .bx-sin-go {
+  height: 52px;
+  border-radius: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: var(--k-indigo-900);
+  font-size: 15.5px;
+  font-weight: 800;
+  transition:
+    transform 0.16s var(--out),
+    filter 0.2s;
+}
+.bx .bx-sin-go:hover {
+  filter: brightness(0.94);
+}
+.bx .bx-sin-go:active {
+  transform: scale(0.97);
+}
+.bx .bx-sin-alt {
+  padding-top: 14px;
+  border-top: 1px solid rgb(255 255 255 / 0.16);
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  transition: opacity 0.16s var(--out);
+}
+.bx .bx-sin-alt:hover {
+  opacity: 0.78;
+}
+.bx .bx-sin-alt:active {
+  opacity: 0.6;
+}
+.bx-sin-foot {
+  padding: 22px 22px max(22px, env(safe-area-inset-bottom));
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.72;
+}
+
+@media (max-width: 899.98px) {
+  .bx-set-av {
+    width: 56px;
+    height: 56px;
+  }
+  .bx-set-av svg {
+    width: 26px;
+    height: 26px;
+  }
+  .bx-set-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .bx-set .bx-seg {
+    width: 100%;
+  }
+  .bx-set .bx-seg button {
+    padding: 0 6px;
+  }
+  .bx-set-sel {
+    max-width: none;
+    width: 100%;
+  }
+  .bx-wt {
+    padding-top: 8px;
+  }
+  .bx-wt-card {
+    height: 210px;
+    padding: 18px 16px;
+    border-radius: 28px;
+  }
+  .bx-wt-h {
+    margin: 20px 6px 4px;
+  }
+  .bx-wt-row {
+    padding: 0 14px;
+  }
+  .bx .bx-menu {
+    right: -4px;
+    width: min(292px, calc(100vw - 24px));
+  }
+  .bx-sin-top {
+    height: 58px;
+    padding: env(safe-area-inset-top) 16px 0;
+  }
+  .bx-sin-main {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 26px;
+    align-content: center;
+    padding: 8px 18px 20px;
+  }
+  .bx-sin-words h1 {
+    font-size: 40px;
+  }
+  .bx-sin-words p {
+    margin-top: 14px;
+    font-size: 16px;
+  }
+  .bx-sin-pane {
+    padding: 20px;
+    border-radius: 28px;
+  }
+  .bx-sin-foot {
+    padding: 16px 12px max(16px, env(safe-area-inset-bottom));
+    font-size: 11.5px;
+  }
+}

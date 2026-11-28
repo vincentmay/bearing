@@ -1,3 +1,5 @@
+import "./chess.css";
+
 import type { Match } from "@bearing/domain";
 import { useState } from "react";
 import { useAtlas } from "../../lib/world";
@@ -70,26 +72,30 @@ export function ChessStage({
           : 1;
 
   return (
-    <section className="bx-stage">
+    <section className="bx-chess-stage">
       {games.length > 1 ? (
-        <div className="bx-series bx-series-pick">
-          <SeriesTable
-            match={match}
-            sides={sides}
-            board={board}
-            picked={index}
-            onPick={setPicked}
-          />
-        </div>
+        <>
+          <div className="bx-cap">
+            <span>The match</span>
+            <span>{Math.max(match.bestOf, games.length)} games</span>
+          </div>
+          <div className="bx-series bx-series-pick">
+            <SeriesTable
+              match={match}
+              sides={sides}
+              board={board}
+              picked={index}
+              onPick={setPicked}
+            />
+          </div>
+        </>
       ) : null}
-      <div className="bx-stage-head">
-        <b>{game.label.replace(" | ", " · ")}</b>
-        <span className="bx-sub bx-mono">{outcome}</span>
-      </div>
       {game.moves?.length ? (
         <ChessGame
           // A game picked from the row is another game: the board starts on it afresh.
           key={index}
+          name={game.label.replace(" | ", " · ")}
+          state={outcome}
           moves={game.moves}
           evals={game.evals}
           clocks={game.clocks}
@@ -101,11 +107,17 @@ export function ChessStage({
           opening={opening}
         />
       ) : (
-        <p className="bx-stage-none bx-sub">
-          {opening ? `${opening} · ` : ""}
-          {sides[first]?.name} {game.status === "finished" ? "had" : "has"} the white pieces.
-          {game.status === "live" ? " No move has been made yet." : ""}
-        </p>
+        <>
+          <div className="bx-cap">
+            <span>{game.label.replace(" | ", " · ")}</span>
+            <span>{outcome}</span>
+          </div>
+          <p className="bx-chess-none">
+            {opening ? `${opening} · ` : ""}
+            {sides[first]?.name} {game.status === "finished" ? "had" : "has"} the white pieces.
+            {game.status === "live" ? " No move has been made yet." : ""}
+          </p>
+        </>
       )}
     </section>
   );

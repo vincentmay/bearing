@@ -1,3 +1,4 @@
+import "./pages-you.css";
 import type { Champion, Follow, GameEvent } from "@bearing/domain";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
@@ -7,6 +8,7 @@ import {
   LogIn,
   LogOut,
   Megaphone,
+  RotateCw,
   Settings,
   Star,
   Target,
@@ -19,9 +21,8 @@ import { useAtlas, useFollow } from "../lib/world";
 import type { Dot, MatchView, SideView } from "./model";
 import type { Times } from "./time";
 
-/** The mark: three exposures of one sunrise on one horizon (brand book §4). */
-import { Mark } from "./logo";
 import { Moment } from "./sky";
+/** The mark: three exposures of one sunrise on one horizon (brand book §4). */
 export { Logo, Mark } from "./logo";
 
 /**
@@ -416,7 +417,9 @@ export function AccountLink({ className }: { className?: string }) {
       {open ? (
         <div className="bx-menu" role="menu">
           <div className="bx-menu-who">
-            {signedIn ? <span className="bx-menu-face">{face}</span> : null}
+            <span className="bx-menu-face" data-out={signedIn ? undefined : ""}>
+              {face ?? <UserRound size={18} aria-hidden />}
+            </span>
             <span style={{ minWidth: 0 }}>
               <b>{signedIn ? (account.name ?? "Signed in") : "Not signed in"}</b>
               <span className="bx-sub">
@@ -523,27 +526,6 @@ export function Dots({
   );
 }
 
-/** Rows of dots, as in the small form of a Counter-Strike map. */
-export function DotRows({
-  rows,
-  sides,
-  size = 13,
-  center = false,
-}: {
-  rows: Dot[][];
-  sides: SideView[];
-  size?: number;
-  center?: boolean;
-}) {
-  return (
-    <>
-      {rows.map((row, i) => (
-        <Dots key={i} dots={row} sides={sides} size={size} center={center} fix={row.length < 12} />
-      ))}
-    </>
-  );
-}
-
 /** The score to lead with: two numbers and a dash, or the start time, or a few words. */
 export function Score({ view, times }: { view: MatchView; times: Times }) {
   // A match still to begin leads with its time; one that has begun, with how it stands.
@@ -615,24 +597,6 @@ export function Clockline({
         </span>
       ))}
     </div>
-  );
-}
-
-/** A section on the page: a small label and, under it, one card. */
-export function Section({
-  label,
-  children,
-  className,
-}: {
-  label: string;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <section className={className ? `bx-section ${className}` : "bx-section"}>
-      <h2 className="bx-label">{label}</h2>
-      {children}
-    </section>
   );
 }
 
@@ -712,36 +676,28 @@ export function Segmented<T extends string>({
   );
 }
 
-/** While data is on its way: the shape of the page, with words for anyone who cannot see it. */
+/**
+ * While data is on its way: the shape of the page (the top card, a heading, a few rows),
+ * quietly breathing, with words for anyone who cannot see it.
+ */
 export function Waiting({ title }: { title?: string }) {
   return (
-    <div className="bx-wait" role="status">
-      <span className="bx-only">Loading</span>
-      <header className="bx-head">
-        <span>
-          <Mark />
-          {title ? <h1 className="bx-title">{title}</h1> : null}
-        </span>
-      </header>
-      <div className="bx-card" aria-hidden>
-        <i className="bx-bone" style={{ width: "34%" }} />
-        <i className="bx-bone" style={{ height: 22, margin: "18px 0 14px" }} />
-        <i className="bx-bone" style={{ width: "60%", margin: "0 auto" }} />
+    <div className="bx-wt" role="status">
+      <span className="bx-only">{title ? `Loading ${title}` : "Loading"}</span>
+      <div className="bx-wt-card" aria-hidden>
+        <i style={{ width: "38%", height: 40 }} />
+        <i style={{ width: "56%" }} />
       </div>
-      <section className="bx-section" aria-hidden>
-        <i className="bx-bone" style={{ width: 54, height: 8, margin: "0 8px 10px" }} />
-        <div className="bx-list">
-          {[62, 48, 70].map((w) => (
-            <div key={w} className="bx-bone-row">
-              <i />
-              <span>
-                <i className="bx-bone" style={{ width: `${w}%` }} />
-                <i className="bx-bone" style={{ width: `${w - 24}%`, height: 8 }} />
-              </span>
-            </div>
-          ))}
+      <i className="bx-wt-h" aria-hidden />
+      {[58, 44, 66, 50].map((w) => (
+        <div key={w} className="bx-wt-row" aria-hidden>
+          <i />
+          <span>
+            <i style={{ width: `${w}%` }} />
+            <i style={{ width: `${w - 22}%` }} />
+          </span>
         </div>
-      </section>
+      ))}
     </div>
   );
 }
@@ -763,11 +719,12 @@ export function Problem({
       title={title}
       action={
         onRetry ? (
-          <button type="button" className="bx-ghost" onClick={onRetry}>
+          <button type="button" className="bx-btn" data-k="main" onClick={onRetry}>
+            <RotateCw size={16} aria-hidden />
             Try again
           </button>
         ) : (
-          <Link to="/" className="bx-ghost">
+          <Link to="/" className="bx-btn" data-k="main">
             Back to Today
           </Link>
         )

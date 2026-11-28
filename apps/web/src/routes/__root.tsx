@@ -46,12 +46,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         title="Past the horizon."
         action={
           <Link to="/" className="bx-ghost">
-            Back to Today
+            Back to Live
           </Link>
         }
       >
-        This page doesn't exist. Today is this way, and <Link to="/search">Search</Link> finds a
-        team, a player or an event.
+        This page doesn't exist. What is live is this way, and <Link to="/search">Search</Link>{" "}
+        finds a team, a player or an event.
       </Moment>
     </ShellProblem>
   ),

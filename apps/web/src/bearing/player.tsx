@@ -1,14 +1,18 @@
+import "./pages-people.css";
 import { type Match, type Player, countryName, playerTotals } from "@bearing/domain";
+import { Link } from "@tanstack/react-router";
+import { ChevronRight } from "lucide-react";
+import type { CSSProperties } from "react";
 import { useFidePlayer } from "../lib/fide";
 import { useChampionPool } from "../lib/pool";
-import { didWin } from "../lib/view";
-import { type Board, useBoard } from "./board";
+import { didWin, scoreLine } from "../lib/view";
+import { type Board, useBoard, useWide } from "./board";
 import { Back, Go, useVisit } from "./links";
-import { ScheduleRow } from "./lists";
 import { type SideView, plainName, sideOf, standIn } from "./model";
-import { type LineStop, StopLine } from "./stages";
-import { ResultRow } from "./today";
-import { Champ, Disc, Flag, FollowStar, Problem, Role, Section, positionOf } from "./ui";
+import { MatchRow } from "./rows";
+import { CardSky, light } from "./sky";
+import { Figures, FollowButton, NowStrip, PersonRow, Year, points, rankOf, yearOf } from "./team";
+import { Champ, Disc, Flag, Ping, Problem, positionOf } from "./ui";
 
 function age(born: string | undefined, now: number): string | undefined {
   if (!born) return undefined;
@@ -16,64 +20,100 @@ function age(born: string | undefined, now: number): string | undefined {
   return `${years} years old`;
 }
 
-/** A career as a line of stops: every team the player has been in, in order. */
-function careerStops(board: Board, player: Player): LineStop[] {
+/** Every team the player has been in, newest first, with the years and what they did there. */
+function Career({ board, player }: { board: Board; player: Player }) {
   const { atlas } = board;
-  return atlas.world.stints
+  const stints = atlas.world.stints
     .filter((s) => s.playerId === player.id)
-    .sort((a, b) => (a.from ?? "").localeCompare(b.from ?? ""))
-    .map((s): LineStop => {
-      const team = sideOf(atlas, s.teamId);
-      return {
-        kind: s.to ? "done" : "now",
-        label: team.name,
-        // Since when is said only where it is known.
-        sub: [
-          s.from
-            ? `${s.from.slice(0, 4)} to ${s.to ? s.to.slice(0, 4) : "now"}`
-            : s.to
-              ? ""
-              : "Now",
-          s.role,
-        ]
-          .filter(Boolean)
-          .join(" · "),
-        fill: team.color,
-        weight: 1,
-        to: { kind: "team", id: s.teamId },
-      };
-    });
+    .sort((a, b) => (b.from ?? "").localeCompare(a.from ?? ""));
+  // One team is already said on the card above.
+  if (stints.length < 2) return null;
+  return (
+    <>
+      <h2 className="bx-h2">Career</h2>
+      <div className="bx-panel">
+        {stints.map((s) => (
+          <Go key={s.id} to={{ kind: "team", id: s.teamId }} className="bx-pp-li">
+            <Disc side={sideOf(atlas, s.teamId)} size={34} />
+            <span>
+              <b>{plainName(atlas, s.teamId)}</b>
+              <span>{s.role}</span>
+            </span>
+            <span className="bx-pp-role" data-on={s.to ? undefined : ""}>
+              {/* Since when is said only where it is known. */}
+              {s.from
+                ? `${s.from.slice(0, 4)} to ${s.to ? s.to.slice(0, 4) : "now"}`
+                : s.to
+                  ? ""
+                  : "Now"}
+            </span>
+          </Go>
+        ))}
+      </div>
+    </>
+  );
 }
 
 /**
- * For someone who plays alone: their run through the event in progress, round by round. A stop
- * is filled for a win, split for a draw and left open for a loss.
+ * For someone who plays alone: their run through the event in progress, round by round, as a
+ * strip of squares: the result of each game, the one being played, the ones to come.
  */
-function runStops(board: Board, player: Player, side: SideView, own: Match[]): LineStop[] {
+function Run({ board, player, own }: { board: Board; player: Player; own: Match[] }) {
   const { atlas } = board;
   const current = own.find((m) => m.status === "live") ?? own.find((m) => m.status === "scheduled");
   const event = (current ?? own.at(-1))?.tournamentId;
-  return own
-    .filter((m) => m.tournamentId === event && m.sides.length === 2)
-    .map((m): LineStop => {
-      const other = m.sides.find((s) => s.competitorId !== player.id)?.competitorId;
-      const round = atlas.roundOf(m)?.short ?? "";
-      const won = didWin(m, player.id);
-      return {
-        kind: m.status === "finished" ? "done" : m.status === "live" ? "now" : "later",
-        label: round,
-        sub: plainName(atlas, other),
-        weight: 1,
-        fill:
-          won === true
-            ? side.color
-            : won === "draw"
-              ? `linear-gradient(90deg, ${side.color} 50%, var(--surface) 50%)`
-              : m.status === "live"
-                ? "var(--surface)"
-                : undefined,
-      };
-    });
+  const games = own.filter((m) => m.tournamentId === event && m.sides.length === 2);
+  if (!games.length || !event) return null;
+  const tournament = atlas.tournament(event);
+  const finished = games.filter((m) => m.status === "finished");
+  return (
+    <>
+      <h2 className="bx-h2">
+        {tournament?.name ?? "The event"}
+        <small>
+          round by round
+          {finished.length ? ` · ${points(finished, player.id)} of ${finished.length}` : ""}
+        </small>
+      </h2>
+      <div className="bx-panel bx-pp-gs">
+        {games.map((m) => {
+          const other = m.sides.find((s) => s.competitorId !== player.id)?.competitorId;
+          const round = atlas.roundOf(m)?.short ?? "";
+          const won = didWin(m, player.id);
+          const mark =
+            m.status === "live" ? (
+              <Ping />
+            ) : won === true ? (
+              "1"
+            ) : won === "draw" ? (
+              "½"
+            ) : won === false ? (
+              "0"
+            ) : (
+              <i />
+            );
+          const k =
+            m.status === "live" ? "n" : won === true ? "w" : won === false ? "l" : won ? "d" : "";
+          const name = plainName(atlas, other);
+          return (
+            <Link
+              key={m.id}
+              to="/match/$matchId"
+              params={{ matchId: m.id }}
+              className="bx-pp-g"
+              data-k={k}
+              aria-label={`${round}, against ${name}`}
+              title={name}
+            >
+              <small>{round}</small>
+              <b>{mark}</b>
+              <em>{name}</em>
+            </Link>
+          );
+        })}
+      </div>
+    </>
+  );
 }
 
 /**
@@ -93,40 +133,55 @@ function Pool({ handle, team, board }: { handle: string; team: string; board: Bo
   const anyPatch = [...filed.values()].find((f) => f.patch)?.patch;
   const most = pool[0]!.games;
   return (
-    <Section label={`Champions in ${year}`}>
-      <div className="bx-list">
+    <>
+      <h2 className="bx-h2">
+        Champions
+        <small>in {year}</small>
+      </h2>
+      <div className="bx-panel">
         {pool.map((p) => {
           const art = filed.get(p.champion);
+          const rate = p.games ? Math.round((p.wins / p.games) * 100) : 0;
           return (
-            <div key={p.champion} className="bx-line bx-pool">
-              <span className="bx-who">
-                <Champ
-                  // A champion in none of Bearing's drafts is looked for under its plain name,
-                  // which is where most are filed.
-                  champion={{
-                    name: p.champion,
-                    key: art?.key ?? p.champion.replace(/[^A-Za-z]/g, ""),
-                  }}
-                  patch={art?.patch ?? anyPatch}
-                  size={30}
-                />
-                <span>
-                  <b>{p.champion}</b>
-                  <span className="bx-sub">
-                    {p.games} {p.games === 1 ? "game" : "games"} · won {p.wins}
-                  </span>
+            <div key={p.champion} className="bx-pp-li bx-pp-pool">
+              <Champ
+                // A champion in none of Bearing's drafts is looked for under its plain name,
+                // which is where most are filed.
+                champion={{
+                  name: p.champion,
+                  key: art?.key ?? p.champion.replace(/[^A-Za-z]/g, ""),
+                }}
+                patch={art?.patch ?? anyPatch}
+                size={34}
+              />
+              <span>
+                <b>{p.champion}</b>
+                <span className="bx-pp-bar" aria-hidden>
+                  <i style={{ width: `${(p.games / most) * 100}%` }}>
+                    <i style={{ width: `${rate}%` }} />
+                  </i>
                 </span>
               </span>
-              <span className="bx-pool-bar" aria-hidden>
-                <i style={{ width: `${(p.games / most) * 100}%` }}>
-                  <i style={{ width: `${p.games ? (p.wins / p.games) * 100 : 0}%` }} />
-                </i>
+              <span className="bx-pp-out" data-w={rate >= 50 ? "1" : "0"}>
+                <b>{rate}%</b>
+                <small>
+                  {p.wins} of {p.games} won
+                </small>
               </span>
             </div>
           );
         })}
       </div>
-    </Section>
+    </>
+  );
+}
+
+/** The player's picture, large, lighting the card's sky in their colour. */
+function Face({ side }: { side: SideView }) {
+  return (
+    <span className="bx-pp-mark" {...light(side.color, 620, 1)}>
+      <Disc side={side} size={84} />
+    </span>
   );
 }
 
@@ -149,6 +204,7 @@ function Listed({ id }: { id: string }) {
     );
   }
   const facts = [
+    "Chess",
     countryName(player.country),
     player.title,
     player.born ? `born ${player.born}` : undefined,
@@ -156,44 +212,53 @@ function Listed({ id }: { id: string }) {
   return (
     <>
       <Back />
-      <header className="bx-entity">
-        <Disc
-          size={72}
-          side={standIn({
-            name: player.name,
-            short: player.family.slice(0, 2).toUpperCase(),
-            image: player.imageLarge ?? player.image,
-            person: true,
-          })}
-        />
-        <div>
-          <h1 className="bx-display">{player.family}</h1>
-          <p className="bx-sub" style={{ margin: "6px 0 0", fontSize: 13 }}>
-            <Flag country={player.country} />
-            {[player.name, ...facts].join(" · ")}
-          </p>
-        </div>
-        <FollowStar follow={{ kind: "player", id }} name={player.name} />
-      </header>
-      {player.ratings.length ? (
-        <dl className="bx-figures">
-          {player.ratings.map((rating) => (
-            <div key={rating.label}>
-              <dd>{rating.value}</dd>
-              <dt className="bx-label">{rating.label}</dt>
+      <section className="bx-stage">
+        <CardSky />
+        <div className="bx-ent-in">
+          <div className="bx-eh">
+            <Face
+              side={standIn({
+                name: player.name,
+                short: player.family.slice(0, 2).toUpperCase(),
+                image: player.imageLarge ?? player.image,
+                person: true,
+              })}
+            />
+            <div>
+              <h1>{player.family}</h1>
+              <p>
+                <Flag country={player.country} />
+                {[player.name, ...facts].join(" · ")}
+              </p>
             </div>
-          ))}
-        </dl>
-      ) : null}
-      <div className="bx-page-narrow" style={{ margin: "22px 0 0" }}>
-        <div className="bx-list">
-          <p className="bx-empty">
-            {player.family} is not playing in an event Kiming has at the moment. Their games appear
-            here as soon as they are.
-          </p>
+            <Figures
+              figs={player.ratings.slice(0, 3).map((r) => ({ value: r.value, label: r.label }))}
+            />
+            <div className="bx-eh-acts">
+              <FollowButton follow={{ kind: "player", id }} name={player.name} />
+            </div>
+          </div>
         </div>
-      </div>
-      <p className="bx-source">
+      </section>
+      {player.ratings.length > 3 ? (
+        <>
+          <h2 className="bx-h2">Ratings</h2>
+          <div className="bx-panel">
+            {player.ratings.map((r) => (
+              <div key={r.label} className="bx-pp-bm">
+                <b>{r.label}</b>
+                <span />
+                <span>{r.value}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : null}
+      <p className="bx-quiet">
+        {player.family} is not playing in an event Kiming has at the moment. Their games appear here
+        as soon as they are.
+      </p>
+      <p className="bx-pp-src">
         <a href={`https://lichess.org/fide/${id.slice(5)}`} target="_blank" rel="noreferrer">
           FIDE, by way of Lichess
         </a>
@@ -206,6 +271,7 @@ function Listed({ id }: { id: string }) {
 export function PlayerPage({ playerId }: { playerId: string }) {
   const board = useBoard(playerId, { side: playerId });
   const { atlas, now } = board;
+  const wide = useWide();
   const player = atlas.player(playerId);
   useVisit("player", playerId, !!player);
   if (!player && playerId.startsWith("fide-")) return <Listed id={playerId} />;
@@ -230,13 +296,15 @@ export function PlayerPage({ playerId }: { playerId: string }) {
     image: player.image,
     person: true,
   };
+  const teamSide = team ? sideOf(atlas, team.id) : undefined;
+  const discipline = atlas.discipline(player.discipline);
   const own = atlas.matchesFor(player.id);
   const matches = team ? atlas.matchesFor(team.id) : own;
+  const subject = team?.id ?? player.id;
   const totals = playerTotals(matches, player.id);
   const live = matches.filter((m) => m.status === "live");
   const next = matches.filter((m) => m.status === "scheduled").slice(0, 3);
   const done = matches.filter((m) => m.status === "finished").reverse();
-  const career = careerStops(board, player);
   const lane = (role: string) => {
     const at = ["top", "jungle", "mid", "bot", "support"].indexOf(positionOf(role) ?? "");
     return at < 0 ? 9 : at;
@@ -247,166 +315,223 @@ export function PlayerPage({ playerId }: { playerId: string }) {
         .filter((r) => r.player.id !== player.id)
         .sort((x, y) => lane(x.stint.role) - lane(y.stint.role))
     : [];
-  const run = team ? [] : runStops(board, player, side, own);
-  const event = own.length
-    ? atlas.tournamentOf((own.find((m) => m.status !== "finished") ?? own.at(-1))!)
-    : undefined;
+  const year = yearOf(board, subject, player.discipline, matches);
+  const front = live[0] ?? next[0];
+  const rank = rankOf(atlas, player.discipline, player.id);
+  const teamRank = team ? rankOf(atlas, team.discipline, team.id) : undefined;
+  // For someone who plays alone: how they stand in what they are playing now. A long match of
+  // many games is told by its score; an event of rounds by the points so far.
+  const current = team ? undefined : (front ?? own.at(-1));
+  const long = current && current.bestOf > 2 && current.sides.length === 2;
+  const me = current ? current.sides.findIndex((s) => s.competitorId === player.id) : -1;
+  const event = current ? atlas.tournamentOf(current) : undefined;
+  const run = current
+    ? own.filter((m) => m.tournamentId === current.tournamentId && m.status === "finished")
+    : [];
+  const standing =
+    current && long
+      ? {
+          value: (me
+            ? scoreLine(current).split("–").reverse()
+            : scoreLine(current).split("–")
+          ).join("–"),
+          label: `Against ${plainName(atlas, current.sides[1 - Math.max(0, me)]?.competitorId)}`,
+        }
+      : run.length && event
+        ? { value: `${points(run, player.id)}/${run.length}`, label: `In ${event.short}` }
+        : undefined;
+  const figs = [
+    ...(player.rating
+      ? [{ value: player.rating.value, label: `${player.rating.system} rating` }]
+      : []),
+    ...(rank ? [{ value: `#${rank}`, label: "World ranking" }] : []),
+    ...(standing ? [standing] : []),
+    ...(totals?.rating !== undefined
+      ? [
+          {
+            value: totals.rating.toFixed(2),
+            label: `Rating over ${totals.games} ${discipline.unit.many.toLowerCase()}`,
+          },
+        ]
+      : []),
+    ...(totals ? [{ value: `${totals.kills}–${totals.deaths}`, label: "Kills, deaths" }] : []),
+    ...(totals?.adr !== undefined
+      ? [{ value: Math.round(totals.adr), label: "Damage a round" }]
+      : []),
+    ...(totals && totals.rating === undefined
+      ? [{ value: totals.games, label: `${discipline.unit.many} on record` }]
+      : []),
+  ];
   const facts = [
+    team ? undefined : discipline.name,
     player.name,
     countryName(player.country),
     player.title,
-    stint?.role ?? player.role,
+    team ? undefined : (stint?.role ?? player.role),
     age(player.born, now),
   ].filter(Boolean);
+  const follow = <FollowButton follow={{ kind: "player", id: player.id }} name={player.handle} />;
+  // Someone who plays alone has no team beside the results: what is coming stands there instead.
+  const coming =
+    live.length || next.length ? (
+      <>
+        <h2 className="bx-h2">{live.length ? "On now and next" : "Next"}</h2>
+        <div className="bx-rows">
+          {[...live, ...next].map((m) => (
+            <MatchRow key={m.id} match={m} board={board} day />
+          ))}
+        </div>
+      </>
+    ) : null;
 
   return (
     <>
       <Back parent={team ? { kind: "team", id: team.id } : undefined} />
-      <header className="bx-entity">
-        <Disc side={side} size={72} />
-        <div>
-          <h1 className="bx-display">{player.handle}</h1>
-          <p className="bx-sub" style={{ margin: "6px 0 0", fontSize: 13 }}>
-            <Flag country={player.country} />
-            {facts.join(" · ")}
-          </p>
+      <section className="bx-stage" data-live={live.length ? "" : undefined}>
+        <CardSky live={live.length > 0} />
+        <div className="bx-ent-in">
+          <div className="bx-eh">
+            <Face side={side} />
+            <div>
+              <h1>{player.handle}</h1>
+              <p>
+                <Flag country={player.country} />
+                {facts.join(" · ")}
+              </p>
+              {team && teamSide ? (
+                <Go to={{ kind: "team", id: team.id }} className="bx-pp-team">
+                  <Disc side={teamSide} size={24} />
+                  <b>{teamSide.name}</b>
+                  <span>
+                    {[
+                      stint?.role ?? player.role,
+                      stint?.from ? `since ${stint.from.slice(0, 4)}` : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
+                  <ChevronRight size={15} aria-hidden />
+                </Go>
+              ) : null}
+            </div>
+            <Figures figs={figs.slice(0, 3)} />
+            {front ? null : <div className="bx-eh-acts">{follow}</div>}
+          </div>
+          {front ? (
+            <NowStrip match={front} board={board} subject={subject}>
+              {follow}
+            </NowStrip>
+          ) : null}
         </div>
-        <FollowStar follow={{ kind: "player", id: player.id }} name={player.handle} />
-      </header>
-      {team ? (
-        <Go to={{ kind: "team", id: team.id }} className="bx-teamchip">
-          <Disc side={sideOf(atlas, team.id)} size={26} />
-          <span>
-            <b>{team.name}</b>
-            <span className="bx-sub">
-              {[
-                atlas.discipline(team.discipline).name,
-                stint?.role ?? player.role,
-                stint?.from ? `since ${stint.from.slice(0, 4)}` : undefined,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-            </span>
-          </span>
-        </Go>
-      ) : null}
+      </section>
 
-      {player.rating || totals ? (
-        <dl className="bx-figures">
-          {player.rating ? (
-            <div>
-              <dd className="bx-num">{player.rating.value}</dd>
-              <dt className="bx-label">{player.rating.system} rating</dt>
-            </div>
-          ) : null}
-          {totals?.rating !== undefined ? (
-            <div>
-              <dd className="bx-num">{totals.rating.toFixed(2)}</dd>
-              <dt className="bx-label">Rating</dt>
-            </div>
-          ) : null}
-          {totals ? (
-            <div>
-              <dd className="bx-num">
-                {totals.kills}
-                <i className="bx-dash" />
-                {totals.deaths}
-              </dd>
-              <dt className="bx-label">Kills, deaths</dt>
-            </div>
-          ) : null}
-          {totals?.adr !== undefined ? (
-            <div>
-              <dd className="bx-num">{Math.round(totals.adr)}</dd>
-              <dt className="bx-label">Damage a round</dt>
-            </div>
-          ) : null}
-          {totals ? (
-            <div>
-              <dd className="bx-num">{totals.games}</dd>
-              <dt className="bx-label">
-                {atlas.discipline(player.discipline).unit.many} on record
-              </dt>
-            </div>
-          ) : null}
-        </dl>
-      ) : null}
+      <Year
+        cards={year}
+        side={team ? (teamSide ?? side) : side}
+        now={now}
+        label={team && teamSide ? `With ${teamSide.name}` : undefined}
+      />
 
-      {career.length > 1 ? (
-        <section className="bx-section" style={{ marginTop: 30 }}>
-          <h2 className="bx-label" style={{ marginBottom: 14 }}>
-            Career
-          </h2>
-          <div className="bx-hero">
-            <StopLine stops={career} />
-          </div>
-        </section>
-      ) : null}
-      {run.length && event ? (
-        <section className="bx-section" style={{ marginTop: 30 }}>
-          <h2 className="bx-label" style={{ marginBottom: 14 }}>
-            <Go to={{ kind: "tournament", id: event.id }}>{event.name}</Go>, round by round
-          </h2>
-          <div className="bx-hero">
-            <StopLine stops={run} />
-          </div>
-        </section>
-      ) : null}
-
-      <div className="bx-cols">
+      <div className={team || (coming && wide) ? "bx-cols2" : undefined}>
         <div>
-          {live.length || next.length ? (
-            <Section label="On now and next">
-              <div className="bx-list">
-                {[...live, ...next].map((m) => (
-                  <ScheduleRow key={m.id} match={m} board={board} day />
+          {/* On a phone, what is coming stands before the run and the results. */}
+          {!team && !wide ? coming : null}
+          {team ? null : <Run board={board} player={player} own={own} />}
+          {team ? coming : null}
+          {done.length ? (
+            <>
+              <h2 className="bx-h2">
+                Results
+                {team ? <small>with {plainName(atlas, team.id)}</small> : null}
+              </h2>
+              <div className="bx-rows">
+                {done.slice(0, team ? 6 : 8).map((m) => (
+                  <MatchRow key={m.id} match={m} board={board} day />
                 ))}
               </div>
-            </Section>
-          ) : (
-            <Section label="Next">
-              <div className="bx-list">
-                <p className="bx-empty">Nothing is scheduled for {player.handle}.</p>
+            </>
+          ) : null}
+          {figs.length > 3 ? (
+            <>
+              <h2 className="bx-h2">
+                Numbers
+                <small>{team ? `with ${plainName(atlas, team.id)}` : "on record"}</small>
+              </h2>
+              <div className="bx-panel">
+                {figs.map((f) => (
+                  <div key={f.label} className="bx-pp-bm">
+                    <b>{f.label}</b>
+                    <span />
+                    <span>{f.value}</span>
+                  </div>
+                ))}
               </div>
-            </Section>
-          )}
+            </>
+          ) : null}
         </div>
         <div>
+          {team && teamSide ? (
+            <>
+              <h2 className="bx-h2">Team</h2>
+              <Go
+                to={{ kind: "team", id: team.id }}
+                className="bx-pp-tcard"
+                style={{ "--pp-c": teamSide.color } as CSSProperties}
+              >
+                <Disc side={teamSide} size={52} />
+                <span>
+                  <b>{team.name}</b>
+                  <span>
+                    {[
+                      discipline.name,
+                      stint?.role ?? player.role,
+                      stint?.from ? `since ${stint.from.slice(0, 4)}` : undefined,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
+                </span>
+                {teamRank ? (
+                  <span className="bx-pp-out">
+                    <b>#{teamRank}</b>
+                    <small>World ranking</small>
+                  </span>
+                ) : (
+                  <ChevronRight size={18} aria-hidden />
+                )}
+              </Go>
+            </>
+          ) : null}
           {team && player.discipline === "lol" ? (
             <Pool handle={player.handle} team={team.name} board={board} />
           ) : null}
           {mates.length ? (
-            <Section label={`With ${player.handle} at ${plainName(atlas, team?.id)}`}>
-              <div className="bx-list">
+            <>
+              <h2 className="bx-h2">
+                Team-mates
+                <small>
+                  with {player.handle} at {plainName(atlas, team?.id)}
+                </small>
+              </h2>
+              <div className="bx-panel">
                 {mates.map(({ player: mate, stint: theirs }) => (
-                  <Go key={mate.id} to={{ kind: "player", id: mate.id }} className="bx-line">
-                    <span className="bx-who">
-                      <Disc side={sideOf(atlas, mate.id)} size={30} />
-                      <span>
-                        <b>{mate.handle}</b>
-                        <span className="bx-sub">{mate.name || countryName(mate.country)}</span>
-                      </span>
-                    </span>
-                    <Role role={theirs.role} />
-                    <span />
-                  </Go>
+                  <PersonRow
+                    key={mate.id}
+                    atlas={atlas}
+                    player={mate}
+                    stint={theirs}
+                    since={false}
+                  />
                 ))}
               </div>
-            </Section>
+            </>
           ) : null}
-          {done.length ? (
-            <Section label={team ? `Results with ${plainName(atlas, team.id)}` : "Results"}>
-              <div className="bx-list">
-                {done.slice(0, 6).map((m) => (
-                  <ResultRow key={m.id} match={m} board={board} />
-                ))}
-              </div>
-            </Section>
-          ) : null}
+          {!team && wide ? coming : null}
+          <Career board={board} player={player} />
         </div>
       </div>
       {player.imageCredit ? (
-        <p className="bx-source">Picture: {player.imageCredit.replace(/\s*<[^>]*>/g, "")}</p>
+        <p className="bx-pp-src">Picture: {player.imageCredit.replace(/\s*<[^>]*>/g, "")}</p>
       ) : null}
     </>
   );

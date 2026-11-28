@@ -151,8 +151,8 @@ export function Welcome({ board, onDone }: { board: Board; onDone: () => void })
             <div>
               <h1>What do you follow?</h1>
               <p>
-                Pick a few teams and players. Their matches come first everywhere in Kiming, and
-                you need no account.
+                Pick a few teams and players. Their matches come first everywhere in Kiming, and you
+                need no account.
               </p>
             </div>
             <div className="bx-eh-acts">

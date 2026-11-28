@@ -461,7 +461,6 @@ html:has(.bx[data-theme="dark"]) {
   letter-spacing: -0.05em;
   line-height: 0.95;
   white-space: nowrap;
-  font-variant-numeric: tabular-nums;
 }
 .bx-fig b i {
   opacity: 0.4;
@@ -579,7 +578,6 @@ html:has(.bx[data-theme="dark"]) {
   line-height: 1;
   padding: 0 8px;
   white-space: nowrap;
-  font-variant-numeric: tabular-nums;
 }
 .bx-cduel > b i {
   opacity: 0.4;
@@ -679,7 +677,6 @@ html:has(.bx[data-theme="dark"]) {
 }
 .bx-ln > b {
   font-weight: 800;
-  font-variant-numeric: tabular-nums;
 }
 .bx-ln[data-quiet] {
   font-size: 14px;
@@ -782,7 +779,6 @@ html:has(.bx[data-theme="dark"]) {
   font-weight: 800;
   letter-spacing: -0.03em;
   white-space: nowrap;
-  font-variant-numeric: tabular-nums;
 }
 .bx-rw-t span {
   font-size: 12px;
@@ -813,6 +809,10 @@ html:has(.bx[data-theme="dark"]) {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* Where room runs out, the long name gives way; a short one is never cut. */
+.bx-rw-vs > span[data-short] {
+  flex: none;
+}
 .bx-rw-vs small {
   font-size: 13px;
   color: var(--ink3);
@@ -823,7 +823,6 @@ html:has(.bx[data-theme="dark"]) {
   font-size: 17px;
   padding: 0 4px;
   flex: none;
-  font-variant-numeric: tabular-nums;
 }
 .bx-rw-vs [data-lost] {
   color: var(--ink2);
@@ -1196,6 +1195,14 @@ html:has(.bx[data-theme="dark"]) {
   .bx-cduel > span:last-child {
     text-align: right;
   }
+  .bx-cduel > span {
+    overflow-wrap: anywhere;
+  }
+  .bx-cduel > span[data-long] {
+    font-size: 13.5px;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
   .bx-cduel > b {
     font-size: 40px;
     padding: 0 4px;
@@ -1360,7 +1367,6 @@ html:has(.bx[data-theme="dark"]) {
   letter-spacing: -0.04em;
   line-height: 1;
   white-space: nowrap;
-  font-variant-numeric: tabular-nums;
 }
 .bx-figs span {
   display: block;
@@ -1411,7 +1417,6 @@ html:has(.bx[data-theme="dark"]) {
   font-weight: 800;
   letter-spacing: -0.03em;
   white-space: nowrap;
-  font-variant-numeric: tabular-nums;
 }
 .bx-enow-sc small {
   font-size: 13px;
@@ -1625,6 +1630,10 @@ html:has(.bx[data-theme="dark"]) {
   opacity: 0.5;
   pointer-events: none;
 }
+/* Followed through something wider: it is on, and is changed there, so it is not dimmed. */
+.bx .bx-btn:disabled[aria-pressed="true"] {
+  opacity: 1;
+}
 @media (max-width: 899.98px) {
   .bx-pks {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1633,5 +1642,15 @@ html:has(.bx[data-theme="dark"]) {
   .bx .bx-pk {
     padding: 14px;
     border-radius: 22px;
+  }
+}
+
+/* A moment on the sky (nothing on, a lost address, no connection) has the top card's corners. */
+.bx-moment {
+  border-radius: 32px;
+}
+@media (max-width: 899.98px) {
+  .bx-moment {
+    border-radius: 28px;
   }
 }

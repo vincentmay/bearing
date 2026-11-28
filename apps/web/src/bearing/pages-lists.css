@@ -1,0 +1,594 @@
+/*
+ * Schedule and Following: a day, and what the viewer follows. Each page has one top card on the
+ * sky and lists under it.
+ */
+
+/* Two columns under the top card: the rows, and a narrower panel beside them. */
+.bx-one {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 40px;
+  align-items: start;
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Schedule */
+
+.bx-dayc .bx-ent-in {
+  gap: 18px;
+}
+.bx-dayc .bx-eh {
+  align-items: flex-end;
+}
+.bx-dayc .bx-eh-acts {
+  align-items: center;
+}
+
+/* Everything, or what I follow: two glass halves, the chosen one white. */
+.bx-scope {
+  display: flex;
+  padding: 4px;
+  border-radius: 22px;
+  background: var(--chip);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.bx .bx-scope button {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 18px;
+  font-weight: 750;
+  font-size: 14px;
+  color: var(--soft);
+  white-space: nowrap;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    transform 0.16s var(--out);
+}
+.bx .bx-scope button:hover {
+  color: #fff;
+}
+.bx .bx-scope button:active {
+  transform: scale(0.96);
+}
+.bx .bx-scope button[aria-pressed="true"] {
+  background: #fff;
+  color: var(--k-indigo-900);
+}
+
+/* The strip of days, with a week back and a week on at its ends. */
+.bx-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.bx-strip .bx-picks {
+  position: relative;
+  min-width: 0;
+  scroll-behavior: smooth;
+}
+.bx .bx-strip .bx-picks > button {
+  height: 60px;
+  gap: 1px;
+}
+.bx .bx-picks > button:not([aria-pressed="true"]):hover {
+  background: rgb(255 255 255 / 0.24);
+}
+.bx-pdots {
+  display: flex;
+  gap: 3px;
+  height: 4px;
+  margin-top: 2px;
+}
+.bx-pdots i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
+}
+.bx-pdots i[data-k="mine"] {
+  background: var(--k-amber-400);
+  opacity: 1;
+}
+.bx .bx-wk {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--chip);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition:
+    background 0.2s,
+    transform 0.16s var(--out);
+}
+.bx .bx-wk:hover {
+  background: rgb(255 255 255 / 0.24);
+}
+.bx .bx-wk:active {
+  transform: scale(0.92);
+}
+
+/* One event of the day: its name as a heading that leads to it, its matches under it. */
+.bx-sev-h {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 30px 0 12px;
+  padding: 6px 10px 6px 6px;
+  border-radius: 20px;
+  transition: background 0.2s;
+}
+.bx-sev-h:hover {
+  background: var(--hover);
+}
+.bx-sev-h > span:nth-child(2) {
+  min-width: 0;
+  flex: 1;
+}
+.bx-sev-h b {
+  display: block;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-sev-h small {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-sev-h > svg {
+  flex: none;
+  color: var(--ink3);
+  transition:
+    color 0.2s,
+    transform 0.2s var(--out);
+}
+.bx-sev-h:hover > svg {
+  color: var(--ink);
+  transform: translateX(2px);
+}
+
+/* A day with nothing on, and the way to the next one that has something. */
+.bx-none {
+  margin-top: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-height: 76px;
+  padding: 12px 14px 12px 22px;
+  border-radius: var(--r-row);
+  border: 1px solid var(--hair);
+  background: var(--surface);
+  color: var(--ink2);
+  font-size: 15px;
+  font-weight: 650;
+}
+.bx .bx-none .bx-btn {
+  padding: 0 14px 0 18px;
+  color: var(--ink);
+}
+.bx .bx-none .bx-btn:hover {
+  background: var(--hover);
+}
+
+/* The events of the day in a panel: one row each, the whole row the way in. */
+.bx-one > div > .bx-cap:first-child {
+  margin-top: 40px;
+}
+.bx-evl {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  margin: 0 -10px;
+  padding: 12px 10px;
+  border-radius: 16px;
+  position: relative;
+  transition: background 0.2s;
+}
+.bx-evl + .bx-evl::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 10px;
+  right: 10px;
+  border-top: 1px solid var(--hair);
+}
+.bx-evl:hover {
+  background: var(--hover);
+}
+.bx-evl:hover::before,
+.bx-evl:hover + .bx-evl::before {
+  opacity: 0;
+}
+.bx-evl > span {
+  min-width: 0;
+}
+.bx-evl b {
+  display: block;
+  font-size: 15px;
+  font-weight: 750;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-evl small {
+  display: block;
+  font-size: 12.5px;
+  color: var(--ink2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-evl em {
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Following */
+
+.bx-fhead .bx-eh {
+  align-items: flex-end;
+}
+/* One glass chip per followed thing, with how it stands. */
+.bx-toks {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+.bx-tok {
+  height: 46px;
+  padding: 0 16px 0 9px;
+  border-radius: 23px;
+  background: var(--chip);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  flex: none;
+  font-weight: 750;
+  font-size: 14.5px;
+  white-space: nowrap;
+  transition:
+    background 0.2s,
+    transform 0.16s var(--out);
+}
+a.bx-tok:hover {
+  background: rgb(255 255 255 / 0.24);
+}
+a.bx-tok:active {
+  transform: scale(0.96);
+}
+.bx-tok small {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 800;
+  font-size: 12.5px;
+  color: var(--soft);
+  font-variant-numeric: tabular-nums;
+}
+.bx-tok small[data-s="live"] {
+  color: #fff;
+}
+.bx-tok small[data-s="soon"] {
+  color: var(--amber);
+}
+.bx-tok[data-k="add"] {
+  padding: 0 16px 0 12px;
+}
+
+/* A card per followed team, player or event. The card leads to its page; the match line on it
+   leads to the match, and the star stays its own button. */
+.bx-fgrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.bx-fgrid[data-wide] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.bx-fc {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  padding: 18px 20px 14px;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  box-shadow: var(--sh);
+  transition:
+    border-color 0.2s,
+    transform 0.2s var(--out);
+}
+.bx-fc:has(> .bx-fc-go:hover) {
+  border-color: var(--edge);
+}
+.bx-fc:has(> .bx-fc-go:active) {
+  transform: scale(0.99);
+}
+.bx-fc-go {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+.bx-fc-who {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  pointer-events: none;
+}
+.bx-fc-who > div {
+  min-width: 0;
+}
+.bx-fc-who > div > b {
+  display: block;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-fc-who > div > span {
+  display: block;
+  font-size: 13px;
+  color: var(--ink2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-badge {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.bx-badge[data-s="live"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.bx-badge[data-s="soon"] {
+  background: var(--sunrise-soft);
+  color: var(--sunrise);
+}
+.bx-badge[data-s="next"] {
+  background: var(--sunk);
+  color: var(--ink2);
+}
+
+/* What it plays now or next: one line over a hairline, leading to the match. */
+.bx-fc-now {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  margin: 0 -10px;
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 750;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: background 0.2s;
+}
+.bx-fc-now::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 10px;
+  right: 10px;
+  border-top: 1px solid var(--hair);
+}
+.bx-fc-now:hover {
+  background: var(--hover);
+}
+.bx-fc-now > b {
+  flex: none;
+  max-width: 50%;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-fc-now small {
+  flex: none;
+  color: var(--ink3);
+  font-weight: 600;
+  font-size: 13px;
+}
+.bx-fc-now em {
+  min-width: 0;
+  font-style: normal;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--ink2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bx-fc-now[data-live] em {
+  color: var(--accent);
+}
+.bx-fc-sc {
+  margin-left: auto;
+  padding-left: 8px;
+  flex: none;
+  font-weight: 800;
+  font-size: 19px;
+  font-variant-numeric: tabular-nums;
+}
+.bx-fc-quiet {
+  position: relative;
+  padding-top: 14px;
+  border-top: 1px solid var(--hair);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink2);
+  pointer-events: none;
+}
+.bx-fc-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  font-size: 13px;
+  color: var(--ink2);
+}
+.bx-fc-foot > span:first-child {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  pointer-events: none;
+}
+.bx-fc-foot b {
+  color: var(--ink);
+  font-weight: 700;
+}
+.bx-fc-end {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Organisations, whole games and players in no event: rows in a panel, with the star. */
+.bx-prow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+}
+.bx-prow + .bx-prow {
+  border-top: 1px solid var(--hair);
+}
+.bx-prow > :first-child {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -4px -8px;
+  padding: 4px 8px;
+  border-radius: 14px;
+}
+.bx-prow > a:first-child {
+  transition: background 0.2s;
+}
+.bx-prow > a:first-child:hover {
+  background: var(--hover);
+}
+.bx-prow > :first-child > span {
+  min-width: 0;
+}
+.bx-prow b {
+  display: block;
+  font-size: 15px;
+  font-weight: 750;
+}
+.bx-prow small {
+  display: block;
+  font-size: 12.5px;
+  color: var(--ink2);
+}
+
+/* ---------------------------------------------------------------------------------------------
+   Narrow */
+
+@media (max-width: 1199.98px) {
+  .bx-fgrid[data-wide] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 899.98px) {
+  .bx-one {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .bx-dayc .bx-eh h1,
+  .bx-fhead .bx-eh h1 {
+    font-size: 40px;
+  }
+  .bx-scope {
+    flex: 1;
+  }
+  .bx .bx-scope button {
+    flex: 1;
+    padding: 0 10px;
+  }
+  .bx-strip {
+    gap: 6px;
+  }
+  .bx .bx-wk {
+    width: 36px;
+    height: 36px;
+  }
+  .bx .bx-strip .bx-picks > button {
+    min-width: 56px;
+    padding: 0 8px;
+  }
+  .bx-sev-h b {
+    font-size: 20px;
+  }
+  .bx-one > div > .bx-cap:first-child {
+    margin-top: 26px;
+  }
+  /* The chips run off the card's edges and scroll, rather than piling up. */
+  .bx-toks {
+    margin: 0 -16px;
+    padding: 0 16px;
+    width: calc(100% + 32px);
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .bx-fgrid,
+  .bx-fgrid[data-wide] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bx-fc {
+    padding: 16px 16px 12px;
+  }
+  .bx-fc-who {
+    gap: 12px;
+  }
+  .bx-fc-who > div > b {
+    font-size: 18px;
+  }
+  .bx-fc-now {
+    font-size: 15px;
+  }
+}

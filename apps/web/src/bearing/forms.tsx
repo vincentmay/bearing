@@ -1,12 +1,10 @@
 import type { GameResult, PlayerLine } from "@bearing/domain";
 import { formatPoints, seriesScore } from "@bearing/domain";
-import { type CSSProperties, useId } from "react";
+import { type CSSProperties, type ReactNode, useId } from "react";
 import {
   type Dot,
   type MatchView,
   type SideView,
-  type Stop,
-  cupDots,
   rocketClock,
   roundDots,
   roundSlots,
@@ -25,124 +23,73 @@ function rocketSpan(game: GameResult): number {
   return Math.max(300, game.clock ?? 0);
 }
 
-const NOW_WIDTH: Record<string, string> = {
-  cs2: "2.2fr",
-  lol: "2.4fr",
-  "rocket-league": "3.2fr",
-  chess: "0.62fr",
-  trackmania: "1fr",
-};
-
-function fill(winner: Stop["winner"], sides: SideView[]): string | undefined {
-  if (winner === undefined) return undefined;
-  if (winner === "draw")
-    return `linear-gradient(90deg, ${sides[0]?.color ?? "var(--ink)"} 50%, ${sides[1]?.color ?? "var(--surface)"} 50%)`;
-  return sides[winner]?.color;
-}
-
-/**
- * The series as a line of stops. A stop is a map or a game, filled with the colour of whoever
- * won it; the one being played opens into its detail.
- */
-export function Stops({ view, stops }: { view: MatchView; stops: Stop[] }) {
-  const { sides, discipline } = view;
-  const d = discipline.id;
-  if (!stops.length) return null;
-  const columns = stops
-    .map((s) =>
-      s.kind === "now" ? (NOW_WIDTH[d] ?? "2fr") : s.kind === "end" ? "0.7fr" : "0.62fr",
-    )
-    .join(" ");
-  return (
-    <div className="bx-stops" style={{ gridTemplateColumns: columns }}>
-      {stops.map((s, i) => {
-        // The stop opens into its detail only when the inside of the game is known.
-        const inside =
-          s.game && (s.game.rounds || s.game.events || s.game.cup) ? s.game : undefined;
-        const g = inside;
-        const cls = [
-          "bx-stop",
-          `bx-stop-${s.kind}`,
-          s.kind === "now" && !inside && "bx-stop-tight",
-          i === stops.length - 1 && s.kind !== "end" && "bx-stop-last",
-        ]
-          .filter(Boolean)
-          .join(" ");
-        const colour =
-          s.kind === "now" && !view.solo
-            ? fill("draw", sides)
-            : s.kind === "done"
-              ? fill(s.winner, sides)
-              : undefined;
-        return (
-          <div key={i} className={cls} style={{ "--sf": colour } as CSSProperties}>
-            {g && d === "cs2" ? (
-              <Dots
-                dots={[
-                  ...roundDots(g, sides, 0, 12),
-                  { k: "gap" },
-                  ...roundDots(g, sides, 12, roundSlots(g)),
-                ]}
-                sides={sides}
-              />
-            ) : null}
-            {g && d === "lol" ? (
-              <Clockline
-                events={g.events ?? []}
-                sides={sides}
-                span={lolSpan(g)}
-                at={g.clock ?? 0}
-                live
-              />
-            ) : null}
-            {g && d === "rocket-league" ? (
-              <Clockline
-                events={g.events ?? []}
-                sides={sides}
-                span={rocketSpan(g)}
-                at={g.clock ?? 0}
-                live
-              />
-            ) : null}
-            {g && view.solo ? <Dots dots={cupDots(g, sides)} sides={sides} size={15} fix /> : null}
-            <b>{s.label}</b>
-            <span className="bx-stop-sub">{s.sub}</span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 function tally(dots: Dot[]): string {
   const won = (side: number) => dots.filter((x) => x.k === "won" && x.side === side).length;
   return `${won(0)}–${won(1)}`;
 }
 
-/** Rounds above the line for one side and below it for the other: the momentum of a map. */
+const upper = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/**
+ * One row of a series in its panel: the name large, the score at the right, a small line under
+ * it, and under that whatever the game draws (rounds, a clock, a scoreboard) across the width.
+ */
+function Row({
+  name,
+  score,
+  line,
+  live = false,
+  dim = false,
+  aside,
+  children,
+}: {
+  name: ReactNode;
+  score?: ReactNode;
+  line: string;
+  live?: boolean;
+  dim?: boolean;
+  /** Something small at the right of the line, such as the goals of a game. */
+  aside?: ReactNode;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="bx-mp-g" data-live={live ? "" : undefined} data-dim={dim ? "" : undefined}>
+      <b>{name}</b>
+      <span className="bx-mp-r">{score}</span>
+      <small>{line}</small>
+      <span className="bx-mp-aside">{aside}</span>
+      {children}
+    </div>
+  );
+}
+
+/**
+ * Rounds above the line for one side and below it for the other: the momentum of a map. Each
+ * side's short name stands at the start of its own row.
+ */
 function Momentum({ game, sides }: { game: GameResult; sides: SideView[] }) {
   const rounds = game.rounds ?? [];
   const slots = Array.from({ length: 24 }, (_, i) => rounds[i]?.winner);
-  const row = (side: number) =>
-    slots.flatMap((winner, i) => [
+  const row = (side: number) => [
+    <span key={`n-${side}`} className="bx-mp-mom-n">
+      {sides[side]?.label}
+    </span>,
+    ...slots.flatMap((winner, i) => [
       i === 12 ? <span key={`gap-${side}`} /> : null,
       <i
         key={`${side}-${i}`}
-        className={winner === side ? "bx-on" : undefined}
+        data-on={winner === side ? "" : undefined}
         style={winner === side ? { background: sides[side]?.color } : undefined}
       />,
-    ]);
+    ]),
+  ];
   return (
-    <>
-      <div className="bx-plot" aria-hidden>
-        {row(0)}
-        <i className="bx-axis" />
-        {row(1)}
-      </div>
-      <span className="bx-sub">
-        Momentum: {sides[0]?.name} above the line, {sides[1]?.name} below
-      </span>
-    </>
+    <div className="bx-mp-x bx-mp-mom" aria-label="Momentum, round by round">
+      {row(0)}
+      <span />
+      <i className="bx-mp-mom-axis" />
+      {row(1)}
+    </div>
   );
 }
 
@@ -169,7 +116,17 @@ function GoldLead({ lead, sides }: { lead: number[]; sides: SideView[] }) {
   const end = lead[last] ?? 0;
   const ahead = sides[end >= 0 ? 0 : 1];
   return (
-    <div className="bx-gold">
+    <div className="bx-mp-x bx-mp-gold">
+      <span>
+        Gold{" "}
+        {Math.abs(end) >= 100 && ahead ? (
+          <b>
+            {ahead.label} +{thousands(Math.abs(end))}
+          </b>
+        ) : (
+          <b>level</b>
+        )}
+      </span>
       <svg viewBox={`0 0 ${last} 40`} preserveAspectRatio="none" aria-hidden>
         <clipPath id={`${id}a`}>
           <rect x="0" y="0" width={last} height="20" />
@@ -180,16 +137,6 @@ function GoldLead({ lead, sides }: { lead: number[]; sides: SideView[] }) {
         <path d={area} fill={sides[0]?.color} clipPath={`url(#${id}a)`} />
         <path d={area} fill={sides[1]?.color} clipPath={`url(#${id}b)`} />
       </svg>
-      <span className="bx-sub bx-mono">
-        Gold{" "}
-        {Math.abs(end) >= 100 && ahead ? (
-          <b>
-            {ahead.label} +{thousands(Math.abs(end))}
-          </b>
-        ) : (
-          <b>level</b>
-        )}
-      </span>
     </div>
   );
 }
@@ -233,44 +180,44 @@ function Scoreboard({ game, sides }: { game: GameResult; sides: SideView[] }) {
     const id = line ? idOf(line) : undefined;
     const who = (id ? atlas.player(id)?.handle : undefined) ?? line?.handle;
     return (
-      <span className="bx-score-half" data-side={side}>
+      <span className="bx-mp-sbh" data-side={side}>
         {champion ? <Champ champion={champion} patch={patch} /> : <span className="bx-champ" />}
         {line ? (
           <>
             {id ? (
-              <Go to={{ kind: "player", id }} className="bx-score-name">
+              <Go to={{ kind: "player", id }} className="bx-mp-sbn">
                 {who ?? champion?.name}
               </Go>
             ) : (
-              <span className="bx-score-name">{who ?? champion?.name}</span>
+              <span className="bx-mp-sbn">{who ?? champion?.name}</span>
             )}
             {line.gold !== undefined ? (
-              <span className="bx-score-gold">{thousands(line.gold)}</span>
+              <span className="bx-mp-sbg">{thousands(line.gold)}</span>
             ) : null}
-            <span className="bx-score-kda">
+            <span className="bx-mp-sbk">
               <b>{line.kills}</b>–{line.deaths}–{line.assists}
             </span>
           </>
         ) : (
-          <span className="bx-score-name">{champion?.name}</span>
+          <span className="bx-mp-sbn">{champion?.name}</span>
         )}
       </span>
     );
   };
   return (
-    <div className="bx-score">
+    <div className="bx-mp-x bx-mp-sb">
       {Array.from({ length: rows }, (_, row) => (
-        <div key={row} className="bx-score-row">
+        <div key={row} className="bx-mp-sbr">
           {half(left[row], 0, row)}
           <Role role={left[row]?.role ?? right[row]?.role ?? LANE[row]} bare />
           {half(right[row], 1, row)}
         </div>
       ))}
       {draft?.bans.some((b) => b.length) ? (
-        <div className="bx-score-row bx-score-bans">
+        <div className="bx-mp-sbr bx-mp-sbb">
           {[0, 1].flatMap((side) => [
             side ? <span key="mid" /> : null,
-            <span key={side} className="bx-score-half" data-side={side}>
+            <span key={side} className="bx-mp-sbh" data-side={side}>
               {(draft.bans[side] ?? []).map((c) => (
                 <Champ key={c.name} champion={c} patch={patch} size={20} out />
               ))}
@@ -280,6 +227,21 @@ function Scoreboard({ game, sides }: { game: GameResult; sides: SideView[] }) {
       ) : null}
     </div>
   );
+}
+
+/** Every round of a Counter-Strike map on one line: the halves, then each overtime, apart. */
+function roundLine(game: GameResult, sides: SideView[]): { dots: Dot[]; parts: string[] } {
+  const slots = roundSlots(game);
+  const dots: Dot[] = [];
+  const parts: string[] = [];
+  for (let from = 0; from < slots; from += from < 24 ? 12 : 6) {
+    const row = roundDots(game, sides, from, from + (from < 24 ? 12 : 6));
+    if (!row.length) continue;
+    if (dots.length) dots.push({ k: "gap" });
+    dots.push(...row);
+    if (row.some((x) => x.k === "won")) parts.push(tally(row));
+  }
+  return { dots, parts };
 }
 
 /** One map or game of a series, in the full form for its game. */
@@ -296,62 +258,58 @@ export function GameRow({
   const d = discipline.id;
   const live = game.status === "live";
   const done = game.status === "finished";
-  const unit = `${discipline.unit.one} ${index + 1}`;
-  const winner = typeof game.winner === "number" ? sides[game.winner]?.label : undefined;
+  // "Map 2" leads the line under a map's name; a game called "Game 2" needs no second telling.
+  const unit = upper(`${discipline.unit.one} ${index + 1}`);
+  const lead = game.label === unit ? [] : [unit];
+  const winner = typeof game.winner === "number" ? sides[game.winner]?.name : undefined;
+  const said = (...parts: (string | false | undefined)[]) =>
+    [...lead, ...parts].filter(Boolean).join(" · ");
+  const score = game.scores?.join("–");
 
   if (game.status === "scheduled") {
-    return (
-      <div className="bx-game">
-        <div className="bx-gamehead">
-          <b>{game.label}</b>
-          <span className="bx-sub bx-mono">
-            {d === "cs2" ? `${unit} · ` : ""}
-            {toCome(view, index)}
-          </span>
-        </div>
-      </div>
-    );
+    return <Row name={game.label} line={said(toCome(view, index))} dim />;
   }
 
   // Only the result of the game is known, not what happened in it.
   if (!game.rounds && !game.events && !game.scores && !game.chess && !game.cup) {
     const length = game.clock ? ` · ${Math.round(game.clock / 60)} min` : "";
     return (
-      <div className="bx-game">
-        <div className="bx-gamehead">
-          <b>{game.label}</b>
-          <span className="bx-sub bx-mono">
-            {live ? "being played" : winner ? `${winner} won${length}` : "played"}
-            {game.detail ? ` · ${game.detail}` : ""}
-          </span>
-        </div>
-      </div>
+      <Row
+        name={game.label}
+        live={live}
+        line={said(
+          live ? "being played" : winner ? `won by ${winner}${length}` : "played",
+          game.detail,
+        )}
+      />
     );
   }
 
   if (d === "cs2") {
-    const halves: Dot[][] = [];
-    for (let i = 0; i < roundSlots(game); i += 12) {
-      const row = roundDots(game, sides, i, i + 12);
-      if (row.length) halves.push(row);
-    }
+    const { dots, parts } = roundLine(game, sides);
+    const round = (game.rounds?.length ?? 0) + 1;
     return (
-      <div className="bx-game">
-        <div className="bx-gamehead">
-          <b>{game.label}</b>
-          <span className="bx-sub bx-mono">
-            {unit} · {live ? "first to 13" : (game.scores?.join("–") ?? "")}
-            {game.detail && done ? ` · ${game.detail}` : ""}
-          </span>
-        </div>
-        {halves.map((row, i) => (
-          <div key={i} className="bx-half">
-            <Dots dots={row} sides={sides} gap={4} />
-            <span>{tally(row)}</span>
+      <Row
+        name={game.label}
+        score={score}
+        live={live}
+        line={
+          live
+            ? said(`round ${round}, first to 13`)
+            : said(
+                winner && `won by ${winner}`,
+                game.detail,
+                parts.length > 1 && `by half ${parts.join(", ")}`,
+              )
+        }
+      >
+        {dots.length ? (
+          <div className="bx-mp-x bx-mp-rounds">
+            <Dots dots={dots} sides={sides} size={live ? 11 : 9} gap={live ? 5 : 4} />
           </div>
-        ))}
+        ) : null}
         {live ? <Momentum game={game} sides={sides} /> : null}
-      </div>
+      </Row>
     );
   }
 
@@ -363,28 +321,39 @@ export function GameRow({
     }));
     const minutes = Math.round((game.clock ?? 0) / 60);
     return (
-      <div className="bx-game">
-        <div className="bx-gamehead">
-          <b>{game.label}</b>
-          <span className="bx-sub bx-mono">
-            {live ? gameClock(game.clock ?? 0) : `${winner ?? ""} · ${minutes} min`}
-            {game.scores ? ` · kills ${game.scores.join("–")}` : ""}
-          </span>
-        </div>
+      <Row
+        name={game.label}
+        live={live}
+        score={
+          score ? (
+            <>
+              {score}
+              <small>kills</small>
+            </>
+          ) : undefined
+        }
+        line={
+          live
+            ? said(gameClock(game.clock ?? 0))
+            : said(winner && `won by ${winner}`, `${minutes} min`)
+        }
+      >
         {game.events ? (
-          <Clockline
-            events={game.events}
-            sides={sides}
-            span={span}
-            at={game.clock ?? 0}
-            live={live}
-            two
-            labels={marks}
-          />
+          <div className="bx-mp-x bx-mp-clock">
+            <Clockline
+              events={game.events}
+              sides={sides}
+              span={span}
+              at={game.clock ?? 0}
+              live={live}
+              two
+              labels={marks}
+            />
+          </div>
         ) : null}
         {game.lead && game.lead.length > 2 ? <GoldLead lead={game.lead} sides={sides} /> : null}
         <Scoreboard game={game} sides={sides} />
-      </div>
+      </Row>
     );
   }
 
@@ -392,117 +361,70 @@ export function GameRow({
     if (live) {
       const overtime = (game.clock ?? 0) > 300;
       return (
-        <div className="bx-game">
-          <div className="bx-gamehead">
-            <b>{game.label}</b>
-            <span className="bx-sub bx-mono">
-              {overtime ? `overtime ${rocketClock(game)}` : `${rocketClock(game)} left`}
-            </span>
+        <Row
+          name={game.label}
+          score={score}
+          live
+          line={said(overtime ? `overtime ${rocketClock(game)}` : `${rocketClock(game)} left`)}
+        >
+          <div className="bx-mp-x bx-mp-clock">
+            <Clockline
+              events={game.events ?? []}
+              sides={sides}
+              span={rocketSpan(game)}
+              at={game.clock ?? 0}
+              live
+              labels={[
+                { at: 0, text: "5:00" },
+                { at: 150, text: "2:30" },
+                { at: 300, text: "0:00", end: !overtime },
+              ]}
+            />
           </div>
-          <Clockline
-            events={game.events ?? []}
-            sides={sides}
-            span={rocketSpan(game)}
-            at={game.clock ?? 0}
-            live
-            labels={[
-              { at: 0, text: "5:00" },
-              { at: 150, text: "2:30" },
-              { at: 300, text: "0:00", end: !overtime },
-            ]}
-          />
-        </div>
+        </Row>
       );
     }
+    // The goals in the order they fell, each saying when.
     const goals: Dot[] = (game.events ?? []).map((e) => ({
       k: "won",
       side: e.side,
       label: `${sides[e.side]?.name ?? ""} · ${e.at > 300 ? "overtime" : gameClock(300 - e.at)}`,
     }));
     return (
-      <div className="bx-game">
-        <div className="bx-gamehead">
-          <span>
-            <b>{game.label}</b>{" "}
-            <span className="bx-sub bx-mono">
-              {game.scores?.join("–")}
-              {game.detail ? ` · ${game.detail}` : ""}
-            </span>
-          </span>
-          <Dots dots={goals} sides={sides} size={10} gap={3} fix />
-        </div>
-      </div>
+      <Row
+        name={game.label}
+        score={score}
+        line={said(winner && `won by ${winner}`, game.detail)}
+        aside={<Dots dots={goals} sides={sides} size={10} gap={3} fix />}
+      />
     );
   }
 
   if (d === "chess") {
-    // The board itself stands at the head of the match's page; a row says how the game went.
+    // The board itself stands under the top card; a row says how the game went.
     const parts = game.detail?.split(" · ") ?? [];
-    const result = game.winner === "draw" ? "draw" : `${winner ?? ""} won`;
+    const result =
+      game.winner === "draw" ? "½–½" : game.winner === 0 ? "1–0" : game.winner === 1 ? "0–1" : "";
     return (
-      <div className="bx-game">
-        <div className="bx-gamehead">
-          <b>{game.label}</b>
-          <span className="bx-sub bx-mono">
-            {live ? `move ${game.chess?.move ?? 1}` : done ? result : ""}
-          </span>
-        </div>
-        {parts.length ? <span className="bx-sub">{parts.join(" · ")}</span> : null}
-      </div>
+      <Row
+        name={game.label}
+        live={live}
+        score={live ? `Move ${game.chess?.move ?? 1}` : done ? result : undefined}
+        line={said(
+          done && (game.winner === "draw" ? "draw" : winner && `won by ${winner}`),
+          ...parts,
+        )}
+      />
     );
   }
 
   return (
-    <div className="bx-game">
-      <div className="bx-gamehead">
-        <b>{game.label}</b>
-        <span className="bx-sub bx-mono">{live ? "live" : (winner ?? "")}</span>
-      </div>
-    </div>
-  );
-}
-
-/** Chess: a row per player, so the points can be read off. A full dot is a win, a small one a draw. */
-export function ChessLanes({ view }: { view: MatchView }) {
-  const { sides, match } = view;
-  const games = match.games.filter((g) => g.status === "finished");
-  const points = (side: number) =>
-    games.reduce((sum, g) => sum + (g.winner === side ? 1 : g.winner === "draw" ? 0.5 : 0), 0);
-  return (
-    <div className="bx-game">
-      <div className="bx-gamehead">
-        <b>The match</b>
-        <span className="bx-sub bx-mono">
-          {games.length} of {match.bestOf} played
-        </span>
-      </div>
-      {sides.map((side, s) => (
-        <div key={s} className="bx-lane">
-          <span>{side.name}</span>
-          <span
-            className="bx-dots bx-fix"
-            style={{ "--ds": "13px", "--dg": "5px" } as CSSProperties}
-          >
-            {games.map((g, i) => (
-              <i
-                key={i}
-                className={
-                  g.winner === s ? undefined : g.winner === "draw" ? "bx-dot-half" : "bx-dot-none"
-                }
-                style={
-                  g.winner === s || g.winner === "draw" ? { background: side.color } : undefined
-                }
-                title={`Game ${i + 1} · ${g.winner === s ? "won" : g.winner === "draw" ? "draw" : "lost"}`}
-              />
-            ))}
-          </span>
-          <span>{formatPoints(points(s))}</span>
-        </div>
-      ))}
-      <span className="bx-sub" style={{ marginTop: 8 }}>
-        A full dot is a win, a small one a draw.
-      </span>
-    </div>
+    <Row
+      name={game.label}
+      live={live}
+      score={score}
+      line={said(live ? "being played" : winner && `won by ${winner}`, game.detail)}
+    />
   );
 }
 
@@ -513,37 +435,39 @@ export function CupStandings({ view }: { view: MatchView }) {
   const limit = game?.cup?.limit;
   const atLimit = view.standings.filter((s) => s.finalist).map((s) => s.side.name);
   return (
-    <div className="bx-game">
-      <div className="bx-gamehead">
-        <b>{game?.label ?? "Standings"}</b>
-        <span className="bx-sub bx-mono">
-          {limit ? `first to ${limit}, then one round` : "points"}
-        </span>
-      </div>
-      {view.standings.map(({ side, index, points }) => (
-        <div key={index} className="bx-lane">
-          <Go to={{ kind: "player", id: side.id ?? "" }}>
-            <Disc side={side} size={18} />
-            {side.name}
-          </Go>
+    <>
+      <Row
+        name={game?.label ?? "Standings"}
+        live={game?.status === "live"}
+        score={game?.cup ? `Round ${game.cup.round}` : undefined}
+        line={limit ? `first to ${limit}, then one round` : "points"}
+      />
+      {view.standings.map(({ side, index, points, finalist }) => (
+        <Go key={index} to={{ kind: "player", id: side.id ?? "" }} className="bx-mp-li bx-mp-lane">
+          <span>
+            <Disc side={side} size={26} />
+            <b>{side.name}</b>
+          </span>
           <Dots
             dots={rounds
               .filter((order) => order[0] === index)
               .map((): Dot => ({ k: "won", side: index, label: "Round won" }))}
             sides={view.sides}
+            size={11}
             gap={4}
             fix
+            wrap
           />
-          <span>{formatPoints(points)}</span>
-        </div>
+          <em data-at={finalist ? "" : undefined}>{formatPoints(points)}</em>
+        </Go>
       ))}
       {atLimit.length && view.live ? (
-        <span className="bx-sub" style={{ marginTop: 9 }}>
+        <p className="bx-mp-foot">
           {atLimit.join(" and ")} {atLimit.length === 1 ? "is" : "are"} at the limit and{" "}
           {atLimit.length === 1 ? "wins" : "win"} the match with a round win.
-        </span>
+        </p>
       ) : null}
-    </div>
+    </>
   );
 }
 
@@ -553,31 +477,39 @@ export function CupPlaces({ view, index }: { view: MatchView; index: number }) {
   const rounds = game?.cup?.rounds ?? [];
   const side = view.sides[index];
   if (!side || !rounds.length) return null;
+  const wins = rounds.filter((order) => order[0] === index).length;
   return (
-    <div className="bx-game">
-      <div className="bx-gamehead">
-        <b>{side.name}, round by round</b>
-        <span className="bx-sub bx-mono">place</span>
+    <Row
+      name={
+        <span className="bx-mp-who">
+          <Disc side={side} size={26} />
+          {side.name}
+        </span>
+      }
+      score={`${wins} of ${rounds.length}`}
+      line="place in each round"
+    >
+      <div className="bx-mp-x bx-mp-places">
+        <span
+          className="bx-dots bx-fix bx-wrap"
+          style={{ "--ds": "22px", "--dg": "5px" } as CSSProperties}
+        >
+          {rounds.map((order, i) => {
+            const place = order.indexOf(index) + 1;
+            return (
+              <i
+                key={i}
+                className={place === 1 ? "bx-dot-num" : "bx-dot-num bx-dot-open"}
+                style={place === 1 ? { background: side.color } : undefined}
+                title={`Round ${i + 1} · place ${place}`}
+              >
+                {place}
+              </i>
+            );
+          })}
+          {game?.status === "live" ? <i className="bx-dot-now" /> : null}
+        </span>
       </div>
-      <span
-        className="bx-dots bx-fix bx-wrap"
-        style={{ "--ds": "18px", "--dg": "4px" } as CSSProperties}
-      >
-        {rounds.map((order, i) => {
-          const place = order.indexOf(index) + 1;
-          return (
-            <i
-              key={i}
-              className={place === 1 ? "bx-dot-num" : "bx-dot-num bx-dot-open"}
-              style={place === 1 ? { background: side.color } : undefined}
-              title={`Round ${i + 1} · place ${place}`}
-            >
-              {place}
-            </i>
-          );
-        })}
-        {game?.status === "live" ? <i className="bx-dot-now" /> : null}
-      </span>
-    </div>
+    </Row>
   );
 }

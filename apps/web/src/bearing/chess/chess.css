@@ -1,30 +1,40 @@
 /*
- * A game of chess. Everything around the board is the app's own: its type, its hairlines,
- * its capsules. The board is an object set into the page, in one of four styles the viewer
- * picks from, and keeps its colours in both appearances the way a wooden board would.
+ * A game of chess, in the panels of the rest of the app: the board with its players and keys in
+ * one, the engine and the moves in others beside it (under it on a phone). The board is an
+ * object set into the page, in one of four styles the viewer picks from, and keeps its colours
+ * in both appearances the way a wooden board would; on black it is only taken a shade down.
  *
  * Each style is a handful of values: the two squares, how the move just made is marked on
  * each of them, and what the small letters and numbers at the edge are written in.
  */
 .bx-chess {
-  --sq-l: #ececee;
-  --sq-d: #a9acb3;
-  --mark-l: #f3d98a;
-  --mark-d: #c9aa52;
-  --coord-l: rgb(20 22 28 / 0.55);
-  --coord-d: rgb(255 255 255 / 0.82);
+  --sq-l: #e3e8ff;
+  --sq-d: #8fa2f0;
+  --mark-l: #ffd894;
+  --mark-d: #f5b85c;
+  --coord-l: rgb(64 82 176 / 0.85);
+  --coord-d: rgb(255 255 255 / 0.85);
   --move: 0.19s cubic-bezier(0.3, 0.1, 0.3, 1);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 14px;
-  margin-top: 14px;
+  align-items: start;
+}
+/* The board Kiming starts with: its own indigo. */
+.bx-chess[data-board="indigo"],
+.bx-swatches [data-board="indigo"] {
+  --sq-l: #e3e8ff;
+  --sq-d: #8fa2f0;
+  --mark-l: #ffd894;
+  --mark-d: #f5b85c;
+  --coord-l: rgb(64 82 176 / 0.85);
 }
 .bx-chess[data-board="ink"],
 .bx-swatches [data-board="ink"] {
   --sq-l: #ececee;
   --sq-d: #a9acb3;
-  --mark-l: #f3d98a;
-  --mark-d: #c9aa52;
+  --mark-l: #ffd894;
+  --mark-d: #f5b85c;
+  --coord-l: rgb(20 22 28 / 0.55);
 }
 .bx-chess[data-board="slate"],
 .bx-swatches [data-board="slate"] {
@@ -50,20 +60,60 @@
   --mark-d: #aaa23a;
   --coord-l: rgb(120 82 50 / 0.85);
 }
+/* On black a light board glares; a shade down it sits in the page like the panels do. */
+.bx[data-theme="dark"] .bx-squares {
+  filter: brightness(0.9);
+}
+@media (prefers-color-scheme: dark) {
+  .bx:not([data-theme="light"]) .bx-squares {
+    filter: brightness(0.9);
+  }
+}
+
+.bx-chess-stage {
+  margin-top: 24px;
+}
+/* The first caption sits right under the top card; under the match's table it keeps its room. */
+.bx-chess-stage > .bx-cap:first-child {
+  margin-top: 0;
+}
+.bx-chess-stage > .bx-chess:first-child {
+  --chess-top: 0px;
+}
+.bx-chess-name {
+  margin-top: var(--chess-top, 26px);
+}
+.bx-chess .bx-cap > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bx-chess .bx-cap > span:first-child {
+  flex: none;
+}
+
+/* ---- The board's panel: the two players, the board between them, and the keys ---- */
 .bx-chess-main {
   display: grid;
   align-content: start;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
+  padding: 14px 14px 12px;
+  border-radius: var(--r-card) var(--r-card) 0 0;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  border-bottom: 0;
 }
 
-/* ---- Who sits where: face, name, rating, what they have taken, and their clock ---- */
+/* Who sits where: face, name, rating, what they have taken, and their clock. */
 .bx-seat {
   display: flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
   min-height: 36px;
+  padding: 0 2px;
 }
 .bx-seat-who {
   flex: 1;
@@ -71,17 +121,20 @@
 }
 .bx-seat-who b {
   display: block;
-  font-size: 14px;
+  font-size: 15.5px;
   font-weight: 750;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .bx-seat-who b i {
   margin-right: 6px;
-  font: 600 9.5px var(--mono);
-  letter-spacing: 0.04em;
+  font-size: 11.5px;
+  font-weight: 800;
+  font-style: normal;
+  letter-spacing: 0.02em;
   color: var(--ink2);
 }
 .bx-seat-who .bx-sub {
@@ -89,7 +142,9 @@
   align-items: center;
   gap: 6px;
   min-height: 16px;
-  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--ink2);
   font-variant-numeric: tabular-nums;
 }
 .bx-seat:not([data-face]) .bx-disc {
@@ -110,28 +165,46 @@
 .bx-taken img[data-new] {
   margin-left: 1px;
 }
+/* Black pieces taken by White would vanish into a black page: a faint rim keeps them in sight. */
+.bx[data-theme="dark"] .bx-seat[data-colour="white"] .bx-taken img {
+  filter: drop-shadow(0 0 0.7px rgb(255 255 255 / 0.75));
+}
+@media (prefers-color-scheme: dark) {
+  .bx:not([data-theme="light"]) .bx-seat[data-colour="white"] .bx-taken img {
+    filter: drop-shadow(0 0 0.7px rgb(255 255 255 / 0.75));
+  }
+}
 .bx-taken em {
   margin-left: 4px;
-  font: 600 10.5px var(--mono);
+  font-size: 12px;
+  font-weight: 750;
   font-style: normal;
   color: var(--ink2);
 }
+/* The clock: a pill, filled with the accent while it runs. */
 .bx-clock {
   flex: none;
-  min-width: 66px;
-  padding: 6px 11px;
-  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 76px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 12px;
   background: var(--sunk);
-  font: 600 14px var(--mono);
-  text-align: center;
-  color: var(--ink2);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
   transition:
     background 0.25s var(--out),
     color 0.25s var(--out);
 }
 .bx-clock[data-on] {
-  background: var(--ink);
-  color: var(--ground);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 .bx-clock[data-low] {
   background: #e5484d;
@@ -154,27 +227,27 @@
 .bx-chess-table {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 8px;
+  gap: 10px;
 }
 .bx-chess[data-judging] .bx-chess-table {
-  grid-template-columns: 12px minmax(0, 1fr);
+  grid-template-columns: 10px minmax(0, 1fr);
 }
 /*
- * The engine's judgement as a bar: Black's share from the top, White's from the bottom, the
- * line between them moving with the game. The figure stands at the end of whoever is ahead.
+ * The engine's judgement as a slim bar: Black's share from the top, White's from the bottom,
+ * the line between them moving with the game. The figure itself stands in the engine's panel.
  */
 .bx-eval {
   position: relative;
-  border-radius: 6px;
+  border-radius: 5px;
   overflow: hidden;
-  background: #1b1b1d;
+  background: #26262c;
   box-shadow: inset 0 0 0 1px var(--hair);
 }
 .bx-eval i {
   position: absolute;
   inset: auto 0 0 0;
   height: var(--w);
-  background: #f6f6f6;
+  background: #f4f4f6;
   transition: height 0.7s cubic-bezier(0.25, 1, 0.3, 1);
 }
 .bx-eval[data-turned] i {
@@ -188,42 +261,15 @@
   height: 1px;
   background: rgb(128 128 128 / 0.55);
 }
-.bx-eval b {
-  display: none;
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 5px;
-  font: 700 8.5px var(--mono);
-  letter-spacing: -0.05em;
-  text-align: center;
-  color: #111;
-}
-.bx-eval[data-ahead="black"] b {
-  top: 5px;
-  bottom: auto;
-  color: #f4f4f4;
-}
-.bx-eval[data-turned][data-ahead="white"] b {
-  top: 5px;
-  bottom: auto;
-}
-.bx-eval[data-turned][data-ahead="black"] b {
-  top: auto;
-  bottom: 5px;
-}
 
 .bx-board {
   position: relative;
   container-type: inline-size;
   aspect-ratio: 1;
-  border-radius: 14px;
+  border-radius: 12px;
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
-  box-shadow:
-    0 0 0 1px var(--hair),
-    var(--sh);
   /* A finger scrolls the page past the board; a pointer picks pieces up. */
   touch-action: pan-y;
 }
@@ -287,7 +333,9 @@
 }
 .bx-squares u {
   position: absolute;
-  font: 600 9px var(--mono);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
   text-decoration: none;
   color: var(--coord-l);
   pointer-events: none;
@@ -296,12 +344,12 @@
   color: var(--coord-d);
 }
 .bx-squares u[data-rank] {
-  top: 2px;
+  top: 4px;
   left: 4px;
 }
 .bx-squares u[data-file] {
   right: 4px;
-  bottom: 1px;
+  bottom: 4px;
 }
 
 /* The pieces: each is moved, never replaced, so every change of position is seen. */
@@ -373,7 +421,7 @@
 /*
  * Arrows: a shaft and a head, as broad as chess sites draw them, see-through enough that the
  * piece under one still reads. The viewer's own are amber (green, blue and red with a key
- * held); the engine's move is the app's blue.
+ * held); the engine's move is blue.
  */
 .bx-shapes {
   position: absolute;
@@ -445,13 +493,16 @@
   place-items: center;
   padding: 5%;
   color: #fff;
-  font: 700 10px var(--mono);
+  font-size: 10px;
+  font-weight: 800;
   line-height: 1;
   animation: bx-pop 0.4s var(--spring) 0.25s backwards;
 }
 .bx-verdict[data-mark="drew"] {
   color: #fff;
-  font: 700 10px/1 var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
   text-align: right;
 }
 
@@ -462,7 +513,7 @@
   z-index: 6;
   width: 12.5%;
   display: grid;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
   background: var(--surface);
   box-shadow:
@@ -484,61 +535,93 @@
   height: 100%;
 }
 
-/* ---- The keys: one capsule, like the navigation ---- */
+/* ---- The keys: round buttons at the foot of the board's panel, and the way back to live ---- */
 .bx-chess-keys {
   position: relative;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding: 4px;
-  border-radius: 999px;
-  background: var(--sunk);
+  gap: 6px;
+  padding: 2px 14px 14px;
+  border-radius: 0 0 var(--r-card) var(--r-card);
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  border-top: 0;
 }
-.bx-chess .bx-chess-keys > button {
+.bx-chess .bx-chess-keys > button:not(.bx-chess-live) {
+  flex: none;
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
+  background: var(--sunk);
   color: var(--ink);
   transition:
     transform 0.15s var(--out),
     background 0.16s var(--out),
+    color 0.16s var(--out),
     opacity 0.16s var(--out);
 }
-.bx-chess .bx-chess-keys > button:active {
-  transform: scale(0.86);
+.bx-chess .bx-chess-keys > button:active:not(:disabled) {
+  transform: scale(0.88);
 }
 .bx-chess .bx-chess-keys > button:disabled {
-  opacity: 0.26;
+  opacity: 0.35;
 }
 .bx-chess .bx-chess-keys > button[data-main] {
-  margin: 0 4px;
-  background: var(--ink);
-  color: var(--ground);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 .bx-chess .bx-chess-keys > button[aria-pressed="true"],
 .bx-chess .bx-chess-keys > button[aria-expanded="true"] {
-  background: var(--surface);
-  box-shadow: 0 0 0 1px var(--hair);
+  background: var(--accent);
+  color: var(--on-accent);
 }
 .bx-chess-keys-gap {
   flex: 1;
-  max-width: 28px;
+  max-width: 14px;
+}
+/* Live: following the game in the accent, or a way back to it once the viewer has left. */
+.bx-chess .bx-chess-live {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  margin-left: auto;
+  padding: 0 14px 0 12px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 13px;
+  font-weight: 750;
+  white-space: nowrap;
+  transition:
+    transform 0.15s var(--out),
+    background 0.2s var(--out),
+    color 0.2s var(--out);
+}
+.bx-chess .bx-chess-live[data-with] {
+  padding: 0 4px;
+  background: none;
+  color: var(--accent);
+}
+.bx-chess .bx-chess-live:active {
+  transform: scale(0.96);
 }
 
 /* What the board looks like, and what the engine does: a sheet above the keys. */
 .bx-chess-menu {
   position: absolute;
-  right: 0;
+  right: 14px;
   bottom: calc(100% + 8px);
   z-index: 20;
   width: min(300px, calc(100vw - 32px));
   display: grid;
   gap: 8px;
-  padding: 14px;
-  border-radius: 22px;
+  padding: 16px;
+  border-radius: 24px;
   background: var(--surface);
   border: 1px solid var(--hair);
   box-shadow:
@@ -555,10 +638,9 @@
   }
 }
 .bx-chess .bx-kicker {
-  font: 500 10px var(--mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink2);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink3);
 }
 .bx-chess-menu .bx-kicker {
   margin-top: 4px;
@@ -573,9 +655,9 @@
   justify-items: center;
   gap: 5px;
   padding: 7px 2px 6px;
-  border-radius: 12px;
-  font-size: 10.5px;
-  font-weight: 600;
+  border-radius: 14px;
+  font-size: 11.5px;
+  font-weight: 650;
   color: var(--ink2);
   transition:
     background 0.14s var(--out),
@@ -583,15 +665,15 @@
     box-shadow 0.14s var(--out);
 }
 .bx-chess .bx-swatches button[aria-pressed="true"] {
-  color: var(--ink);
-  background: var(--sunk);
-  box-shadow: inset 0 0 0 1.5px var(--ink);
+  color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
 }
 /* Four squares of the board in question. */
 .bx-swatches i {
   width: 30px;
   height: 30px;
-  border-radius: 7px;
+  border-radius: 8px;
   background: conic-gradient(
     var(--sq-d) 90deg,
     var(--sq-l) 0 180deg,
@@ -603,7 +685,7 @@
 .bx-swatches img {
   width: 30px;
   height: 30px;
-  border-radius: 7px;
+  border-radius: 8px;
   background: #a9acb3;
 }
 .bx-chess .bx-chess-switch {
@@ -612,7 +694,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 7px 4px;
-  font-weight: 600;
+  font-weight: 650;
   text-align: left;
 }
 .bx-chess .bx-chess-switch:disabled {
@@ -624,7 +706,8 @@
   width: 36px;
   height: 22px;
   border-radius: 999px;
-  background: var(--rest);
+  background: var(--sunk);
+  box-shadow: inset 0 0 0 1px var(--hair);
   transition: background 0.2s var(--out);
 }
 .bx-chess-switch i::after {
@@ -640,7 +723,7 @@
   transition: translate 0.22s var(--spring);
 }
 .bx-chess-switch[aria-checked="true"] i {
-  background: #2ea043;
+  background: var(--accent);
 }
 .bx-chess-switch[aria-checked="true"] i::after {
   translate: 14px 0;
@@ -655,250 +738,114 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
-  padding: 9px 8px;
-  border-radius: 12px;
+  height: 40px;
+  padding: 0 10px;
+  border-radius: 999px;
   background: var(--sunk);
-  font-weight: 600;
-  transition: transform 0.14s var(--out);
+  font-weight: 650;
+  transition:
+    transform 0.14s var(--out),
+    background 0.14s var(--out);
 }
 .bx-chess .bx-chess-copy button:active {
   transform: scale(0.96);
 }
 
-/* ---- Beside the board: the opening, the engine, a line of one's own, the moves ---- */
+/* ---- Beside the board: the engine, a line of one's own, the moves ---- */
 .bx-chess-side {
   display: flex;
   flex-direction: column;
-  gap: 10px;
   min-width: 0;
 }
-.bx-chess-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
-.bx-chess-head:empty {
-  display: none;
-}
-.bx-chess-opening {
-  margin: 0;
-  font-size: 12.5px;
-  font-weight: 600;
-  line-height: 1.35;
+.bx-chess-opening i {
+  margin-right: 6px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--sunk);
+  font-size: 11.5px;
+  font-weight: 800;
+  font-style: normal;
   color: var(--ink2);
 }
-.bx-chess-opening i {
-  margin-right: 7px;
-  padding: 1px 5px;
-  border-radius: 5px;
-  background: var(--sunk);
-  font: 600 10px var(--mono);
-  color: var(--ink);
-}
-.bx-chess .bx-chess-live {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px 4px 8px;
-  border-radius: 999px;
-  background: var(--ink);
-  color: var(--ground);
-  font-size: 11.5px;
-  font-weight: 700;
-  white-space: nowrap;
-  transition:
-    transform 0.15s var(--out),
-    background 0.2s var(--out),
-    color 0.2s var(--out);
-}
-.bx-chess .bx-chess-live:active {
-  transform: scale(0.95);
-}
-.bx-chess .bx-chess-live[data-with] {
-  background: var(--sunk);
-  color: var(--ink);
-}
-.bx-chess-live i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #e5484d;
-  animation: bx-low 1.6s ease-in-out infinite;
-}
-/* The engine: its figure, the line it expects, and who worked it out and how deep. */
+
+/* The engine: its figure in words and as a bar, the line it expects, the game as a curve. */
 .bx-engine {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 4px 10px;
-  padding: 10px 12px;
-  border-radius: 16px;
-  background: var(--sunk);
+  gap: 12px;
+  padding: 16px 18px 18px;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  border: 1px solid var(--hair);
 }
-.bx-engine > b {
-  min-width: 46px;
-  padding: 4px 7px;
-  border-radius: 8px;
-  background: #f6f6f6;
-  color: #111;
-  font: 700 13px var(--mono);
-  text-align: center;
-  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.1);
-  transition:
-    background 0.3s var(--out),
-    color 0.3s var(--out);
+.bx-engine-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
 }
-.bx-engine[data-ahead="black"] > b {
-  background: #1b1b1d;
-  color: #f4f4f4;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16);
+.bx-engine-top b {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+.bx-engine-top span {
+  min-width: 0;
+  font-size: 14.5px;
+  font-weight: 650;
+  color: var(--ink2);
+  text-align: right;
+}
+/* White's share from the left, as the figure says it. */
+.bx-engine-bar {
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #26262c;
+  box-shadow: inset 0 0 0 1px var(--hair);
+}
+.bx-engine-bar i {
+  display: block;
+  width: var(--w);
+  height: 100%;
+  background: #f4f4f6;
+  transition: width 0.7s cubic-bezier(0.25, 1, 0.3, 1);
 }
 .bx-engine-line {
   display: flex;
-  gap: 1px;
+  gap: 2px;
   min-width: 0;
+  margin: 0 -7px;
   overflow: hidden;
   white-space: nowrap;
   mask-image: linear-gradient(90deg, #000 82%, transparent);
 }
 .bx-chess .bx-engine-line button {
   flex: none;
-  padding: 3px 4px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 650;
+  padding: 5px 7px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
   transition: background 0.14s var(--out);
 }
 .bx-engine-line button i,
 .bx-ownline button i {
   margin-right: 3px;
-  font: 500 10.5px var(--mono);
-  color: var(--ink2);
+  font-size: 12px;
+  font-weight: 700;
+  font-style: normal;
+  color: var(--ink3);
 }
 .bx-engine-line button i:empty,
 .bx-ownline button i:empty {
   display: none;
 }
-.bx-engine-by {
-  grid-column: 1 / -1;
-  font-size: 10px;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--ink3);
-}
-/* A line of the viewer's own, leaving the game. */
-.bx-ownline {
-  display: grid;
-  gap: 8px;
-  padding: 10px 12px 12px;
-  border-radius: 16px;
-  border: 1px dashed var(--edge);
-  animation: bx-arrive 0.22s var(--out);
-}
-.bx-ownline > div {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
-}
-.bx-chess .bx-ownline > div button {
-  padding: 4px 6px;
-  border-radius: 7px;
-  font-size: 13px;
-  font-weight: 650;
-  transition:
-    background 0.14s var(--out),
-    color 0.14s var(--out);
-}
-.bx-chess .bx-ownline > div button[aria-current] {
-  background: var(--ink);
-  color: var(--ground);
-}
-.bx-chess .bx-ownline > div button[aria-current] i {
-  color: inherit;
-  opacity: 0.7;
-}
-.bx-chess .bx-ownline-back {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: var(--sunk);
-  font-weight: 650;
-  transition: transform 0.14s var(--out);
-}
-.bx-chess .bx-ownline-back:active {
-  transform: scale(0.97);
-}
-
-/* The moves. On a phone a single row to push along; with room, a list beside the board. */
-.bx-moves {
-  display: flex;
-  gap: 2px;
-  margin: 0 -16px;
-  padding: 2px 16px;
-  list-style: none;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
-  transition: opacity 0.2s var(--out);
-}
-.bx-moves::-webkit-scrollbar {
-  display: none;
-}
-.bx-moves[data-dim] {
-  opacity: 0.5;
-}
-.bx-moves li {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 1px;
-  animation: bx-arrive 0.25s var(--out);
-}
-.bx-moves li > i {
-  margin: 0 2px 0 6px;
-  font: 500 10.5px var(--mono);
-  color: var(--ink3);
-}
-.bx-moves li > span {
-  display: none;
-}
-.bx-chess .bx-moves button {
-  padding: 6px 8px;
-  border-radius: 9px;
-  font-weight: 650;
+.bx-engine-wait {
+  padding: 5px 7px;
   font-size: 13.5px;
-  text-align: left;
-  white-space: nowrap;
-  transition:
-    background 0.14s var(--out),
-    color 0.14s var(--out);
-}
-.bx-chess .bx-moves button[aria-current] {
-  background: var(--ink);
-  color: var(--ground);
-}
-.bx-chess .bx-moves button[data-branch] {
-  box-shadow: inset 0 0 0 1px var(--edge);
-}
-/* What a move gave away: an inaccuracy, a mistake, a blunder. */
-.bx-moves em {
-  margin-left: 2px;
-  font-style: normal;
-  font-weight: 800;
-}
-.bx-moves em[data-mark="?!"] {
-  color: #d29922;
-}
-.bx-moves em[data-mark="?"] {
-  color: #f0883e;
-}
-.bx-moves em[data-mark="??"] {
-  color: #e5484d;
+  font-weight: 650;
+  color: var(--ink3);
 }
 
 /* The judgement through the whole game: above the middle White is better, below it Black. */
@@ -923,12 +870,151 @@
   stroke-linejoin: round;
 }
 .bx-evalgraph line[data-at] {
-  stroke: var(--ink);
-  stroke-width: 1.5;
+  stroke: var(--accent);
+  stroke-width: 2;
   vector-effect: non-scaling-stroke;
-  opacity: 0.6;
 }
 
+/* A line of the viewer's own, leaving the game. */
+.bx-ownline {
+  display: grid;
+  gap: 12px;
+  padding: 14px 18px 16px;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  border: 1px dashed var(--edge);
+  animation: bx-arrive 0.22s var(--out);
+}
+.bx-ownline > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin: 0 -7px;
+}
+.bx-chess .bx-ownline > div button {
+  padding: 5px 7px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  transition:
+    background 0.14s var(--out),
+    color 0.14s var(--out);
+}
+.bx-chess .bx-ownline > div button[aria-current] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.bx-chess .bx-ownline > div button[aria-current] i {
+  color: inherit;
+  opacity: 0.7;
+}
+.bx-chess .bx-ownline-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--sunk);
+  font-weight: 700;
+  transition:
+    transform 0.14s var(--out),
+    background 0.14s var(--out);
+}
+.bx-chess .bx-ownline-back:active {
+  transform: scale(0.97);
+}
+
+/* The moves: a row for each pair, the move shown as a filled pill. */
+.bx-moves {
+  max-height: 340px;
+  margin: 0;
+  padding: 4px 18px;
+  list-style: none;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  transition: opacity 0.2s var(--out);
+}
+.bx-moves[data-dim] {
+  opacity: 0.5;
+}
+.bx-moves li {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  min-height: 42px;
+  border-top: 1px solid var(--hair);
+  animation: bx-arrive 0.25s var(--out);
+}
+.bx-moves li:first-child {
+  border-top: 0;
+}
+.bx-moves li > i {
+  font-size: 13px;
+  font-weight: 700;
+  font-style: normal;
+  color: var(--ink3);
+}
+.bx-chess .bx-moves button {
+  justify-self: start;
+  margin-left: -10px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 15.5px;
+  font-weight: 700;
+  text-align: left;
+  white-space: nowrap;
+  transition:
+    background 0.14s var(--out),
+    color 0.14s var(--out);
+}
+.bx-chess .bx-moves button[aria-current] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.bx-chess .bx-moves button[data-branch] {
+  box-shadow: inset 0 0 0 1px var(--edge);
+}
+/* What a move gave away: an inaccuracy, a mistake, a blunder. */
+.bx-moves em {
+  margin-left: 2px;
+  font-style: normal;
+  font-weight: 800;
+}
+.bx-moves em[data-mark="?!"] {
+  color: #d29922;
+}
+.bx-moves em[data-mark="?"] {
+  color: #f0883e;
+}
+.bx-moves em[data-mark="??"] {
+  color: #e5484d;
+}
+.bx-chess .bx-moves button[aria-current] em {
+  color: inherit;
+}
+
+/* A game without a move yet. */
+.bx-chess-none {
+  margin: 0;
+  padding: 18px;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+
+.bx-chess :is(button, svg):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 @media (hover: hover) {
   .bx-chess .bx-moves button:not([aria-current]):hover,
   .bx-chess .bx-ownline > div button:not([aria-current]):hover,
@@ -937,193 +1023,170 @@
   .bx-chess .bx-swatches button:not([aria-pressed="true"]):hover {
     background: var(--hover);
   }
-  .bx-chess .bx-chess-keys > button:not([data-main]):not(:disabled):hover {
-    background: var(--surface);
+  .bx-chess
+    .bx-chess-keys
+    > button:not(.bx-chess-live):not([data-main]):not([aria-pressed="true"]):not(
+      [aria-expanded="true"]
+    ):not(:disabled):hover,
+  .bx-chess .bx-chess-copy button:hover,
+  .bx-chess .bx-ownline-back:hover {
+    background: color-mix(in srgb, var(--ink) 9%, var(--sunk));
+  }
+  .bx-chess .bx-chess-keys > button[data-main]:hover {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+  .bx-chess .bx-chess-live[data-with]:hover {
+    background: var(--accent-soft);
+  }
+  .bx-chess .bx-chess-live:not([data-with]):hover {
+    background: color-mix(in srgb, var(--accent) 86%, var(--ink));
   }
 }
 
 /*
- * With room, the board takes what it can and the rest stands beside it, exactly as tall as
- * the board and the two players: the list of moves scrolls inside what that leaves, and the
- * keys sit under it.
+ * With room, the board's panel stands on the left and the engine and the moves beside it,
+ * their captions on one line with the board's.
  */
-@media (min-width: 720px) {
+@media (min-width: 900px) {
   .bx-chess {
-    grid-template-columns: minmax(0, 1fr) 288px;
-    grid-template-rows: minmax(0, 1fr) auto auto;
-    gap: 14px 20px;
+    grid-template-columns: minmax(0, 548px) minmax(0, 1fr);
+    grid-template-rows: auto auto auto 1fr;
+    column-gap: 24px;
+  }
+  .bx-chess-name {
+    grid-area: 1 / 1;
   }
   .bx-chess-main {
-    grid-area: 1 / 1 / 3 / 2;
-  }
-  .bx-chess-side {
-    grid-area: 1 / 2 / 2 / 3;
-    /* Its own height never sets the row's: the board does. */
-    contain: size;
-    padding: 14px;
-    border-radius: 22px;
-    background: var(--surface);
-    border: 1px solid var(--hair);
-    box-shadow: var(--sh);
+    grid-area: 2 / 1;
   }
   .bx-chess-keys {
-    grid-area: 2 / 2 / 3 / 3;
+    grid-area: 3 / 1;
   }
-  .bx-evalgraph {
-    grid-area: 3 / 1 / 4 / 3;
+  .bx-chess-side {
+    grid-area: 1 / 2 / 5 / 3;
   }
-  .bx-chess[data-judging] .bx-chess-table {
-    grid-template-columns: 20px minmax(0, 1fr);
-    gap: 10px;
-  }
-  .bx-eval {
-    border-radius: 8px;
-  }
-  .bx-eval b {
-    display: block;
-  }
-  .bx-board {
-    border-radius: 16px;
+  .bx-chess-side > .bx-cap:first-child {
+    margin-top: var(--chess-top, 26px);
   }
   .bx-squares u {
-    font-size: 10px;
+    font-size: 10.5px;
   }
   .bx-moves {
-    flex: 1;
-    display: block;
-    min-height: 0;
-    margin: 0 -6px;
-    padding: 0 6px;
-    overflow: hidden auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
+    max-height: 430px;
   }
-  .bx-moves li {
-    display: grid;
-    grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr);
-    gap: 2px;
+}
+/* On a phone, one column: the board first, then the engine and the moves. */
+@media (max-width: 899.98px) {
+  .bx-chess-stage {
+    margin-top: 16px;
   }
-  .bx-moves li > i {
-    margin: 0;
+  .bx-chess {
+    max-width: 620px;
+    margin-inline: auto;
   }
-  .bx-moves li > span {
-    display: block;
+  .bx-chess-stage > .bx-series-pick,
+  .bx-chess-stage > .bx-cap {
+    max-width: 620px;
+    margin-inline: auto;
+  }
+  .bx-chess-main {
+    padding: 10px 10px 10px;
+    border-radius: 22px 22px 0 0;
+  }
+  .bx-chess-keys {
+    padding: 0 10px 10px;
+    border-radius: 0 0 22px 22px;
+  }
+  .bx-chess-keys-gap {
+    max-width: none;
+  }
+  .bx-chess .bx-chess-live {
+    flex: 1 0 100%;
+    justify-content: center;
+  }
+  .bx-engine-top b {
+    font-size: 30px;
+  }
+}
+@media (max-width: 374.98px) {
+  .bx-chess-keys {
+    gap: 3px;
+  }
+  .bx-chess .bx-chess-keys > button:not(.bx-chess-live) {
+    width: 34px;
+    height: 34px;
+  }
+  .bx-clock {
+    min-width: 0;
+    font-size: 15px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .bx-men,
   .bx-men img,
-  .bx-eval i {
+  .bx-eval i,
+  .bx-engine-bar i {
     animation: none;
     transition: none;
   }
 }
 
-/* ---- The match's page: the match written out, and the game shown ---- */
-.bx-stage {
-  margin-top: 22px;
-}
-.bx-series-pick {
-  margin-bottom: 18px;
-}
-.bx .bx-series-head button {
-  flex: 1 1 0;
-  position: relative;
-  display: grid;
-  place-items: end center;
-  min-width: 22px;
-  max-width: 44px;
-  height: 100%;
-  border-radius: 7px;
-  font: 500 9.5px var(--mono);
-  color: var(--ink3);
-  transition:
-    background 0.14s var(--out),
-    color 0.14s var(--out);
-}
-.bx .bx-series-head button:disabled {
-  opacity: 0.6;
-}
-.bx .bx-series-head button[data-now] {
-  color: var(--ink);
-  font-weight: 700;
-}
-.bx-series-lane span[data-pick] {
-  cursor: pointer;
-}
-.bx-stage-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-}
-.bx-stage-head b {
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-.bx-stage-head .bx-sub {
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.bx-stage-none {
-  margin: 10px 0 0;
-}
-
 /*
  * A match of several games, as chess writes one down: a line for each player, a column for
- * each game with what it gave them, and the sum at the end.
+ * each game with what it gave them, and the sum at the end. A panel of its own, on the match's
+ * page over the board and on an event's page one under another.
  */
 .bx-serieslist {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
 .bx-series {
   display: grid;
   grid-template-columns: minmax(104px, 34%) minmax(0, 1fr) auto;
   gap: 0 10px;
   padding: 10px 16px 12px;
-  border-radius: 20px;
+  border-radius: var(--r-card);
   background: var(--surface);
   border: 1px solid var(--hair);
-  box-shadow: var(--sh);
   color: inherit;
   text-decoration: none;
   transition:
     transform 0.15s var(--out),
     border-color 0.2s var(--out);
 }
-.bx-series:active {
+a.bx-series:active {
   transform: scale(0.985);
 }
-.bx-series[data-live] {
-  border-color: var(--edge);
+.bx-series-pick {
+  margin-bottom: 0;
 }
 .bx-series-who,
 .bx-series-total {
   display: grid;
-  grid-template-rows: 30px 30px 30px;
+  grid-template-rows: 30px 36px 36px;
   align-items: center;
   min-width: 0;
 }
 .bx-series-name {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   min-width: 0;
 }
 .bx-series-name b {
   min-width: 0;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 750;
+  letter-spacing: -0.015em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .bx-series-name[data-lost] b {
   color: var(--ink2);
-  font-weight: 600;
+  font-weight: 650;
 }
 .bx-series-name .bx-flag {
   flex: none;
@@ -1132,7 +1195,7 @@
 /* The columns: pushed along on a narrow screen, all in sight with room. */
 .bx-series-games {
   display: grid;
-  grid-template-rows: 30px 30px 30px;
+  grid-template-rows: 30px 36px 36px;
   align-items: center;
   min-width: 0;
   overflow-x: auto;
@@ -1147,6 +1210,7 @@
   display: flex;
   justify-content: flex-end;
   min-width: min-content;
+  height: 100%;
   padding: 0 8px;
 }
 .bx-series-head > *,
@@ -1155,28 +1219,42 @@
   position: relative;
   display: grid;
   place-items: center;
-  min-width: 22px;
+  min-width: 26px;
   max-width: 44px;
   height: 100%;
 }
-.bx-series-head span {
+.bx-series-head span,
+.bx .bx-series-head button {
   place-items: end center;
-  padding-bottom: 3px;
-  font: 500 9.5px var(--mono);
+  padding-bottom: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
   color: var(--ink3);
+  font-variant-numeric: tabular-nums;
 }
 .bx .bx-series-head button {
-  padding-bottom: 3px;
+  border-radius: 8px;
+  transition:
+    background 0.14s var(--out),
+    color 0.14s var(--out);
+}
+.bx .bx-series-head button:disabled {
+  opacity: 0.6;
+}
+.bx .bx-series-head button[data-now] {
+  color: var(--accent);
+  font-weight: 800;
 }
 /* The kind of game, once for each run of the same kind, written over the run. */
 .bx-series-head i {
   position: absolute;
   left: 50%;
-  top: 3px;
+  top: 2px;
   translate: -5px 0;
-  font: 600 8px var(--mono);
+  font-size: 9.5px;
+  font-weight: 750;
   font-style: normal;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   white-space: nowrap;
   color: var(--ink2);
@@ -1184,9 +1262,15 @@
 .bx-series-head i:empty {
   display: none;
 }
+.bx-series-lane {
+  position: relative;
+  z-index: 0;
+}
 .bx-series-lane span {
-  font: 600 13px var(--mono);
+  font-size: 14px;
+  font-weight: 700;
   color: var(--ink2);
+  font-variant-numeric: tabular-nums;
 }
 .bx-series-lane span[data-won] {
   color: var(--ink);
@@ -1195,17 +1279,19 @@
 .bx-series-lane span[data-lost] {
   color: var(--ink3);
 }
+.bx-series-lane span[data-pick] {
+  cursor: pointer;
+}
+.bx-series-lane span[data-now] {
+  color: var(--accent);
+}
 .bx-series-lane span[data-now]::before {
   content: "";
   position: absolute;
-  inset: 3px 1px;
-  border-radius: 8px;
-  background: var(--sunk);
+  inset: 4px 2px;
+  border-radius: 10px;
+  background: var(--accent-soft);
   z-index: -1;
-}
-.bx-series-lane {
-  position: relative;
-  z-index: 0;
 }
 .bx-series-lane + .bx-series-lane {
   border-top: 1px solid var(--hair);
@@ -1215,37 +1301,39 @@
   min-width: 34px;
 }
 .bx-series-total span {
-  font: 500 9.5px var(--mono);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: 11.5px;
+  font-weight: 700;
   color: var(--ink3);
 }
 .bx-series[data-live] .bx-series-total span {
-  color: var(--ink);
+  color: var(--accent);
 }
 .bx-series-total b {
-  font: 700 17px var(--mono);
+  font-size: 19px;
+  font-weight: 800;
   letter-spacing: -0.03em;
   color: var(--ink2);
+  font-variant-numeric: tabular-nums;
 }
 .bx-series-total b[data-lead] {
   color: var(--ink);
 }
 @media (hover: hover) {
-  .bx-series:hover {
+  a.bx-series:hover {
     border-color: var(--edge);
+    background: color-mix(in srgb, var(--ink) 3%, var(--surface));
+  }
+  .bx .bx-series-head button:not(:disabled):not([data-now]):hover {
+    background: var(--hover);
+    color: var(--ink);
   }
 }
 @media (min-width: 900px) {
   .bx-series {
     grid-template-columns: minmax(150px, 30%) minmax(0, 1fr) auto;
-    padding: 12px 20px 14px;
+    padding: 12px 22px 14px;
   }
   .bx-series-name .bx-flag {
     display: block;
   }
-}
-
-.bx-cols-swap > :first-child {
-  order: 2;
 }
