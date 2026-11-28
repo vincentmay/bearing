@@ -76,12 +76,17 @@ export function Welcome({ board, onDone }: { board: Board; onDone: () => void })
   const [game, setGame] = useState<string>();
   const today = times.dayKey(now);
 
-  // Whoever plays today, the live ones first; each team or player once.
+  // Whoever plays today: the biggest events first, within them the live ones; each team or
+  // player once.
   const order = { live: 0, scheduled: 1, finished: 2 } as const;
+  const tier = { S: 0, A: 1, B: 2 } as const;
   const matches = atlas.world.matches
     .filter((m) => m.status === "live" || times.dayKey(m.scheduledAt) === today)
     .sort(
-      (a, b) => order[a.status] - order[b.status] || a.scheduledAt.localeCompare(b.scheduledAt),
+      (a, b) =>
+        tier[atlas.tournamentOf(a).tier] - tier[atlas.tournamentOf(b).tier] ||
+        order[a.status] - order[b.status] ||
+        a.scheduledAt.localeCompare(b.scheduledAt),
     );
   const seen = new Set<string>();
   const playing: Pick[] = [];
@@ -104,7 +109,6 @@ export function Welcome({ board, onDone }: { board: Board; onDone: () => void })
       });
     }
   }
-  const tier = { S: 0, A: 1, B: 2 } as const;
   const events: Pick[] = atlas.world.tournaments
     .filter((t) => tournamentStatus(atlas, t, now) === "live")
     .sort((a, b) => tier[a.tier] - tier[b.tier] || a.start.localeCompare(b.start))
@@ -132,8 +136,18 @@ export function Welcome({ board, onDone }: { board: Board; onDone: () => void })
   const games = atlas.world.disciplines.filter(
     (d) => playing.some((p) => p.game === d.id) || events.some((e) => e.game === d.id),
   );
-  const shown = (list: Pick[], most: number) =>
-    list.filter((p) => !game || p.game === game).slice(0, most);
+  // With every game shown, no single one takes the whole grid: each gets its share first.
+  const shown = (list: Pick[], most: number) => {
+    if (game) return list.filter((p) => p.game === game).slice(0, most);
+    const share = Math.max(2, Math.ceil(most / Math.max(1, games.length)));
+    const taken = new Map<string, number>();
+    const first = list.filter((p) => {
+      const n = taken.get(p.game) ?? 0;
+      taken.set(p.game, n + 1);
+      return n < share;
+    });
+    return [...first, ...list.filter((p) => !first.includes(p))].slice(0, most);
+  };
   const picked = atlas.world.follows.length;
   const done = () => {
     remember();
