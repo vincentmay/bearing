@@ -417,7 +417,7 @@ export function ScheduleRow({
 // ---------------------------------------------------------------------------------------------
 // Things that can be followed: a team, a player, an event, a whole game, an organisation
 
-interface Target {
+export interface Target {
   follow: Follow;
   name: string;
   /** What kind of thing it is, in words. */
@@ -429,7 +429,7 @@ interface Target {
   side?: SideView;
 }
 
-function target(atlas: Atlas, follow: Follow): Target | undefined {
+export function target(atlas: Atlas, follow: Follow): Target | undefined {
   const plain = (icon: ReactNode) => (
     <span className="bx-disc bx-disc-plain" style={{ "--s": "26px" } as never} aria-hidden>
       {icon}
@@ -498,7 +498,7 @@ function when(times: Times, at: string, now: number): string {
 }
 
 /** One plain sentence on what is next for a followed thing, or that nothing is. */
-function standing(board: Board, follow: Follow): string {
+export function standing(board: Board, follow: Follow): string {
   const { atlas, now, times } = board;
   const relevant = atlas.world.matches.filter((m) => atlas.touches(m, follow));
   const live = relevant.filter((m) => m.status === "live");
@@ -589,7 +589,7 @@ function TargetRow({ item, board, line }: { item: Target; board: Board; line?: b
   );
 }
 
-function defined<T>(value: T | undefined): value is T {
+export function defined<T>(value: T | undefined): value is T {
   return value !== undefined;
 }
 
@@ -718,7 +718,7 @@ export function Following() {
 // Search
 
 /** Everything that can be found, with the words it answers to. */
-function everything(atlas: Atlas): { follow: Follow; words: string; group: string }[] {
+export function everything(atlas: Atlas): { follow: Follow; words: string; group: string }[] {
   const { world } = atlas;
   return [
     ...world.competitors.map((c) => ({
@@ -747,7 +747,7 @@ function everything(atlas: Atlas): { follow: Follow; words: string; group: strin
   ];
 }
 
-const GROUPS = ["Teams", "Players", "Events", "Organisations and games"];
+export const GROUPS = ["Teams", "Players", "Events", "Organisations and games"];
 
 export function Search() {
   const board = useBoard();

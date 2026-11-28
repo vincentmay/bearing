@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Search } from "../bearing/lists";
+import { Finder } from "../bearing/find";
 
-export const Route = createFileRoute("/_app/search")({ component: Search });
+/** Search on a page of its own, for an address that leads here; everywhere else it opens over the page. */
+export const Route = createFileRoute("/_app/search")({ component: () => <Finder page /> });

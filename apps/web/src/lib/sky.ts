@@ -357,6 +357,8 @@ interface DrawOptions {
   id: string;
   /** Film grain, for large pictures. */
   grain: boolean;
+  /** How much of the clouds is drawn, 0 to 1. */
+  clouds?: number;
 }
 
 /** One drawing of the sky (port of skySVG in brand/system/sky3.mjs). */
@@ -447,7 +449,7 @@ function draw(hour: number, o: DrawOptions): string {
     far += cumulus(x + cw / 2, base - h * (band ? 0.22 : 0.12) - r() * h * 0.08, cw)[0];
     x += cw + w * (0.2 + r() * 0.25);
   }
-  const cA = S.cloudA * (band ? (S.paper ? 0.8 : 0.6) : 1) * (1 - nightA * 0.4);
+  const cA = S.cloudA * (band ? (S.paper ? 0.8 : 0.6) : 1) * (1 - nightA * 0.4) * (o.clouds ?? 1);
 
   // Warm light at dawn and dusk, low in the sky; none in the dark band, where amber over indigo
   // turns mauve.
@@ -504,6 +506,50 @@ export function skyBand(
     seed: 5,
     cloudLift: 0.3,
     ground: theme === "dark" ? "#020307" : "#FFFFFF",
+    id,
+    grain: false,
+  });
+}
+
+/** What the sky is made of at an hour: each from 0 to 1, and together 1. */
+export interface SkyForm {
+  /** Stars and nebula. */
+  night: number;
+  /** The low warm light of dawn and dusk. */
+  twilight: number;
+  /** Blue with cumulus. */
+  day: number;
+  /** Before noon: the low light is dawn's rose, not dusk's orange. */
+  morning: boolean;
+}
+
+export function skyForm(hour: number): SkyForm {
+  const h = ((hour % 24) + 24) % 24;
+  const S = skyState(h, "sky");
+  const night = Math.min(1, S.stars * 1.15);
+  const twilight = Math.min(1 - night, S.warm);
+  return { night, twilight, day: Math.max(0, 1 - night - twilight), morning: h < 12 };
+}
+
+/**
+ * The sky inside a page's top card: the deep band of the dark theme, at every hour and in both
+ * themes, so that white text holds on it. Cumulus stand in it by day only; what the hour adds
+ * beyond that (the low light, the nebula, the colours of who is shown) is drawn over it by the
+ * card (bearing/sky.tsx). `seed` moves the clouds and stars, so that two days do not look alike.
+ */
+export function skyCard(hour: number, { id = "sky", seed = 5 } = {}): string {
+  const form = skyForm(hour);
+  return draw(hour, {
+    key: "dim",
+    width: 1200,
+    height: 440,
+    horizon: 1,
+    band: true,
+    stars: 150,
+    seed,
+    cloudLift: 0.3,
+    clouds: Math.max(0, form.day + form.twilight * 0.25),
+    ground: "#020307",
     id,
     grain: false,
   });

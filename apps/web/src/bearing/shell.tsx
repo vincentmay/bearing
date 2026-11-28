@@ -1,22 +1,22 @@
 import "@fontsource-variable/zalando-sans/wdth.css";
 import "./bearing.css";
+import "./kiming.css";
 
 import type { Atlas } from "@bearing/domain";
 import { Link, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
-import { CalendarDays, House, Search, Star } from "lucide-react";
+import { CalendarDays, Radio, Search, Star } from "lucide-react";
 import { type ReactNode, createContext, useContext, useEffect, useRef, useState } from "react";
 import { usePrefs } from "../lib/prefs";
 import { useSamplePlayer } from "./live";
 import { useAtlas } from "../lib/world";
-import { SkyBand } from "./sky";
 import { nameOf, useTrail } from "./trail";
+import { FinderOver } from "./find";
 import { AccountLink, Logo, Waiting } from "./ui";
 
 const TABS = [
-  { to: "/", label: "Today", icon: House },
+  { to: "/", label: "Live", icon: Radio },
   { to: "/schedule", label: "Schedule", icon: CalendarDays },
   { to: "/following", label: "Following", icon: Star },
-  { to: "/search", label: "Search", icon: Search },
 ] as const;
 
 type Tab = (typeof TABS)[number];
@@ -28,64 +28,97 @@ export function useOrigin(): Tab {
   return useContext(Origin);
 }
 
-/**
- * The frame every Bearing screen sits in. On a phone the navigation is a small floating capsule
- * of four icons at the bottom, within reach of a thumb. With room it moves to the top, gains
- * its labels, and sits between the mark and the settings.
- */
 /** Which tab an address belongs to, or none for a page further in. */
 function tabOf(path: string): number {
   return TABS.findIndex((t) => (t.to === "/" ? path === "/" : path.startsWith(t.to)));
 }
 
+/** Search opens over any page: from its button, with Ctrl K (or Cmd K), or with a plain "/". */
+function useFinder(): [boolean, (open: boolean) => void] {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const key = (event: KeyboardEvent) => {
+      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((event.target as HTMLElement)?.tagName);
+      if ((event.key === "k" || event.key === "K") && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        setOpen((was) => !was);
+      } else if (event.key === "/" && !typing && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault();
+        setOpen(true);
+      }
+    };
+    document.addEventListener("keydown", key);
+    return () => document.removeEventListener("keydown", key);
+  }, []);
+  return [open, setOpen];
+}
+
 /**
- * The frame itself: the mark, the way to the account, and the navigation. It is there from the
- * first moment, around whatever the page is doing, so that a page still on its way arrives
- * into a frame that has not moved.
+ * The frame every screen sits in: the mark, the three places (Live, Schedule, Following), search
+ * and the account. With room the places sit in the top bar; on a phone they move to a capsule at
+ * the bottom, within reach of a thumb. The frame is there from the first moment, around whatever
+ * the page is doing, so that a page still on its way arrives into a frame that has not moved.
  */
 function Chrome({
   active,
   inner,
-  sky = false,
+  live = 0,
+  find = true,
   children,
 }: {
   active: number;
   inner: boolean;
-  /** Today wears the sky at the viewer's hour behind its top. */
-  sky?: boolean;
+  /** How many matches are being played, said on the Live tab. */
+  live?: number;
+  /** Search needs the world; while it is on its way the button waits. */
+  find?: boolean;
   children: ReactNode;
 }) {
   const { theme } = usePrefs();
+  const [finding, setFinding] = useFinder();
+  const mac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
   return (
     <div className="bx" data-theme={theme === "system" ? undefined : theme}>
       {/* For whoever moves by keyboard: past the frame, straight to the page. */}
       <a href="#main" className="bx-skip">
         Skip to the page
       </a>
-      {sky ? <SkyBand /> : null}
-      <header className="bx-top">
-        <Link to="/" className="bx-brand" aria-label="Kiming: today">
+      <header className="bx-bar">
+        <Link to="/" className="bx-brand" aria-label="Kiming: what is live">
           <Logo height={19} label="Kiming" />
         </Link>
-        <AccountLink />
+        <nav className="bx-tabs" aria-label="Main">
+          <i style={{ transform: `translateX(${active * 100}%)` }} />
+          {TABS.map((tab, i) => (
+            <Link
+              key={tab.to}
+              to={tab.to}
+              aria-current={i === active && !inner ? "page" : undefined}
+              data-on={i === active ? "" : undefined}
+            >
+              <tab.icon size={21} strokeWidth={2} aria-hidden />
+              {tab.label}
+              {i === 0 && live ? <small aria-label={`${live} live`}>{live}</small> : null}
+            </Link>
+          ))}
+        </nav>
+        <div className="bx-bar-r">
+          <button
+            type="button"
+            className="bx-find"
+            aria-label="Search"
+            aria-keyshortcuts="Control+K Meta+K"
+            onClick={() => setFinding(true)}
+          >
+            <Search size={17} aria-hidden />
+            <span>Search</span>
+            <kbd className="bx-kbd">{mac ? "⌘ K" : "Ctrl K"}</kbd>
+          </button>
+          <AccountLink />
+        </div>
       </header>
       {children}
-      <nav className="bx-nav" aria-label="Main">
-        <i style={{ transform: `translateX(${active * 100}%)` }} />
-        {TABS.map((tab, i) => (
-          <Link
-            key={tab.to}
-            to={tab.to}
-            aria-label={tab.label}
-            aria-current={i === active && !inner ? "page" : undefined}
-            title={tab.label}
-            data-on={i === active ? "" : undefined}
-          >
-            <tab.icon size={20} strokeWidth={2} />
-            <span aria-hidden>{tab.label}</span>
-          </Link>
-        ))}
-      </nav>
+      {finding && find ? <FinderOver onClose={() => setFinding(false)} /> : null}
     </div>
   );
 }
@@ -107,7 +140,7 @@ export function ShellWaiting() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const found = tabOf(path);
   return (
-    <Chrome active={Math.max(found, 0)} inner={found < 0} sky={path === "/"}>
+    <Chrome active={Math.max(found, 0)} inner={found < 0} find={false}>
       <main className="bx-page">
         <Waiting title={found >= 0 ? TABS[found]?.label : undefined} />
       </main>
@@ -129,7 +162,7 @@ export function ShellProblem({ children }: { children: ReactNode }) {
 export function Shell() {
   useSamplePlayer();
   useTrail();
-  // The four tabs are a press away at any moment: their code is fetched as soon as the first
+  // The three places are a press away at any moment: their code is fetched as soon as the first
   // page stands, so that pressing one never waits on the network.
   const router = useRouter();
   useEffect(() => {
@@ -162,7 +195,7 @@ export function Shell() {
     document.title = name === "Back" ? "Kiming" : `${name} · Kiming`;
   }, [atlas, path]);
   return (
-    <Chrome active={active} inner={inner} sky={path === "/"}>
+    <Chrome active={active} inner={inner} live={atlas.live().length}>
       <Origin value={TABS[active] ?? TABS[0]}>
         <main id="main" key={pageOf(atlas, path)} className={`bx-page ${move.how}`}>
           <Outlet />

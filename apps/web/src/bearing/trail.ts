@@ -49,7 +49,7 @@ export function usePrevious(): string | undefined {
 }
 
 const TABS: Record<string, string> = {
-  "/": "Today",
+  "/": "Live",
   "/schedule": "Schedule",
   "/following": "Following",
   "/search": "Search",
