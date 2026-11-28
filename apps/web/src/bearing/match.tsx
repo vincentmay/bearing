@@ -358,7 +358,7 @@ export function MatchPage({ matchId }: { matchId: string }) {
   const back = <Back parent={match ? { kind: "tournament", id: match.tournamentId } : undefined} />;
   if (!match) {
     // A match from before the weeks a list reaches back arrives a moment after the page.
-    if (board.loading) return <Waiting />;
+    if (board.loading) return <Waiting inner at="match" />;
     return (
       <>
         {back}

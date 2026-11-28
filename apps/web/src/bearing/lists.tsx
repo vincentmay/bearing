@@ -19,7 +19,7 @@ import { type Dot, type SideView, heat, inkOn, plainName, sideOf } from "./model
 import { MatchRow, RoundLine } from "./rows";
 import { CardSky } from "./sky";
 import { type Times, until } from "./time";
-import { Disc, Dots, EventMark, Flag, FollowStar, Ping, Tick } from "./ui";
+import { Disc, Dots, EventMark, Flag, FollowStar, Ping, Tick, TopCard } from "./ui";
 import { useFidePlayer } from "../lib/fide";
 import "./pages-lists.css";
 
@@ -158,7 +158,7 @@ export function Schedule() {
 
   return (
     <>
-      <section className="bx-stage bx-dayc">
+      <TopCard className="bx-stage bx-dayc">
         <CardSky />
         <div className="bx-ent-in">
           <div className="bx-eh">
@@ -231,7 +231,7 @@ export function Schedule() {
             </button>
           </div>
         </div>
-      </section>
+      </TopCard>
       <div className="bx-one">
         <div>
           {[...groups].map(([id, list]) => {
@@ -902,7 +902,7 @@ export function Following() {
 
   if (nothing)
     return (
-      <section className="bx-stage bx-fhead">
+      <TopCard className="bx-stage bx-fhead">
         <CardSky />
         <div className="bx-ent-in">
           <div className="bx-eh">
@@ -913,20 +913,20 @@ export function Following() {
               </p>
             </div>
             <div className="bx-eh-acts">
-              <Link to="/search" className="bx-btn" data-k="main">
+              <Link to="/following/add" className="bx-btn" data-k="main">
                 <Plus size={17} aria-hidden />
                 Find a team or a player
               </Link>
             </div>
           </div>
         </div>
-      </section>
+      </TopCard>
     );
 
   const side = wider.length > 0 || listed.length > 0;
   return (
     <>
-      <section className="bx-stage bx-fhead">
+      <TopCard className="bx-stage bx-fhead">
         <CardSky />
         <div className="bx-ent-in">
           <div className="bx-eh">
@@ -941,14 +941,14 @@ export function Following() {
               {listed.map((f) => (
                 <ListedChip key={f.id} id={f.id} />
               ))}
-              <Link to="/search" className="bx-tok" data-k="add">
+              <Link to="/following/add" className="bx-tok" data-k="add">
                 <Plus size={16} aria-hidden />
                 Follow more
               </Link>
             </div>
           </div>
         </div>
-      </section>
+      </TopCard>
       <div className={side ? "bx-one" : undefined}>
         <div>
           {people.length ? (

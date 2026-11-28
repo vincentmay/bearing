@@ -37,6 +37,8 @@ export interface SideView {
   plural: boolean;
   /** A team's mark or a player's picture, where a source has one. */
   image?: string;
+  /** The same mark made for a dark ground, where its source has one. */
+  imageDark?: string;
   /** The picture is of a person, and is cropped to the face; a mark is shown whole. */
   person?: boolean;
 }
@@ -152,6 +154,7 @@ export function sideOf(atlas: Atlas, id: string): SideView {
     ink: inkOn(color),
     plural: c?.kind === "team",
     image: c?.image,
+    imageDark: c?.kind === "team" ? c.imageDark : undefined,
     person: c?.kind === "player",
   };
 }

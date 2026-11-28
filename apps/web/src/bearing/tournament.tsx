@@ -37,7 +37,7 @@ import { CardSky, light } from "./sky";
 import { CrossTable, Heat } from "./stages";
 import { SwissLadder } from "./swiss";
 import { until } from "./time";
-import { Disc, EventMark, Flag, Ping, Problem, Waiting } from "./ui";
+import { Disc, EventMark, Flag, Ping, Problem, Waiting, TopCard } from "./ui";
 
 const DAY = 86_400_000;
 const COUNT = ["no", "one", "two", "three", "four", "five", "six"];
@@ -186,7 +186,7 @@ function StageDrawing({
 }) {
   const matches = board.atlas.stageMatches(stage);
   // The stage's matches may be on their way: an event from weeks back asks for them by name.
-  if (!matches.length && board.loading) return <Waiting />;
+  if (!matches.length && board.loading) return <Waiting inner at="tournament" />;
   if (!matches.length && stage.format !== "swiss") {
     return <p className="bx-e-empty">This stage has not been drawn yet.</p>;
   }
@@ -639,7 +639,7 @@ export function TournamentPage({ tournamentId }: { tournamentId: string }) {
   return (
     <>
       <Back />
-      <section className="bx-stage bx-e-card" data-live={lead ? "" : undefined}>
+      <TopCard className="bx-stage bx-e-card" data-live={lead ? "" : undefined}>
         <CardSky />
         <div className="bx-ent-in">
           <div className="bx-eh">
@@ -673,7 +673,7 @@ export function TournamentPage({ tournamentId }: { tournamentId: string }) {
           {partPicks}
           {stagePicks}
         </div>
-      </section>
+      </TopCard>
 
       <div key={t.id} className="bx-view bx-e-cols">
         <div>

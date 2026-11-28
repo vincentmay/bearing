@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useId, useMemo, useRef } from "react";
+import { type ReactNode, useEffect, useId, useLayoutEffect, useMemo, useRef } from "react";
 import { type Light, type NebulaView, nebulaPicture, whenNebulaReady } from "../lib/nebula";
 import { usePrefs } from "../lib/prefs";
 import { type SkyForm, hourIn, skyCard, skyForm, skyScene } from "../lib/sky";
@@ -53,7 +53,7 @@ export function CardSky({
   state.current = { form, first, seed };
   const again = useRef<() => void>(() => {});
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = box.current;
     const card = el?.parentElement;
     if (!el || !card) return;
@@ -142,6 +142,9 @@ export function CardSky({
     };
     again.current = ask;
     const waiting = whenNebulaReady(ask);
+    // The first picture is drawn before the card is first shown, so that a card arrives whole
+    // (the painter is usually ready: only the first page of a visit waits for it).
+    paint();
     const sizes = new ResizeObserver(ask);
     sizes.observe(card);
     return () => {

@@ -7,7 +7,7 @@ import { type Board, useBoard } from "./board";
 import { Back, Go } from "./links";
 import { plainName, sideOf } from "./model";
 import { CardSky } from "./sky";
-import { Disc, Problem } from "./ui";
+import { Disc, Problem, TopCard } from "./ui";
 
 /** A ranking's name with its day written the way every day in Bearing is. */
 export function rankingTitle(ranking: Ranking, board: Board): string {
@@ -142,7 +142,7 @@ export function RankingPage({ discipline }: { discipline: string }) {
   return (
     <>
       <Back />
-      <section className="bx-stage">
+      <TopCard className="bx-stage">
         <CardSky />
         <div className="bx-ent-in">
           <div className="bx-eh">
@@ -170,7 +170,7 @@ export function RankingPage({ discipline }: { discipline: string }) {
             </nav>
           ) : null}
         </div>
-      </section>
+      </TopCard>
       <div className="bx-e-cols">
         <div>
           <h2 className="bx-h2">The top three</h2>

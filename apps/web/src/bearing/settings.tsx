@@ -17,7 +17,7 @@ import { pinned, useMinute } from "../lib/world";
 import { useOrigin } from "./shell";
 import { CardSky } from "./sky";
 import { useTimes } from "./time";
-import { Segmented } from "./ui";
+import { Segmented, TopCard } from "./ui";
 
 const THEMES = [
   { value: "system", label: "As the device" },
@@ -118,7 +118,7 @@ export function Settings() {
         {origin.label}
       </Link>
 
-      <section className="bx-stage">
+      <TopCard className="bx-stage">
         <CardSky />
         <div className="bx-ent-in">
           <div className="bx-eh">
@@ -146,7 +146,7 @@ export function Settings() {
             ) : null}
           </div>
         </div>
-      </section>
+      </TopCard>
 
       <h2 className="bx-h2">Look</h2>
       <div className="bx-panel">

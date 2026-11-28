@@ -52,6 +52,7 @@ const TABS: Record<string, string> = {
   "/": "Live",
   "/schedule": "Schedule",
   "/following": "Following",
+  "/following/add": "Follow more",
   "/search": "Search",
   "/settings": "Settings",
 };

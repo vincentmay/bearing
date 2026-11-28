@@ -12,7 +12,7 @@ import { type SideView, plainName, sideOf, standIn } from "./model";
 import { MatchRow } from "./rows";
 import { CardSky, light } from "./sky";
 import { Figures, FollowButton, NowStrip, PersonRow, Year, points, rankOf, yearOf } from "./team";
-import { Champ, Disc, Flag, Ping, Problem, positionOf } from "./ui";
+import { Champ, Disc, Flag, Ping, Problem, positionOf, TopCard } from "./ui";
 
 function age(born: string | undefined, now: number): string | undefined {
   if (!born) return undefined;
@@ -212,7 +212,7 @@ function Listed({ id }: { id: string }) {
   return (
     <>
       <Back />
-      <section className="bx-stage">
+      <TopCard className="bx-stage">
         <CardSky />
         <div className="bx-ent-in">
           <div className="bx-eh">
@@ -239,7 +239,7 @@ function Listed({ id }: { id: string }) {
             </div>
           </div>
         </div>
-      </section>
+      </TopCard>
       {player.ratings.length > 3 ? (
         <>
           <h2 className="bx-h2">Ratings</h2>
@@ -387,7 +387,7 @@ export function PlayerPage({ playerId }: { playerId: string }) {
   return (
     <>
       <Back parent={team ? { kind: "team", id: team.id } : undefined} />
-      <section className="bx-stage" data-live={live.length ? "" : undefined}>
+      <TopCard className="bx-stage" data-live={live.length ? "" : undefined}>
         <CardSky />
         <div className="bx-ent-in">
           <div className="bx-eh">
@@ -423,7 +423,7 @@ export function PlayerPage({ playerId }: { playerId: string }) {
             </NowStrip>
           ) : null}
         </div>
-      </section>
+      </TopCard>
 
       <Year
         cards={year}

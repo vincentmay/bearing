@@ -15,13 +15,24 @@ import {
   UserRound,
   Zap,
 } from "lucide-react";
-import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  type ComponentProps,
+  type ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { useAccount } from "../lib/account";
+import { usePrefs } from "../lib/prefs";
 import { useAtlas, useFollow } from "../lib/world";
 import type { Dot, MatchView, SideView } from "./model";
 import type { Times } from "./time";
 
-import { Moment } from "./sky";
+import { CardSky, Moment } from "./sky";
 /** The mark: three exposures of one sunrise on one horizon (brand book §4). */
 export { Logo, Mark } from "./logo";
 
@@ -70,6 +81,9 @@ function TickEl({ play, text }: { play: boolean; text: string }) {
   return <span className={on ? "bx-tick" : undefined}>{text}</span>;
 }
 
+/** The pictures that have arrived during this visit, by address, with what was found out about each mark. */
+const arrivedBefore = new Map<string, { dim: boolean; pale: boolean } | undefined>();
+
 /** Whether a mark would be lost on a dark ground, or on a light one; worked out once each. */
 const verdicts = new Map<string, { dim: boolean; pale: boolean }>();
 
@@ -105,6 +119,38 @@ function judge(img: HTMLImageElement): { dim: boolean; pale: boolean } {
   return verdict;
 }
 
+const OnSky = createContext(false);
+
+/**
+ * A page's top card, with the sky in it (`CardSky` goes inside). What stands on it knows that
+ * it stands on a dark ground, whatever the theme.
+ */
+export function TopCard(props: ComponentProps<"section">) {
+  return (
+    <OnSky value={true}>
+      <section {...props} />
+    </OnSky>
+  );
+}
+
+const darkScheme =
+  typeof matchMedia === "function" ? matchMedia("(prefers-color-scheme: dark)") : undefined;
+
+/** Whether what is drawn here stands on a dark ground: on the sky, or anywhere in the dark theme. */
+function useDarkGround(): boolean {
+  const onSky = useContext(OnSky);
+  const { theme } = usePrefs();
+  const device = useSyncExternalStore(
+    (told) => {
+      darkScheme?.addEventListener("change", told);
+      return () => darkScheme?.removeEventListener("change", told);
+    },
+    () => darkScheme?.matches ?? false,
+    () => false,
+  );
+  return onSky || theme === "dark" || (theme === "system" && device);
+}
+
 /**
  * A team or player. A team's mark stands on its own, with nothing behind it; only a mark that
  * would be lost on the ground it is shown on (a black one on black) keeps a plain plate. A
@@ -112,14 +158,48 @@ function judge(img: HTMLImageElement): { dim: boolean; pale: boolean } {
  * their colour with a short name.
  */
 export function Disc({ side, size = 44 }: { side: SideView; size?: number }) {
-  const [state, setState] = useState<"wait" | "shown" | "failed">("wait");
-  const [verdict, setVerdict] = useState<{ dim: boolean; pale: boolean }>();
+  // Many teams have a second mark made for dark grounds. The sky is one in both themes, and so
+  // is every page in the dark theme. If that mark does not arrive, the usual one is shown.
+  const dark = useDarkGround();
+  const [missing, setMissing] = useState(false);
+  const image = dark && side.imageDark && !missing ? side.imageDark : side.image;
+  return (
+    <DiscOf
+      key={image}
+      side={side}
+      size={size}
+      image={image}
+      onFailed={image !== side.image ? () => setMissing(true) : undefined}
+    />
+  );
+}
+
+function DiscOf({
+  side,
+  size,
+  image,
+  onFailed,
+}: {
+  side: SideView;
+  size: number;
+  image: string | undefined;
+  /** There is another picture to try if this one does not arrive. */
+  onFailed?: () => void;
+}) {
+  // A picture that has been shown before in this visit is simply there: only one that is new
+  // fades in.
+  const first = image && size <= 64 ? small(image) : image;
+  const known = !!first && arrivedBefore.has(first);
+  const [state, setState] = useState<"wait" | "shown" | "failed">(known ? "shown" : "wait");
+  const [verdict, setVerdict] = useState(() => (first ? arrivedBefore.get(first) : undefined));
   // A small disc asks for the small picture; if there is none, for the picture itself.
   const [whole, setWhole] = useState(false);
-  const wanted = side.image && !whole && size <= 64 ? small(side.image) : side.image;
-  const picture = side.image && state !== "failed" ? wanted : undefined;
+  const wanted = image && !whole && size <= 64 ? small(image) : image;
+  const picture = image && state !== "failed" ? wanted : undefined;
   const arrived = (img: HTMLImageElement) => {
-    if (!side.person) setVerdict(judge(img));
+    const found = side.person ? undefined : judge(img);
+    setVerdict(found);
+    if (wanted) arrivedBefore.set(wanted, found);
     setState("shown");
   };
   return (
@@ -152,7 +232,8 @@ export function Disc({ side, size = 44 }: { side: SideView; size?: number }) {
           }}
           onLoad={(event) => arrived(event.currentTarget)}
           onError={() => {
-            if (wanted !== side.image) setWhole(true);
+            if (wanted !== image) setWhole(true);
+            else if (onFailed) onFailed();
             else setState("failed");
           }}
         />
@@ -676,28 +757,80 @@ export function Segmented<T extends string>({
   );
 }
 
+/** A few rows of a list that is on its way. */
+function WaitingRows({ count }: { count: number }) {
+  return [58, 44, 66, 50].slice(0, count).map((w) => (
+    <div key={w} className="bx-wt-row">
+      <i />
+      <span>
+        <i style={{ width: `${w}%` }} />
+        <i style={{ width: `${w - 22}%` }} />
+      </span>
+    </div>
+  ));
+}
+
 /**
- * While data is on its way: the shape of the page (the top card, a heading, a few rows),
- * quietly breathing, with words for anyone who cannot see it.
+ * While a page loads: its own shape, so that nothing jumps when it arrives. The top card
+ * already holds the sky; the rest breathes slowly. `live` is the Live page (a card, the other
+ * matches, two lists); every other page is a card over a wide and a narrow column. `inner` is a
+ * page further in, which has a way back above its card.
  */
-export function Waiting({ title }: { title?: string }) {
+export function Waiting({
+  title,
+  shape = "page",
+  inner = false,
+  at,
+}: {
+  title?: string;
+  shape?: "live" | "page";
+  inner?: boolean;
+  /** Which page it is ("schedule", "team"…): its top card has that page's height. */
+  at?: string;
+}) {
   return (
-    <div className="bx-wt" role="status">
+    <div className="bx-wt" role="status" data-shape={shape} data-at={at}>
       <span className="bx-only">{title ? `Loading ${title}` : "Loading"}</span>
-      <div className="bx-wt-card" aria-hidden>
-        <i style={{ width: "38%", height: 40 }} />
-        <i style={{ width: "56%" }} />
-      </div>
-      <i className="bx-wt-h" aria-hidden />
-      {[58, 44, 66, 50].map((w) => (
-        <div key={w} className="bx-wt-row" aria-hidden>
-          <i />
-          <span>
-            <i style={{ width: `${w}%` }} />
-            <i style={{ width: `${w - 22}%` }} />
-          </span>
+      {inner ? <i className="bx-wt-back" aria-hidden /> : null}
+      <TopCard className="bx-stage bx-wt-card" aria-hidden>
+        <CardSky />
+        <i style={{ width: "34%", height: 38 }} />
+        <i style={{ width: "52%" }} />
+      </TopCard>
+      {shape === "live" ? (
+        <div className="bx-wt-rest" aria-hidden>
+          <i className="bx-wt-h" />
+          <div className="bx-wt-cards">
+            <i />
+            <i />
+            <i />
+            <i />
+          </div>
+          <div className="bx-wt-two">
+            <div>
+              <i className="bx-wt-h" />
+              <WaitingRows count={3} />
+            </div>
+            <div>
+              <i className="bx-wt-h" />
+              <WaitingRows count={3} />
+            </div>
+          </div>
         </div>
-      ))}
+      ) : (
+        <div className="bx-wt-rest" aria-hidden>
+          <div className="bx-wt-two" data-k="side">
+            <div>
+              <i className="bx-wt-h" />
+              <WaitingRows count={4} />
+            </div>
+            <div>
+              <i className="bx-wt-h" />
+              <i className="bx-wt-panel" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -725,7 +858,7 @@ export function Problem({
           </button>
         ) : (
           <Link to="/" className="bx-btn" data-k="main">
-            Back to Today
+            Back to Live
           </Link>
         )
       }

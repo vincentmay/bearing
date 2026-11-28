@@ -3,10 +3,11 @@ import { Link } from "@tanstack/react-router";
 import { Check, Plus, Search, Star, Trophy } from "lucide-react";
 import { type CSSProperties, type ReactNode, useMemo, useState } from "react";
 import { useFollow } from "../lib/world";
-import type { Board } from "./board";
+import { type Board, useBoard } from "./board";
 import { plainName, sideOf } from "./model";
+import { useFind } from "./shell";
 import { CardSky } from "./sky";
-import { Disc } from "./ui";
+import { Disc, TopCard } from "./ui";
 
 const KEY = "bearing.welcome.v1";
 const DAY = 24 * 60 * 60 * 1000;
@@ -162,13 +163,41 @@ const EVENTS = 4;
 /**
  * The first visit: who do you follow? A few taps here and every page puts the viewer's own
  * matches first. It asks once per device, can be put aside, and needs no account.
- *
- * It offers the names most people come for (the top of each game, every game in turn), not
- * whoever happens to play at this hour; anyone else is a search away.
  */
 export function Welcome({ board, onDone }: { board: Board; onDone: () => void }) {
+  return <Picks board={board} onDone={onDone} />;
+}
+
+/** More to follow, from the Following page: the same picks, without what is followed already. */
+export function FollowMore() {
+  return <Picks board={useBoard()} more />;
+}
+
+/**
+ * Things to follow, a tap each. It offers the names most people come for (the top of each
+ * game, every game in turn), not whoever happens to play at this hour; anyone else is a search
+ * away.
+ */
+function Picks({
+  board,
+  more = false,
+  onDone,
+}: {
+  board: Board;
+  /** Opened from Following, not on a first visit: what is followed already is left out. */
+  more?: boolean;
+  onDone?: () => void;
+}) {
   const { atlas, now } = board;
   const [game, setGame] = useState<string>();
+  const find = useFind();
+  // What was followed when the page opened. A card tapped here stays where it is, lit.
+  const [before] = useState(atlas);
+  const had = (follow: Follow) =>
+    more &&
+    (follow.kind === "tournament"
+      ? before.world.follows.some((f) => f.kind === "tournament" && f.id === follow.id)
+      : before.followsCompetitor(follow.id));
 
   const best = useMemo(() => standings(atlas), [atlas]);
   const events = useMemo(() => {
@@ -205,7 +234,10 @@ export function Welcome({ board, onDone }: { board: Board; onDone: () => void })
           ),
           game: t.discipline,
         };
-      });
+      })
+      .filter((pick) => !had(pick.follow));
+    // `had` follows from `before` and `more`, which do not change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [atlas, now]);
 
   const games = atlas.world.disciplines.filter(
@@ -213,7 +245,11 @@ export function Welcome({ board, onDone }: { board: Board; onDone: () => void })
   );
   // With every game shown, each takes its turn: the first of each, then the second of each.
   const people = useMemo(() => {
-    const lists = (game ? [game] : games.map((d) => d.id)).map((id) => best.get(id) ?? []);
+    const lists = (game ? [game] : games.map((d) => d.id)).map((id) =>
+      (best.get(id) ?? []).filter(
+        (entry) => !had({ kind: atlas.competitor(entry.id)?.kind ?? "team", id: entry.id }),
+      ),
+    );
     return inTurn(lists, PEOPLE).map((entry) => entry.id);
     // `games` follows from `atlas` and `best`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -246,39 +282,49 @@ export function Welcome({ board, onDone }: { board: Board; onDone: () => void })
   const picked = atlas.world.follows.length;
   const done = () => {
     remember();
-    onDone();
+    onDone?.();
   };
 
   return (
     <>
-      <section className="bx-stage">
+      <TopCard className="bx-stage">
         <CardSky />
         <div className="bx-ent-in">
           <div className="bx-eh">
             <div>
-              <h1>What do you follow?</h1>
+              <h1>{more ? "Follow more" : "What do you follow?"}</h1>
               <p>
-                Pick a few teams and players. Their matches come first everywhere in Kiming, and you
-                need no account.
+                {more
+                  ? "Tap a team, a player or an event. Their matches come first everywhere in Kiming."
+                  : "Pick a few teams and players. Their matches come first everywhere in Kiming, and you need no account."}
               </p>
             </div>
-            <div className="bx-eh-acts">
-              {picked ? null : (
-                <button type="button" className="bx-btn" data-k="quiet" onClick={done}>
-                  Skip for now
+            {more ? (
+              <div className="bx-eh-acts">
+                <Link to="/following" className="bx-btn" data-k="main">
+                  <Check size={16} aria-hidden />
+                  Done
+                </Link>
+              </div>
+            ) : (
+              <div className="bx-eh-acts">
+                {picked ? null : (
+                  <button type="button" className="bx-btn" data-k="quiet" onClick={done}>
+                    Skip for now
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="bx-btn"
+                  data-k="main"
+                  disabled={!picked}
+                  onClick={done}
+                >
+                  <Check size={16} aria-hidden />
+                  {picked ? `Done, ${picked} picked` : "Done"}
                 </button>
-              )}
-              <button
-                type="button"
-                className="bx-btn"
-                data-k="main"
-                disabled={!picked}
-                onClick={done}
-              >
-                <Check size={16} aria-hidden />
-                {picked ? `Done, ${picked} picked` : "Done"}
-              </button>
-            </div>
+              </div>
+            )}
           </div>
           {games.length > 1 ? (
             <div className="bx-picks" data-k="words" role="group" aria-label="Game">
@@ -298,7 +344,7 @@ export function Welcome({ board, onDone }: { board: Board; onDone: () => void })
             </div>
           ) : null}
         </div>
-      </section>
+      </TopCard>
       {picks.length ? (
         <>
           <h2 className="bx-h2">
@@ -306,10 +352,10 @@ export function Welcome({ board, onDone }: { board: Board; onDone: () => void })
               ? `The top of ${atlas.discipline(game as DisciplineId).name}`
               : "The top of each game"}
             <small>tap to follow</small>
-            <Link to="/search" data-k="find">
+            <button type="button" data-k="find" onClick={find}>
               <Search size={15} aria-hidden />
               <span>Find someone else</span>
-            </Link>
+            </button>
           </h2>
           <div className="bx-pks">
             {picks.map((p) => (

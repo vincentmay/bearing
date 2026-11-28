@@ -22,7 +22,7 @@ import { Back, Go, useVisit } from "./links";
 import { type Dot, type SideView, bestOf, sideOf, standIn } from "./model";
 import { MatchRow } from "./rows";
 import { CardSky, light } from "./sky";
-import { Disc, Dots, Flag, Ping, Problem, Role, positionOf } from "./ui";
+import { Disc, Dots, Flag, Ping, Problem, Role, positionOf, TopCard } from "./ui";
 
 /** A team's or player's matches as dots: filled for a win, open for a loss, a ring for one on. */
 function resultDots(matches: Match[], id: string): Dot[] {
@@ -608,7 +608,7 @@ export function TeamPage({ teamId }: { teamId: string }) {
   return (
     <>
       <Back />
-      <section className="bx-stage" data-live={live.length ? "" : undefined}>
+      <TopCard className="bx-stage" data-live={live.length ? "" : undefined}>
         <CardSky />
         <div className="bx-ent-in">
           <div className="bx-eh">
@@ -649,7 +649,7 @@ export function TeamPage({ teamId }: { teamId: string }) {
             </NowStrip>
           ) : null}
         </div>
-      </section>
+      </TopCard>
 
       <Year cards={year} side={side} now={now} />
 

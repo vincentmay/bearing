@@ -8,7 +8,7 @@ import { Go } from "./links";
 import { type MatchView, type SideView, bestOf } from "./model";
 import { CardSky, light } from "./sky";
 import { until } from "./time";
-import { Disc, Ping, Score, Tick } from "./ui";
+import { Disc, Ping, Score, Tick, TopCard } from "./ui";
 
 const ROOM = "(min-width: 1100px) and (min-height: 720px)";
 
@@ -299,7 +299,7 @@ export function Front({
   if (view.solo || !a || !b) {
     // A field of more than two: the event leads, and who is ahead in it.
     return (
-      <section className="bx-stage" data-size="stage" data-live={live ? "" : undefined}>
+      <TopCard className="bx-stage" data-size="stage" data-live={live ? "" : undefined}>
         {sky}
         <div className="bx-stage-in">
           <div className="bx-hrow">
@@ -319,13 +319,13 @@ export function Front({
           </div>
           <div className="bx-hfoot">{watch}</div>
         </div>
-      </section>
+      </TopCard>
     );
   }
 
   if (size === "row") {
     return (
-      <section className="bx-stage" data-size="row" data-live={live ? "" : undefined}>
+      <TopCard className="bx-stage" data-size="row" data-live={live ? "" : undefined}>
         {sky}
         <div className="bx-stage-in">
           <div className="bx-cl">
@@ -364,12 +364,12 @@ export function Front({
             ))}
           </div>
         </div>
-      </section>
+      </TopCard>
     );
   }
 
   return (
-    <section className="bx-stage" data-size="stage" data-live={live ? "" : undefined}>
+    <TopCard className="bx-stage" data-size="stage" data-live={live ? "" : undefined}>
       {sky}
       <div className="bx-stage-in">
         <div className="bx-hrow">
@@ -428,6 +428,6 @@ export function Front({
           <Chips view={view} />
         </div>
       </div>
-    </section>
+    </TopCard>
   );
 }

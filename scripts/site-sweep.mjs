@@ -17,6 +17,7 @@ const PAGES = [
   ["schedule", "/schedule"],
   ["following", "/following"],
   ["search", "/search"],
+  ["follow more", "/following/add"],
   ["settings", "/settings"],
   ["ranking", "/ranking/cs2"],
   ["event-single", "/tournament/ps-serie-11014"],

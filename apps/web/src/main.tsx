@@ -1,4 +1,5 @@
 import "@fontsource-variable/zalando-sans/wdth.css";
+import { moveOf } from "./bearing/moves";
 import "./bearing/bearing.css";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -29,6 +30,12 @@ const router = createRouter({
   context: { queryClient },
   defaultPreload: "intent",
   scrollRestoration: true,
+  // Going from page to page, the browser carries the old one out and the new one in (see the
+  // end of kiming.css). A change within a page (another day, another stage) is not a move.
+  defaultViewTransition: {
+    types: ({ fromLocation, toLocation, pathChanged }) =>
+      pathChanged && fromLocation ? [moveOf(fromLocation.pathname, toLocation.pathname)] : false,
+  },
 });
 
 declare module "@tanstack/react-router" {

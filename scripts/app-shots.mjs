@@ -28,6 +28,7 @@ const PAGES = [
   ["schedule", "/schedule"],
   ["following", "/following"],
   ["search", "/search"],
+  ["follow-more", "/following/add"],
   ["settings", "/settings"],
   ["team-cs2", "/team/cs2-vitality"],
   ["team-lol", "/team/lol-t1"],

@@ -5,10 +5,19 @@ import "./kiming.css";
 import type { Atlas } from "@bearing/domain";
 import { Link, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
 import { CalendarDays, Radio, Search, Star } from "lucide-react";
-import { type ReactNode, createContext, useContext, useEffect, useRef, useState } from "react";
+import {
+  type ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { usePrefs } from "../lib/prefs";
 import { useSamplePlayer } from "./live";
 import { useAtlas } from "../lib/world";
+import { moveOf, placeOf } from "./moves";
 import { nameOf, useTrail } from "./trail";
 import { FinderOver } from "./find";
 import { AccountLink, Logo, Waiting } from "./ui";
@@ -28,10 +37,15 @@ export function useOrigin(): Tab {
   return useContext(Origin);
 }
 
-/** Which tab an address belongs to, or none for a page further in. */
-function tabOf(path: string): number {
-  return TABS.findIndex((t) => (t.to === "/" ? path === "/" : path.startsWith(t.to)));
+const Find = createContext<() => void>(() => {});
+
+/** Opens search over the page, as its button in the frame and Ctrl K do. */
+export function useFind(): () => void {
+  return useContext(Find);
 }
+
+/** Which tab an address belongs to, or none for a page further in. */
+const tabOf = placeOf;
 
 /** Search opens over any page: from its button, with Ctrl K (or Cmd K), or with a plain "/". */
 function useFinder(): [boolean, (open: boolean) => void] {
@@ -76,6 +90,7 @@ function Chrome({
 }) {
   const { theme } = usePrefs();
   const [finding, setFinding] = useFinder();
+  const open = useCallback(() => setFinding(true), [setFinding]);
   const mac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
   return (
     <div className="bx" data-theme={theme === "system" ? undefined : theme}>
@@ -117,7 +132,7 @@ function Chrome({
           <AccountLink />
         </div>
       </header>
-      {children}
+      <Find value={open}>{children}</Find>
       {finding && find ? <FinderOver onClose={() => setFinding(false)} /> : null}
     </div>
   );
@@ -142,7 +157,12 @@ export function ShellWaiting() {
   return (
     <Chrome active={Math.max(found, 0)} inner={found < 0} find={false}>
       <main className="bx-page">
-        <Waiting title={found >= 0 ? TABS[found]?.label : undefined} />
+        <Waiting
+          title={found >= 0 ? TABS[found]?.label : undefined}
+          shape={path === "/" ? "live" : "page"}
+          at={path.split("/")[1] || "live"}
+          inner={found < 0}
+        />
       </main>
     </Chrome>
   );
@@ -181,23 +201,32 @@ export function Shell() {
   }, [found]);
   const active = found >= 0 ? found : last.current;
   const inner = found < 0;
-  // How this page was come to, decided once when the address changes: between tabs, into a
-  // page, or back out of one. The page arrives accordingly.
-  const [move, setMove] = useState({ path, how: inner ? "bx-view-in" : "bx-view" });
-  if (move.path !== path) {
-    const wasInner = tabOf(move.path) < 0;
-    setMove({ path, how: inner ? "bx-view-in" : wasInner ? "bx-view-out" : "bx-view" });
+  // The page that is standing, which for a moment after a press is still the one before: the
+  // address changes at once, the page when its successor is ready. Everything about the page
+  // itself goes by this one, so that the page being left is not built a second time on its
+  // way out.
+  const shown = useRouterState({
+    select: (s) => s.matches[s.matches.length - 1]?.pathname ?? s.location.pathname,
+  }).replace(/(.)\/$/, "$1");
+  // How this page was come to, decided once when it changes: between tabs, into a page, or
+  // back out of one. The page arrives accordingly.
+  // The first page of a visit comes in over its loading shape: `bx-first` fades the content in
+  // and leaves the sky, which was there already, alone.
+  const [move, setMove] = useState({ path: shown, how: "bx-first" });
+  if (move.path !== shown) {
+    const how = { tab: "bx-view", in: "bx-view-in", out: "bx-view-out" }[moveOf(move.path, shown)];
+    setMove({ path: shown, how });
   }
   // The page says what it is in the browser's own title: in the tab, the history, a bookmark.
   const atlas = useAtlas();
   useEffect(() => {
-    const name = nameOf(atlas, path);
+    const name = nameOf(atlas, shown);
     document.title = name === "Back" ? "Kiming" : `${name} · Kiming`;
-  }, [atlas, path]);
+  }, [atlas, shown]);
   return (
     <Chrome active={active} inner={inner} live={atlas.live().length}>
       <Origin value={TABS[active] ?? TABS[0]}>
-        <main id="main" key={pageOf(atlas, path)} className={`bx-page ${move.how}`}>
+        <main id="main" key={pageOf(atlas, shown)} className={`bx-page ${move.how}`}>
           <Outlet />
         </main>
       </Origin>

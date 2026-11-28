@@ -253,7 +253,8 @@ html:has(.bx[data-theme="dark"]) {
   letter-spacing: 0;
   color: var(--ink2);
 }
-.bx-h2 a {
+.bx-h2 a,
+.bx .bx-h2 button {
   margin-left: auto;
   font-size: 14px;
   font-weight: 700;
@@ -263,10 +264,11 @@ html:has(.bx[data-theme="dark"]) {
   align-items: center;
   gap: 2px;
 }
-.bx-h2 a:hover {
+.bx-h2 a:hover,
+.bx .bx-h2 button:hover {
   color: var(--ink);
 }
-.bx-h2 a[data-k="find"] {
+.bx .bx-h2 [data-k="find"] {
   gap: 6px;
 }
 .bx-quiet {
@@ -1122,11 +1124,11 @@ html:has(.bx[data-theme="dark"]) {
     padding: 2px 12px 120px;
   }
   /* A heading with the way to search beside it: on a phone the two share one line. */
-  .bx-h2:has(a[data-k="find"]) small,
-  .bx-h2 a[data-k="find"] span {
+  .bx-h2:has([data-k="find"]) small,
+  .bx-h2 [data-k="find"] span {
     display: none;
   }
-  .bx-h2 a[data-k="find"]::after {
+  .bx-h2 [data-k="find"]::after {
     content: "Search";
   }
   .bx-stage {
@@ -1681,4 +1683,83 @@ html:has(.bx[data-theme="dark"]) {
 /* The search field is the whole top of its pane: the caret shows where one is, no ring around it. */
 .bx .bx-pal-inp input:focus-visible {
   outline: none;
+}
+
+/* Moving from page to page. The browser itself carries the old page out and the new one in
+   (view transitions), so nothing is blank in between: the frame stands still, the content
+   changes over in a fifth of a second, and the top card with its sky stays, changing its size
+   to the new page's. Where a browser cannot do this, the page fades in as before. */
+@supports (view-transition-name: none) {
+  .bx-view {
+    animation: none;
+  }
+  /* Into a page and back out: the new content also takes a small step, from where it came. */
+  .bx-view-in {
+    animation-name: bx-step-in;
+  }
+  .bx-view-out {
+    animation-name: bx-step-out;
+  }
+  .bx-page > .bx-stage:first-of-type,
+  .bx-wt > .bx-stage {
+    view-transition-name: bx-sky;
+  }
+  /* With search open over the page, the card stays under its veil. */
+  .bx:has(.bx-veil) .bx-stage {
+    view-transition-name: none;
+  }
+}
+/* The first page of a visit takes the place of its loading shape: the sky in the top card is
+   the same one, so only what stands on it and under it fades in. */
+@media (prefers-reduced-motion: no-preference) {
+  .bx-first > :not(.bx-stage),
+  .bx-first > .bx-stage > :not(.bx-cardsky) {
+    animation: bx-arrive 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  }
+}
+@keyframes bx-step-in {
+  from {
+    transform: translateX(16px);
+  }
+}
+@keyframes bx-step-out {
+  from {
+    transform: translateX(-16px);
+  }
+}
+/* A press during the change still lands on the page. */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.2s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+::view-transition-group(bx-sky) {
+  animation-duration: 0.3s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  overflow: clip;
+  border-radius: 32px;
+}
+/* The two cards are laid over each other at their own size, not stretched to fit. */
+::view-transition-old(bx-sky),
+::view-transition-new(bx-sky) {
+  width: 100%;
+  height: 100%;
+  object-fit: none;
+  object-position: top center;
+  animation-duration: 0.2s;
+}
+@media (max-width: 899.98px) {
+  ::view-transition-group(bx-sky) {
+    border-radius: 28px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }

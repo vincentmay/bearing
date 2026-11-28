@@ -16,6 +16,7 @@ import { Route as AppFollowingRouteImport } from './routes/_app.following'
 import { Route as AppScheduleRouteImport } from './routes/_app.schedule'
 import { Route as AppSearchRouteImport } from './routes/_app.search'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppFollowingAddRouteImport } from './routes/_app.following_.add'
 import { Route as AppMatchMatchIdRouteImport } from './routes/_app.match.$matchId'
 import { Route as AppPlayerPlayerIdRouteImport } from './routes/_app.player.$playerId'
 import { Route as AppRankingDisciplineRouteImport } from './routes/_app.ranking.$discipline'
@@ -56,6 +57,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
+const AppFollowingAddRoute = AppFollowingAddRouteImport.update({
+  id: '/following_/add',
+  path: '/following/add',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppMatchMatchIdRoute = AppMatchMatchIdRouteImport.update({
   id: '/match/$matchId',
   path: '/match/$matchId',
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/schedule': typeof AppScheduleRoute
   '/search': typeof AppSearchRoute
   '/settings': typeof AppSettingsRoute
+  '/following/add': typeof AppFollowingAddRoute
   '/match/$matchId': typeof AppMatchMatchIdRoute
   '/player/$playerId': typeof AppPlayerPlayerIdRoute
   '/ranking/$discipline': typeof AppRankingDisciplineRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/search': typeof AppSearchRoute
   '/settings': typeof AppSettingsRoute
   '/': typeof AppIndexRoute
+  '/following/add': typeof AppFollowingAddRoute
   '/match/$matchId': typeof AppMatchMatchIdRoute
   '/player/$playerId': typeof AppPlayerPlayerIdRoute
   '/ranking/$discipline': typeof AppRankingDisciplineRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/_app/search': typeof AppSearchRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/following_/add': typeof AppFollowingAddRoute
   '/_app/match/$matchId': typeof AppMatchMatchIdRoute
   '/_app/player/$playerId': typeof AppPlayerPlayerIdRoute
   '/_app/ranking/$discipline': typeof AppRankingDisciplineRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/search'
     | '/settings'
+    | '/following/add'
     | '/match/$matchId'
     | '/player/$playerId'
     | '/ranking/$discipline'
@@ -146,6 +156,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/settings'
     | '/'
+    | '/following/add'
     | '/match/$matchId'
     | '/player/$playerId'
     | '/ranking/$discipline'
@@ -160,6 +171,7 @@ export interface FileRouteTypes {
     | '/_app/search'
     | '/_app/settings'
     | '/_app/'
+    | '/_app/following_/add'
     | '/_app/match/$matchId'
     | '/_app/player/$playerId'
     | '/_app/ranking/$discipline'
@@ -223,6 +235,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/following_/add': {
+      id: '/_app/following_/add'
+      path: '/following/add'
+      fullPath: '/following/add'
+      preLoaderRoute: typeof AppFollowingAddRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/match/$matchId': {
       id: '/_app/match/$matchId'
       path: '/match/$matchId'
@@ -267,6 +286,7 @@ interface AppRouteChildren {
   AppSearchRoute: typeof AppSearchRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppFollowingAddRoute: typeof AppFollowingAddRoute
   AppMatchMatchIdRoute: typeof AppMatchMatchIdRoute
   AppPlayerPlayerIdRoute: typeof AppPlayerPlayerIdRoute
   AppRankingDisciplineRoute: typeof AppRankingDisciplineRoute
@@ -280,6 +300,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSearchRoute: AppSearchRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
+  AppFollowingAddRoute: AppFollowingAddRoute,
   AppMatchMatchIdRoute: AppMatchMatchIdRoute,
   AppPlayerPlayerIdRoute: AppPlayerPlayerIdRoute,
   AppRankingDisciplineRoute: AppRankingDisciplineRoute,

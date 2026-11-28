@@ -260,14 +260,17 @@
   outline-offset: -2px;
 }
 
-/* While a page loads: its shape, breathing slowly. */
+/* While a page loads: its own shape. The sky is in its card already; the rest breathes slowly. */
 .bx-wt {
   display: grid;
-  gap: 8px;
-  padding-top: 0;
+}
+.bx-wt i {
+  display: block;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .bx-wt {
+  .bx-wt-rest,
+  .bx-wt-back,
+  .bx-wt-card > i {
     animation: bx-wt 1.8s ease-in-out infinite;
   }
 }
@@ -276,35 +279,81 @@
     opacity: 0.5;
   }
 }
-.bx-wt i {
-  display: block;
-}
-.bx-wt-card {
-  height: 240px;
-  padding: 28px;
-  border-radius: 32px;
+/* The way back above the card of a page further in. */
+.bx-wt-back {
+  width: 96px;
+  height: 20px;
+  margin: 6px 4px 12px;
+  border-radius: 10px;
   background: var(--sunk);
+}
+.bx-wt .bx-wt-card {
+  height: 190px;
+  padding: 28px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   gap: 14px;
 }
-.bx-wt-card i {
+.bx-wt[data-shape="live"] .bx-wt-card {
+  height: 233px;
+}
+/* Each page's card is as high as the real one, so that what is under it does not move. */
+.bx-wt[data-at="schedule"] .bx-wt-card {
+  height: 240px;
+}
+.bx-wt[data-at="team"] .bx-wt-card,
+.bx-wt[data-at="tournament"] .bx-wt-card {
+  height: 212px;
+}
+.bx-wt-card > i {
   height: 14px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--sunk) 88%, var(--ink));
+  background: rgb(255 255 255 / 0.16);
 }
 .bx-wt-h {
-  width: 160px;
+  width: 150px;
   height: 22px;
-  margin: 24px 4px 6px;
+  margin: 34px 4px 16px;
   border-radius: 11px;
   background: var(--sunk);
+}
+.bx-wt-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.bx-wt-cards > i {
+  height: 172px;
+  border-radius: var(--r-card);
+  background: color-mix(in srgb, var(--sunk) 60%, transparent);
+}
+.bx-wt-two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+}
+.bx-wt-two[data-k="side"] {
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 24px;
+}
+.bx-wt-two > div {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+.bx-wt-two .bx-wt-h {
+  margin-bottom: 6px;
+}
+.bx-wt-panel {
+  height: 248px;
+  border-radius: var(--r-card);
+  background: color-mix(in srgb, var(--sunk) 60%, transparent);
 }
 .bx-wt-row {
   height: 76px;
   padding: 0 18px;
-  border-radius: 24px;
+  border-radius: var(--r-row);
   background: color-mix(in srgb, var(--sunk) 60%, transparent);
   display: grid;
   grid-template-columns: 44px minmax(0, 1fr);
@@ -512,16 +561,31 @@
     max-width: none;
     width: 100%;
   }
-  .bx-wt {
-    padding-top: 8px;
-  }
-  .bx-wt-card {
-    height: 210px;
+  .bx-wt .bx-wt-card,
+  .bx-wt[data-at] .bx-wt-card {
+    height: 232px;
     padding: 18px 16px;
-    border-radius: 28px;
+  }
+  .bx-wt[data-shape="live"] .bx-wt-card {
+    height: 198px;
   }
   .bx-wt-h {
-    margin: 20px 6px 4px;
+    margin: 26px 6px 12px;
+  }
+  .bx-wt-cards {
+    display: flex;
+    overflow: hidden;
+    gap: 10px;
+  }
+  .bx-wt-cards > i {
+    flex: none;
+    width: 72%;
+    height: 164px;
+  }
+  .bx-wt-two,
+  .bx-wt-two[data-k="side"] {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
   }
   .bx-wt-row {
     padding: 0 14px;
